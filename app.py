@@ -1,0 +1,57 @@
+import os
+
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import check_password_hash
+from database import get_db_connection
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'change-this-secret-key-in-production')
+
+
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        student_id = request.form.get('student_id', '').strip()
+        password = request.form.get('password', '')
+
+        conn = get_db_connection()
+        student = conn.execute(
+            'SELECT * FROM STUDENT WHERE student_id = ?', (student_id,)
+        ).fetchone()
+        conn.close()
+
+        if student and check_password_hash(student['password_hash'], password):
+            session['student_id'] = student['student_id']
+            session['first_name'] = student['first_name']
+            flash(f'Login successful! Welcome, {student["first_name"]}.', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid student ID or password. Please try again.', 'danger')
+
+    return render_template('login.html')
+
+
+@app.route('/dashboard')
+def dashboard():
+    if 'student_id' not in session:
+        flash('Please log in to access the dashboard.', 'warning')
+        return redirect(url_for('login'))
+    return render_template('dashboard.html',
+                           first_name=session.get('first_name'),
+                           student_id=session.get('student_id'))
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
+
+
+if __name__ == '__main__':
+    app.run(debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true')
