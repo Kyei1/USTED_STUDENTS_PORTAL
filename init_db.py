@@ -45,7 +45,7 @@ def init_db():
 
     conn.commit()
     conn.close()
-    print("Database initialised successfully.")
+    print("Database initialized successfully.")
 
 
 if __name__ == "__main__":

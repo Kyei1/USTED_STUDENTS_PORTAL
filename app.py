@@ -6,7 +6,12 @@ from werkzeug.security import check_password_hash
 from database import get_connection
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
+# SECRET_KEY must be set to a fixed value in production so that sessions survive
+# server restarts. The os.urandom fallback is only suitable for development.
+_secret = os.environ.get("SECRET_KEY")
+if not _secret:
+    _secret = os.urandom(24)
+app.secret_key = _secret
 
 
 @app.route("/", methods=["GET"])
@@ -64,4 +69,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_ENV") == "development")
