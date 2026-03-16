@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USTED Student Portal – Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #f0f4f8;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #263238;
+    }
+
+    nav {
+      background: linear-gradient(135deg, #1a237e, #1565c0);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    nav span { color: #fff; font-weight: 700; font-size: 1.1rem; }
+
+    nav a {
+      color: #bbdefb;
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+
+    nav a:hover { color: #fff; }
+
+    .container {
+      max-width: 760px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .welcome-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .welcome-card h2 {
+      font-size: 1.8rem;
+      color: #1a237e;
+      margin-bottom: 0.75rem;
+    }
+
+    .welcome-card p {
+      color: #607d8b;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <span>USTED Portal</span>
+    <a href="{{ url_for('logout') }}">Log out</a>
+  </nav>
+
+  <div class="container">
+    <div class="welcome-card">
+      <h2>Welcome, {{ first_name }}!</h2>
+      <p>You are now logged in to the USTED Student Portal.</p>
+    </div>
+  </div>
+</body>
+</html>

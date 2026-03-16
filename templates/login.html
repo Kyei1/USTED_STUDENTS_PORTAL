@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USTED Student Portal – Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #1565c0 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      padding: 3rem 2.5rem;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .logo svg {
+      width: 56px;
+      height: 56px;
+      fill: #1565c0;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      color: #1a237e;
+      margin-bottom: 0.4rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #607d8b;
+      margin-bottom: 2rem;
+    }
+
+    .alert {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+      font-size: 0.875rem;
+    }
+
+    .alert-error {
+      background: #ffebee;
+      color: #c62828;
+      border-left: 4px solid #ef5350;
+    }
+
+    .alert-success {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-left: 4px solid #66bb6a;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: #37474f;
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid #cfd8dc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #263238;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      background: #fafafa;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: #1565c0;
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
+      background: #fff;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, #1565c0, #1e88e5);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+
+    button[type="submit"]:hover { opacity: 0.92; }
+    button[type="submit"]:active { transform: scale(0.98); }
+
+    .footer-text {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      color: #90a4ae;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- University cap icon -->
+    <div class="logo">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.5L4.5 11.2 3 12l9 4.91L21 12l-1.5-.8L12 15.5zM5 13.18V17l7 3.82L19 17v-3.82l-7 3.82-7-3.82z"/>
+      </svg>
+    </div>
+
+    <h1>USTED Portal</h1>
+    <p class="subtitle">University Student Portal – Please sign in</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}" novalidate>
+      <div class="form-group">
+        <label for="student_id">Student ID</label>
+        <input
+          type="text"
+          id="student_id"
+          name="student_id"
+          placeholder="e.g. 1"
+          required
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          required
+          autocomplete="current-password"
+        />
+      </div>
+
+      <button type="submit">Sign In</button>
+    </form>
+
+    <p class="footer-text">© 2026 USTED University. All rights reserved.</p>
+  </div>
+</body>
+</html>

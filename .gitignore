@@ -1,0 +1,14 @@
+# SQLite database file (generated at runtime by init_db.py)
+*.db
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# OS files
+.DS_Store
