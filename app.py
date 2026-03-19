@@ -1,10 +1,7 @@
 import os
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from werkzeug.security import check_password_hash
-from database import get_db_connection
-from models import db
-import models
+from models import db, Student
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'change-this-secret-key-in-production')
@@ -27,19 +24,16 @@ def login():
         student_id = request.form.get('student_id', '').strip()
         password = request.form.get('password', '')
 
-        conn = get_db_connection()
-        student = conn.execute(
-            'SELECT * FROM STUDENT WHERE student_id = ?', (student_id,)
-        ).fetchone()
-        conn.close()
+        student = Student.query.filter_by(student_id=student_id).first()
 
-        if student and check_password_hash(student['password_hash'], password):
-            session['student_id'] = student['student_id']
-            session['first_name'] = student['first_name']
-            flash(f'Login successful! Welcome, {student["first_name"]}.', 'success')
+        # Temporary plain-text comparison as requested.
+        if student and password == student.password_hash:
+            session['student_id'] = student.student_id
+            session['first_name'] = student.first_name
+            flash(f'Login successful! Welcome, {student.first_name}.', 'success')
             return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid student ID or password. Please try again.', 'danger')
+        flash('Invalid student ID or password. Please try again.', 'danger')
+        return render_template('login.html')
 
     return render_template('login.html')
 
