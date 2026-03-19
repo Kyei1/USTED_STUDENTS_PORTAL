@@ -3,9 +3,17 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
 from database import get_db_connection
+from models import db
+import models
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'change-this-secret-key-in-production')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///usted_portal.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+with app.app_context():
+    db.create_all()
 
 
 @app.route('/')
