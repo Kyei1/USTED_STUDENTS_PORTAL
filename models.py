@@ -53,7 +53,7 @@ class Lecturer(db.Model):
 	last_name = db.Column("Last_Name", db.String(150), nullable=False)
 	email_address = db.Column("Email_address", db.String(150), nullable=False, unique=True)
 	password_hash = db.Column("Password_Hash", db.String(255), nullable=False)
-	role = db.Column(db.Enum("Lecturer", "HOD", name="lecturer_role"), nullable=False)
+	role = db.Column(db.Enum("Lecturer", "HOD", name="lecturer_role"), nullable=False, default="Lecturer")
 
 	department = db.relationship("Department", back_populates="lecturers")
 	course_allocations = db.relationship("CourseLecturer", back_populates="lecturer", lazy=True)
@@ -145,6 +145,7 @@ class FinancialStatus(db.Model):
 	amount_billed = db.Column(db.Numeric(10, 2), nullable=False)
 	amount_paid = db.Column(db.Numeric(10, 2), nullable=False)
 	cleared_for_registration = db.Column(db.Boolean, nullable=False, default=False)
+	__table_args__ = (db.UniqueConstraint('student_id', 'academic_year', name='unique_student_per_year'),)
 
 	student = db.relationship("Student", back_populates="financial_status_records")
 
@@ -153,7 +154,7 @@ class Resource(db.Model):
 	__tablename__ = "resource"
 
 	resource_id = db.Column(db.Integer, primary_key=True)
-	course_code = db.Column(db.String(10), db.ForeignKey("course.course_code"), nullable=False)
+	course_code = db.Column(db.String(10), db.ForeignKey("course.course_code"), nullable=True)
 	department_id = db.Column(db.Integer, db.ForeignKey("department.department_id"), nullable=False)
 	file_name = db.Column("file_Name", db.String(255), nullable=False)
 	resource_type = db.Column("Type", db.Enum("Department", "Course", name="resource_type"), nullable=False)

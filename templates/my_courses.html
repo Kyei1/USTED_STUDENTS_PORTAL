@@ -19,6 +19,7 @@
                 <p class="small text-muted mb-3">Period: {{ current_period[0] }} - {{ current_period[1] }}</p>
 
                 {% if available_current_courses %}
+                    <p class="small text-muted mb-2">You can register by selecting a course below and clicking <strong>Register Course</strong>.</p>
                     <form method="post" class="d-flex flex-column gap-3">
                         <input type="hidden" name="academic_year" value="{{ current_period[0] }}">
                         <input type="hidden" name="semester" value="{{ current_period[1] }}">
@@ -38,7 +39,8 @@
                         </button>
                     </form>
                 {% else %}
-                    <div class="alert alert-success mb-0">No additional courses available for your current semester. You are fully registered.</div>
+                    <div class="alert alert-success mb-2">No additional courses available for your current semester. You are fully registered.</div>
+                    <p class="small text-muted mb-0">This often happens in demo mode when seed data already enrolled you in all department courses.</p>
                 {% endif %}
             </article>
         </div>

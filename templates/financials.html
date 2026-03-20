@@ -2,34 +2,38 @@
 
 {% block title %}Financial Statement - USTED Portal{% endblock %}
 
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/financials.css') }}">
+{% endblock %}
+
 {% block content %}
-<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+<section class="financials-shell p-4 p-lg-5 shadow-sm">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Financial Statement</h1>
-            <p class="text-muted mb-0">Track billed amount, payments, and arrears across academic years.</p>
+            <p class="text-muted mb-0">Track billed amount, payments, arrears, and registration risk across academic years.</p>
         </div>
         <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ student.student_id }}</span>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
-            <div class="border rounded-3 p-3 h-100">
-                <div class="small text-muted">Total Billed</div>
-                <div class="h5 mb-0" style="color: var(--usted-maroon);">GHS {{ '%.2f'|format(total_billed) }}</div>
-            </div>
+            <article class="fin-metric h-100">
+                <p class="label">Total Billed</p>
+                <p class="value">GHS {{ '%.2f'|format(total_billed) }}</p>
+            </article>
         </div>
         <div class="col-12 col-md-4">
-            <div class="border rounded-3 p-3 h-100">
-                <div class="small text-muted">Total Cleared</div>
-                <div class="h5 mb-0" style="color: var(--usted-maroon);">GHS {{ '%.2f'|format(total_paid) }}</div>
-            </div>
+            <article class="fin-metric h-100">
+                <p class="label">Total Paid</p>
+                <p class="value">GHS {{ '%.2f'|format(total_paid) }}</p>
+            </article>
         </div>
         <div class="col-12 col-md-4">
-            <div class="border rounded-3 p-3 h-100">
-                <div class="small text-muted">Outstanding Arrears</div>
-                <div class="h5 mb-0" style="color: var(--usted-maroon);">GHS {{ '%.2f'|format(total_arrears) }}</div>
-            </div>
+            <article class="fin-metric h-100">
+                <p class="label">Outstanding Arrears</p>
+                <p class="value">GHS {{ '%.2f'|format(total_arrears) }}</p>
+            </article>
         </div>
     </div>
 
@@ -42,27 +46,55 @@
                     <th class="text-end">Paid (GHS)</th>
                     <th class="text-end">Arrears (GHS)</th>
                     <th class="text-end">Clearance</th>
+                    <th class="text-end">Details</th>
                 </tr>
             </thead>
             <tbody>
                 {% for record in records %}
-                    {% set arrears = (record.amount_billed|float) - (record.amount_paid|float) %}
+                    {% set billed = record.amount_billed|float %}
+                    {% set paid = record.amount_paid|float %}
+                    {% set arrears = billed - paid %}
+                    {% set paid_pct = ((paid / billed) * 100) if billed > 0 else 0 %}
+                    {% set status = 'Cleared' if arrears <= 0 else ('At-Risk' if arrears <= (0.15 * billed) else 'Arrears') %}
                     <tr>
                         <td>{{ record.academic_year }}</td>
-                        <td class="text-end">{{ '%.2f'|format(record.amount_billed|float) }}</td>
-                        <td class="text-end">{{ '%.2f'|format(record.amount_paid|float) }}</td>
+                        <td class="text-end">{{ '%.2f'|format(billed) }}</td>
+                        <td class="text-end">{{ '%.2f'|format(paid) }}</td>
                         <td class="text-end">{{ '%.2f'|format(arrears) }}</td>
                         <td class="text-end">
-                            {% if record.cleared_for_registration %}
-                                <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Cleared</span>
+                            {% if status == 'Cleared' %}
+                                <span class="status-pill status-cleared">Cleared</span>
+                            {% elif status == 'At-Risk' %}
+                                <span class="status-pill status-risk">At-Risk</span>
                             {% else %}
-                                <span class="badge text-bg-secondary">Not Cleared</span>
+                                <span class="status-pill status-arrears">Arrears</span>
                             {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#finDetails{{ loop.index }}" aria-expanded="false" aria-controls="finDetails{{ loop.index }}">
+                                Drill-down
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="collapse fin-details" id="finDetails{{ loop.index }}">
+                        <td colspan="6">
+                            <div class="py-2 px-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Payment Progress</span>
+                                    <span>{{ '%.1f'|format(paid_pct) }}%</span>
+                                </div>
+                                <div class="fin-progress mb-2">
+                                    <span style="--pct: {{ '%.1f'|format(paid_pct if paid_pct <= 100 else 100) }};"></span>
+                                </div>
+                                <div class="small text-muted">
+                                    Paid GHS {{ '%.2f'|format(paid) }} of GHS {{ '%.2f'|format(billed) }} billed. Remaining balance: GHS {{ '%.2f'|format(arrears if arrears > 0 else 0) }}.
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No financial records available.</td>
+                        <td colspan="6" class="text-center text-muted py-4">No financial records available.</td>
                     </tr>
                 {% endfor %}
             </tbody>
