@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import check_password_hash
 from models import db, Student
 
 app = Flask(__name__)
@@ -26,8 +27,7 @@ def login():
 
         student = Student.query.filter_by(student_id=student_id).first()
 
-        # Temporary plain-text comparison as requested.
-        if student and password == student.password_hash:
+        if student and check_password_hash(student.password_hash, password):
             session['student_id'] = student.student_id
             session['first_name'] = student.first_name
             flash(f'Login successful! Welcome, {student.first_name}.', 'success')
@@ -43,9 +43,14 @@ def dashboard():
     if 'student_id' not in session:
         flash('Please log in to access the dashboard.', 'warning')
         return redirect(url_for('login'))
-    return render_template('dashboard.html',
-                           first_name=session.get('first_name'),
-                           student_id=session.get('student_id'))
+
+    student = Student.query.filter_by(student_id=session['student_id']).first()
+    if not student:
+        session.clear()
+        flash('Student record not found. Please log in again.', 'danger')
+        return redirect(url_for('login'))
+
+    return render_template('dashboard.html', student=student)
 
 
 @app.route('/logout')
