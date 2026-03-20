@@ -191,6 +191,12 @@ class SupportTicket(db.Model):
 	course_code = db.Column(db.String(10), db.ForeignKey("course.course_code"), nullable=True)
 	resolved_by_admin_id = db.Column("Resolved_By_Admin", db.Integer, db.ForeignKey("admin.adminID"), nullable=True)
 	ticket_type = db.Column("Type", db.Enum("Academic", "Technical", name="ticket_type"), nullable=False)
+	priority = db.Column(
+		"Priority",
+		db.Enum("Low", "Medium", "High", name="ticket_priority"),
+		nullable=False,
+		default="Medium",
+	)
 	description = db.Column("Description", db.Text, nullable=False)
 	status = db.Column(
 		"Status",

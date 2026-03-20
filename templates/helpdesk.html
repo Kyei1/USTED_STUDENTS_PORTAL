@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% block title %}Helpdesk - USTED Portal{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/helpdesk.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="row g-4">
@@ -14,6 +17,15 @@
                         <option value="">Select type</option>
                         <option value="Academic">Academic</option>
                         <option value="Technical">Technical</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="priority" class="form-label fw-semibold">Priority</label>
+                    <select id="priority" name="priority" class="form-select" required>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                        <option value="Low">Low</option>
                     </select>
                 </div>
 
@@ -44,13 +56,27 @@
                 <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ tickets|length }} total</span>
             </div>
 
+            <div class="status-filters mb-3" role="tablist" aria-label="Ticket status filter">
+                {% for item in ['All', 'Open', 'Pending', 'Resolved'] %}
+                    <a
+                        href="{{ url_for('student.helpdesk', status=item) }}"
+                        class="status-chip {% if status_filter == item %}active{% endif %}"
+                    >
+                        {{ item }}
+                        <span class="chip-count">{{ status_counts[item] }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
                             <th>Type</th>
+                            <th>Priority</th>
                             <th>Course</th>
+                            <th>Submitted</th>
                             <th>Description</th>
                             <th>Status</th>
                         </tr>
@@ -60,7 +86,17 @@
                             <tr>
                                 <td>#{{ ticket.ticket_id }}</td>
                                 <td>{{ ticket.ticket_type }}</td>
+                                <td>
+                                    {% if ticket.priority == 'High' %}
+                                        <span class="priority-badge priority-high">High</span>
+                                    {% elif ticket.priority == 'Low' %}
+                                        <span class="priority-badge priority-low">Low</span>
+                                    {% else %}
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ ticket.course_code or 'General' }}</td>
+                                <td>{{ ticket.date_submitted.strftime('%Y-%m-%d') if ticket.date_submitted else 'N/A' }}</td>
                                 <td>{{ ticket.description }}</td>
                                 <td>
                                     {% if ticket.status == 'Resolved' %}
@@ -74,7 +110,7 @@
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">No tickets submitted yet.</td>
+                                <td colspan="7" class="text-center text-muted py-4">No tickets found for this filter.</td>
                             </tr>
                         {% endfor %}
                     </tbody>

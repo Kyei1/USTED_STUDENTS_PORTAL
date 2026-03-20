@@ -3,6 +3,7 @@
 from functools import wraps
 from io import BytesIO
 from datetime import datetime
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file
 from models import db, Student, Enrollment, Grade, FinancialStatus, SupportTicket, Course, Resource
@@ -76,6 +77,75 @@ def profile():
         return redirect(url_for('public.login'))
 
     return render_template('student/profile.html', student=student)
+
+
+@student_bp.route('/account-settings', methods=['GET', 'POST'])
+@login_required
+def account_settings():
+    """Allow a student to update profile identity and password."""
+    student = get_current_student()
+    if not student:
+        session.clear()
+        flash('Student record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    if request.method == 'POST':
+        action = request.form.get('action', '').strip()
+
+        if action == 'profile':
+            first_name = request.form.get('first_name', '').strip()
+            middle_name = request.form.get('middle_name', '').strip() or None
+            last_name = request.form.get('last_name', '').strip()
+            email_address = request.form.get('email_address', '').strip().lower()
+
+            if not first_name or not last_name or not email_address:
+                flash('First name, last name, and email are required.', 'danger')
+                return redirect(url_for('student.account_settings'))
+
+            email_owner = Student.query.filter(
+                Student.email_address == email_address,
+                Student.student_id != student.student_id,
+            ).first()
+            if email_owner:
+                flash('That email address is already in use by another account.', 'danger')
+                return redirect(url_for('student.account_settings'))
+
+            student.first_name = first_name
+            student.middle_name = middle_name
+            student.last_name = last_name
+            student.email_address = email_address
+            db.session.commit()
+            session['first_name'] = student.first_name
+            flash('Profile details updated successfully.', 'success')
+            return redirect(url_for('student.account_settings'))
+
+        if action == 'password':
+            current_password = request.form.get('current_password', '')
+            new_password = request.form.get('new_password', '')
+            confirm_password = request.form.get('confirm_password', '')
+
+            if not current_password or not new_password or not confirm_password:
+                flash('All password fields are required.', 'danger')
+                return redirect(url_for('student.account_settings'))
+            if not check_password_hash(student.password_hash, current_password):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('student.account_settings'))
+            if len(new_password) < 8:
+                flash('New password must be at least 8 characters long.', 'danger')
+                return redirect(url_for('student.account_settings'))
+            if new_password != confirm_password:
+                flash('New password and confirmation do not match.', 'danger')
+                return redirect(url_for('student.account_settings'))
+
+            student.password_hash = generate_password_hash(new_password)
+            db.session.commit()
+            flash('Password updated successfully.', 'success')
+            return redirect(url_for('student.account_settings'))
+
+        flash('Unsupported account settings action.', 'warning')
+        return redirect(url_for('student.account_settings'))
+
+    return render_template('student/account_settings.html', student=student)
 
 
 @student_bp.route('/my-courses', methods=['GET', 'POST'])
@@ -215,7 +285,77 @@ def results():
         .all()
     )
 
-    return render_template('student/results.html', student=student, records=records)
+    graded_records = [record for record in records if record.grade]
+    published_count = sum(1 for record in graded_records if record.grade.approval_status == 'Published')
+    pending_count = len(records) - len(graded_records)
+
+    total_credits = sum(record.course.credit_hours for record in graded_records)
+    total_grade_points = sum(
+        score_to_point(float(record.grade.total_score)) * record.course.credit_hours
+        for record in graded_records
+    )
+    cgpa = (total_grade_points / total_credits) if total_credits else 0.0
+
+    by_period = {}
+    for record in graded_records:
+        key = (record.academic_year, record.semester)
+        if key not in by_period:
+            by_period[key] = {'credits': 0, 'points': 0.0, 'courses': 0}
+        by_period[key]['credits'] += record.course.credit_hours
+        by_period[key]['points'] += score_to_point(float(record.grade.total_score)) * record.course.credit_hours
+        by_period[key]['courses'] += 1
+
+    period_rows = []
+    for (year, semester), stats in by_period.items():
+        sgpa = (stats['points'] / stats['credits']) if stats['credits'] else 0.0
+        period_rows.append(
+            {
+                'academic_year': year,
+                'semester': semester,
+                'courses': stats['courses'],
+                'credits': stats['credits'],
+                'sgpa': round(sgpa, 2),
+            }
+        )
+
+    period_rows_desc = sorted(
+        period_rows,
+        key=lambda row: academic_period_rank(
+            type(
+                'PeriodObj',
+                (),
+                {
+                    'academic_year': row['academic_year'],
+                    'semester': row['semester'],
+                },
+            )
+        ),
+        reverse=True,
+    )
+    period_rows_asc = list(reversed(period_rows_desc))
+
+    trend_labels = [f"{row['academic_year']} {row['semester']}" for row in period_rows_asc]
+    trend_sgpa = [row['sgpa'] for row in period_rows_asc]
+    best_period = max(period_rows_desc, key=lambda row: row['sgpa']) if period_rows_desc else None
+
+    analytics = {
+        'total_records': len(records),
+        'graded_records': len(graded_records),
+        'pending_records': pending_count,
+        'published_records': published_count,
+        'cgpa': round(cgpa, 2),
+        'best_period': best_period,
+    }
+
+    return render_template(
+        'student/results.html',
+        student=student,
+        records=records,
+        analytics=analytics,
+        period_rows=period_rows_desc,
+        trend_labels=trend_labels,
+        trend_sgpa=trend_sgpa,
+    )
 
 
 @student_bp.route('/results/transcript.pdf')
@@ -330,14 +470,33 @@ def resource_hub():
         flash('Student record not found. Please log in again.', 'danger')
         return redirect(url_for('public.login'))
 
-    resources = (
-        Resource.query.join(Course, Resource.course_code == Course.course_code)
-        .filter(Resource.department_id == student.department_id)
-        .order_by(Resource.upload_date.desc())
-        .all()
-    )
+    type_filter = request.args.get('type', 'All').strip()
+    if type_filter not in {'All', 'Department', 'Course'}:
+        type_filter = 'All'
 
-    return render_template('student/resource_hub.html', student=student, resources=resources)
+    resources_query = (
+        Resource.query.outerjoin(Course, Resource.course_code == Course.course_code)
+        .filter(Resource.department_id == student.department_id)
+    )
+    if type_filter != 'All':
+        resources_query = resources_query.filter(Resource.resource_type == type_filter)
+
+    resources = resources_query.order_by(Resource.upload_date.desc()).all()
+
+    counts_query = Resource.query.filter(Resource.department_id == student.department_id)
+    resource_counts = {
+        'All': counts_query.count(),
+        'Department': counts_query.filter(Resource.resource_type == 'Department').count(),
+        'Course': counts_query.filter(Resource.resource_type == 'Course').count(),
+    }
+
+    return render_template(
+        'student/resource_hub.html',
+        student=student,
+        resources=resources,
+        type_filter=type_filter,
+        resource_counts=resource_counts,
+    )
 
 
 @student_bp.route('/gpa-simulator', methods=['GET', 'POST'])
@@ -572,11 +731,15 @@ def helpdesk():
 
     if request.method == 'POST':
         ticket_type = request.form.get('ticket_type', '').strip()
+        priority = request.form.get('priority', 'Medium').strip()
         description = request.form.get('description', '').strip()
         course_code = request.form.get('course_code', '').strip() or None
 
         if ticket_type not in {'Academic', 'Technical'} or not description:
             flash('Please provide a valid ticket type and description.', 'danger')
+            return redirect(url_for('student.helpdesk'))
+        if priority not in {'Low', 'Medium', 'High'}:
+            flash('Invalid priority selected.', 'danger')
             return redirect(url_for('student.helpdesk'))
         if course_code and course_code not in enrolled_course_codes:
             flash('Selected course is not part of your current enrollments.', 'danger')
@@ -586,6 +749,7 @@ def helpdesk():
             student_id=student.student_id,
             course_code=course_code,
             ticket_type=ticket_type,
+            priority=priority,
             description=description,
         )
         db.session.add(ticket)
@@ -593,11 +757,23 @@ def helpdesk():
         flash('Support ticket submitted successfully.', 'success')
         return redirect(url_for('student.helpdesk'))
 
-    tickets = (
-        SupportTicket.query.filter_by(student_id=student.student_id)
-        .order_by(SupportTicket.date_submitted.desc())
-        .all()
-    )
+    status_filter = request.args.get('status', 'All').strip()
+    if status_filter not in {'All', 'Open', 'Pending', 'Resolved'}:
+        status_filter = 'All'
+
+    query = SupportTicket.query.filter_by(student_id=student.student_id)
+    if status_filter != 'All':
+        query = query.filter(SupportTicket.status == status_filter)
+
+    tickets = query.order_by(SupportTicket.date_submitted.desc()).all()
+
+    counts_q = SupportTicket.query.filter_by(student_id=student.student_id)
+    status_counts = {
+        'All': counts_q.count(),
+        'Open': counts_q.filter(SupportTicket.status == 'Open').count(),
+        'Pending': counts_q.filter(SupportTicket.status == 'Pending').count(),
+        'Resolved': counts_q.filter(SupportTicket.status == 'Resolved').count(),
+    }
     courses = (
         Course.query.join(Enrollment, Enrollment.course_code == Course.course_code)
         .filter(Enrollment.student_id == student.student_id)
@@ -606,7 +782,14 @@ def helpdesk():
         .all()
     )
 
-    return render_template('student/helpdesk.html', student=student, tickets=tickets, courses=courses)
+    return render_template(
+        'student/helpdesk.html',
+        student=student,
+        tickets=tickets,
+        courses=courses,
+        status_filter=status_filter,
+        status_counts=status_counts,
+    )
 
 
 @student_bp.route('/logout')

@@ -1,0 +1,26 @@
+.result-metric {
+    border: 1px solid var(--usted-border);
+    border-radius: 0.9rem;
+    background: linear-gradient(150deg, #fff, #fff8e8);
+    padding: 0.9rem 1rem;
+}
+
+.metric-label {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+.metric-value {
+    margin: 0.25rem 0 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--usted-ink);
+}
+
+#sgpaTrendChart {
+    min-height: 240px;
+}

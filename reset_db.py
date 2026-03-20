@@ -45,7 +45,7 @@ def reset_database():
 		# Import and run comprehensive seed script
 		print("\nSeeding database with comprehensive institutional data...")
 		from seed_db import seed_initial_data
-		seed_initial_data()
+		seed_initial_data(reset_schema=False)
 		
 		print("\n" + "="*70)
 		print("✅ DATABASE RESET AND SEED COMPLETE")
