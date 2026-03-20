@@ -65,6 +65,138 @@ def dashboard():
     )
 
 
+@student_bp.route('/profile')
+@login_required
+def profile():
+    """Display the current student's profile details."""
+    student = get_current_student()
+    if not student:
+        session.clear()
+        flash('Student record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    return render_template('student/profile.html', student=student)
+
+
+@student_bp.route('/my-courses', methods=['GET', 'POST'])
+@login_required
+def my_courses():
+    """Course registration hub with current, past, and next-semester views."""
+    student = get_current_student()
+    if not student:
+        session.clear()
+        flash('Student record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    all_enrollments = (
+        Enrollment.query.filter_by(student_id=student.student_id)
+        .join(Course, Enrollment.course_code == Course.course_code)
+        .outerjoin(Grade, Grade.enrollment_id == Enrollment.enrollment_id)
+        .order_by(Enrollment.academic_year.desc(), Enrollment.semester.desc(), Course.course_code.asc())
+        .all()
+    )
+
+    if all_enrollments:
+        active_enrollment = max(all_enrollments, key=academic_period_rank)
+        current_period = (active_enrollment.academic_year, active_enrollment.semester)
+    else:
+        start_year = datetime.now().year
+        current_period = (f'{start_year}/{start_year + 1}', 'First')
+
+    def build_next_period(period):
+        year, semester = period
+        if semester == 'First':
+            return (year, 'Second')
+        try:
+            start = int(str(year).split('/')[0])
+            return (f'{start + 1}/{start + 2}', 'First')
+        except (ValueError, IndexError):
+            return (year, 'First')
+
+    next_period = build_next_period(current_period)
+
+    if request.method == 'POST':
+        course_code = request.form.get('course_code', '').strip()
+        reg_year = request.form.get('academic_year', current_period[0]).strip()
+        reg_semester = request.form.get('semester', current_period[1]).strip()
+
+        if not course_code:
+            flash('Select a course before submitting registration.', 'danger')
+            return redirect(url_for('student.my_courses'))
+        if reg_semester not in {'First', 'Second'}:
+            flash('Invalid semester selected for registration.', 'danger')
+            return redirect(url_for('student.my_courses'))
+
+        course = Course.query.filter_by(course_code=course_code, department_id=student.department_id).first()
+        if not course:
+            flash('Selected course is not available for your department.', 'danger')
+            return redirect(url_for('student.my_courses'))
+
+        existing = Enrollment.query.filter_by(
+            student_id=student.student_id,
+            course_code=course_code,
+            academic_year=reg_year,
+            semester=reg_semester,
+        ).first()
+        if existing:
+            flash('You are already registered for this course in the selected semester.', 'warning')
+            return redirect(url_for('student.my_courses'))
+
+        db.session.add(
+            Enrollment(
+                student_id=student.student_id,
+                course_code=course_code,
+                academic_year=reg_year,
+                semester=reg_semester,
+            )
+        )
+        db.session.commit()
+        flash(f'Course {course_code} registered for {reg_year} {reg_semester} semester.', 'success')
+        return redirect(url_for('student.my_courses'))
+
+    current_enrollments = [
+        enrollment
+        for enrollment in all_enrollments
+        if (enrollment.academic_year, enrollment.semester) == current_period
+    ]
+    past_enrollments = [
+        enrollment
+        for enrollment in all_enrollments
+        if (enrollment.academic_year, enrollment.semester) != current_period
+    ]
+
+    current_course_codes = {enrollment.course_code for enrollment in current_enrollments}
+    next_course_codes = {
+        enrollment.course_code
+        for enrollment in all_enrollments
+        if (enrollment.academic_year, enrollment.semester) == next_period
+    }
+
+    available_current_q = Course.query.filter_by(department_id=student.department_id)
+    if current_course_codes:
+        available_current_q = available_current_q.filter(~Course.course_code.in_(current_course_codes))
+    available_current_courses = available_current_q.order_by(Course.course_code.asc()).all()
+
+    available_next_q = Course.query.filter_by(department_id=student.department_id)
+    if next_course_codes:
+        available_next_q = available_next_q.filter(~Course.course_code.in_(next_course_codes))
+    available_next_courses = available_next_q.order_by(Course.course_code.asc()).all()
+
+    total_current_credits = sum(enrollment.course.credit_hours for enrollment in current_enrollments)
+
+    return render_template(
+        'student/my_courses.html',
+        student=student,
+        current_period=current_period,
+        next_period=next_period,
+        current_enrollments=current_enrollments,
+        past_enrollments=past_enrollments,
+        available_current_courses=available_current_courses,
+        available_next_courses=available_next_courses,
+        total_current_credits=total_current_credits,
+    )
+
+
 @student_bp.route('/results')
 @login_required
 def results():
