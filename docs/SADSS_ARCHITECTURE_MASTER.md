@@ -17,14 +17,14 @@ This is a comprehensive, multi-role university portal designed to solve administ
 * **Frontend Framework:** STRICTLY Bootstrap 5 (using grid, cards, and flexbox utilities). No Tailwind.
 * **Custom Styling:** A bespoke CSS layer enforcing the AAMUSTED brand identity.
 
-### 3. Design System & Theme Identity (Strict Maroon & Gold)
+### 3. Design System & Theme Identity (Strict Maroon, Gold & White)
 All UI generation must strictly adhere to this color palette. Do not use default Bootstrap greens or primary blues.
-* **Primary Branding (AAMUSTED Maroon):** `#8B0000` (Used for top header borders, active sidebar links, primary accents).
-* **Secondary Accent (AAMUSTED Gold):** `#D4AF37` (Used for primary calls to action, important buttons, and highlights).
-* **Sidebar & Typography (Rich Dark Blue):** `#0f172a` (Used for the persistent left sidebar, all text, headings, and icons).
+* **Primary Branding (Maroon):** `#7A0016` (Used for top header borders, active sidebar links, and primary accents).
+* **Secondary Accent (Gold):** `#DBA111` (Used for primary calls to action, important buttons, and highlights).
+* **Typography & Icons (Deep Maroon Ink):** `#4A000D` (Used for body text, headings, and iconography).
 * **Backgrounds:** `#f8f9fa` (Main content area), `#ffffff` (Cards and top header).
 * **Layout Structure:** A persistent left Sidebar (collapsible on mobile) and a clean White Top Header. All pages extend `base.html`.
-* **The Overhaul Signature:** The `base.html` footer must always contain a cheeky developer credit: *"Crafted with ☕ and late-night code by LazyDev @ Overhaul Inc."* (or similar variant) styled with the Gold and Blue theme variables.
+* **The Overhaul Signature:** The `base.html` footer must always contain a cheeky developer credit: *"Crafted with ☕ and late-night code by LazyDev @ Overhaul Inc."* (or similar variant) styled with the Maroon and Gold theme variables.
 
 ### 4. Hyper-Responsiveness Mandate
 The portal must render flawlessly on all device sizes (from ultra-small mobile to 4K desktop) without horizontal scrolling or disorganized overlapping.
@@ -32,7 +32,7 @@ The portal must render flawlessly on all device sizes (from ultra-small mobile t
 * **Responsive Tables:** Every `<table>` must be wrapped in a `<div class="table-responsive">` so data (like Results and Financials) can scroll horizontally on mobile without breaking the page width.
 * **Flexbox Wrapping:** Use `flex-wrap` on all button groups and stat cards so they stack vertically on smaller screens instead of shrinking to unreadable sizes.
 * **No Fixed Widths:** Never hardcode widths (e.g., `width: 500px`). Use percentage-based Bootstrap classes (e.g., `w-100`, `w-md-50`).
-* **Sidebar Behavior:** The dark blue sidebar must automatically collapse behind a hamburger menu on screens smaller than 992px (`lg` breakpoint).
+* **Sidebar Behavior:** The maroon sidebar must automatically collapse behind a hamburger menu on screens smaller than 992px (`lg` breakpoint).
 
 ### 5. Database Architecture (The ERD)
 The database schema (`models.py`) consists of 12 interconnected tables using SQLAlchemy ORM.

@@ -1,752 +1,171 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Enhanced AAMUSTED Students Portal (SADSS)</title>
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous"
-    >
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        :root {
-            --usted-maroon: #7A0016;
-            --usted-gold: #DBA111;
-            --usted-ink: #4a000d;
-            --usted-maroon-soft: rgba(122, 0, 22, 0.06);
-            --usted-maroon-mid: rgba(122, 0, 22, 0.08);
-            --usted-maroon-glow: rgba(122, 0, 22, 0.06);
-            --usted-gold-soft: rgba(219, 161, 17, 0.22);
-            --usted-gold-mid: rgba(219, 161, 17, 0.35);
-            --usted-gold-strong: rgba(219, 161, 17, 0.5);
-            --usted-gold-shadow: rgba(219, 161, 17, 0.4);
-            --usted-gold-hover: #c28e0e;
-            --usted-maroon-hover: #5a0010;
-            --usted-footer-bg: #4a000d;
-            --usted-footer-muted: #9ca3af;
-            --usted-gold-soft-2: rgba(219, 161, 17, 0.16);
-            --usted-gold-soft-3: rgba(219, 161, 17, 0.13);
-            --usted-gold-soft-4: rgba(219, 161, 17, 0.12);
-            --usted-gold-border-soft: rgba(219, 161, 17, 0.3);
-            --usted-gold-ring: rgba(219, 161, 17, 0.45);
-            --usted-gold-text-soft: #f8d577;
-            --usted-gold-shadow-soft: rgba(219, 161, 17, 0.35);
-            --text-muted: #6b7280;
-        }
+{% extends 'base.html' %}
 
-        body {
-            background: #fff;
-            color: #1f2937;
-        }
+{% block title %}Enhanced USTED Students Portal{% endblock %}
 
-        .public-navbar {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: #fff;
-            border-bottom: 1px solid #f1f5f9;
-            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
-        }
+{% block content %}
+<style>
+    .landing-hero {
+        background: linear-gradient(135deg, var(--usted-maroon) 0%, #5e0011 100%);
+        border-radius: 1.25rem;
+        color: #fff;
+        overflow: hidden;
+        position: relative;
+    }
 
-        .logo-mark {
-            width: 46px;
-            height: 46px;
-            border-radius: 0.6rem;
-            background: var(--usted-maroon);
-            color: var(--usted-gold);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-        }
+    .landing-hero::before {
+        content: "";
+        position: absolute;
+        right: -100px;
+        top: -100px;
+        width: 320px;
+        height: 320px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+    }
 
-        .brand-title {
-            margin: 0;
-            color: var(--usted-maroon);
-            font-size: 1.7rem;
-            line-height: 1;
-            font-weight: 800;
-        }
+    .landing-hero::after {
+        content: "";
+        position: absolute;
+        left: -120px;
+        bottom: -140px;
+        width: 360px;
+        height: 360px;
+        border: 36px solid rgba(219, 161, 17, 0.38);
+        border-radius: 999px;
+    }
 
-        .brand-sub {
-            display: block;
-            color: var(--text-muted);
-            font-size: 0.62rem;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            font-weight: 700;
-        }
+    .feature-card {
+        border: 1px solid #eceff3;
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-        .desktop-nav a {
-            color: #374151;
-            text-decoration: none;
-            font-weight: 600;
-        }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 28px rgba(122, 0, 22, 0.12);
+    }
 
-        .desktop-nav a:hover {
-            color: var(--usted-maroon);
-        }
+    .icon-badge {
+        width: 52px;
+        height: 52px;
+        border-radius: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
 
-        .new-pill {
-            margin-left: 0.3rem;
-            font-size: 0.62rem;
-            padding: 0.1rem 0.4rem;
-            border-radius: 999px;
-            background: var(--usted-gold-soft);
-            color: var(--usted-ink);
-            font-weight: 700;
-        }
+    .icon-maroon {
+        background: var(--usted-maroon-soft);
+        color: var(--usted-maroon);
+    }
 
-        .btn-login {
-            background: var(--usted-gold);
-            border: 0;
-            color: var(--usted-ink);
-            font-weight: 800;
-            border-radius: 0.5rem;
-            padding: 0.6rem 1.45rem;
-            box-shadow: 0 7px 18px rgba(15, 23, 42, 0.14);
-            transition: all 0.25s ease;
-        }
+    .icon-gold {
+        background: rgba(219, 161, 17, 0.18);
+        color: var(--usted-gold-dark);
+    }
 
-        .btn-login:hover {
-            background: var(--usted-gold-hover);
-            color: var(--usted-ink);
-            transform: translateY(-2px);
-        }
+    .steps-strip {
+        background: #ffffff;
+        border: 1px solid #eceff3;
+        border-radius: 1rem;
+    }
+</style>
 
-        .mobile-menu-btn {
-            border: 0;
-            background: transparent;
-            color: var(--usted-maroon);
-            font-size: 1.65rem;
-        }
-
-        .mobile-menu {
-            border-top: 1px solid #f1f5f9;
-            box-shadow: inset 0 3px 8px rgba(15, 23, 42, 0.05);
-        }
-
-        .hero-banner {
-            position: relative;
-            overflow: hidden;
-            background: var(--usted-maroon);
-        }
-
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            opacity: 0.14;
-        }
-
-        .hero-circle-a {
-            position: absolute;
-            top: -12%;
-            right: -5%;
-            width: 22rem;
-            height: 22rem;
-            border: 34px solid #fff;
-            border-radius: 999px;
-        }
-
-        .hero-circle-b {
-            position: absolute;
-            bottom: -22%;
-            left: -10%;
-            width: 28rem;
-            height: 28rem;
-            border: 50px solid var(--usted-gold);
-            border-radius: 999px;
-        }
-
-        .hero-glow {
-            position: absolute;
-            top: 30%;
-            left: 20%;
-            width: 8rem;
-            height: 8rem;
-            background: var(--usted-gold);
-            border-radius: 999px;
-            filter: blur(36px);
-        }
-
-        .hero-grid {
-            position: absolute;
-            inset: 0;
-            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.18) 1px, transparent 0);
-            background-size: 32px 32px;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-chip {
-            display: inline-block;
-            margin-bottom: 1rem;
-            padding: 0.35rem 0.95rem;
-            border-radius: 999px;
-            border: 1px solid var(--usted-gold-mid);
-            background: var(--usted-gold-soft);
-            color: var(--usted-gold);
-            font-weight: 700;
-            font-size: 0.88rem;
-        }
-
-        .hero-title {
-            color: #fff;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            line-height: 1.15;
-            margin-bottom: 1.2rem;
-        }
-
-        .hero-title span {
-            color: var(--usted-gold);
-        }
-
-        .hero-sub {
-            color: #e5e7eb;
-            max-width: 740px;
-            margin-inline: auto;
-            margin-bottom: 2.1rem;
-            font-size: 1.08rem;
-            line-height: 1.75;
-        }
-
-        .btn-portal {
-            background: var(--usted-gold);
-            border: 0;
-            color: var(--usted-ink);
-            font-weight: 700;
-            padding: 0.9rem 1.75rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 0 20px var(--usted-gold-shadow);
-            transition: all 0.25s ease;
-        }
-
-        .btn-portal:hover {
-            background: var(--usted-gold-hover);
-            color: var(--usted-ink);
-            transform: translateY(-2px);
-        }
-
-        .btn-outline-hero {
-            border: 2px solid rgba(255, 255, 255, 0.7);
-            color: #fff;
-            font-weight: 700;
-            padding: 0.9rem 1.75rem;
-            border-radius: 0.5rem;
-            background: transparent;
-            transition: all 0.25s ease;
-        }
-
-        .btn-outline-hero:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #fff;
-        }
-
-        .hero-wave {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            line-height: 0;
-            color: #fff;
-        }
-
-        .hero-wave svg {
-            width: 100%;
-            height: 56px;
-            display: block;
-        }
-
-        .notice-bar {
-            background: #fff7e3;
-            border-top: 1px solid var(--usted-gold-mid);
-            border-bottom: 1px solid var(--usted-gold-mid);
-            box-shadow: inset 0 2px 5px var(--usted-maroon-glow);
-        }
-
-        .notice-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            background: var(--usted-gold-soft);
-            color: var(--usted-ink);
-            border: 1px solid var(--usted-gold-strong);
-            border-radius: 999px;
-            padding: 0.35rem 0.7rem;
-            font-size: 0.83rem;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .notice-track {
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .notice-text {
-            display: inline-block;
-            color: var(--usted-ink);
-            font-weight: 600;
-            animation: marquee 20s linear infinite;
-        }
-
-        @keyframes marquee {
-            0% { transform: translateX(50%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        .section-label {
-            color: var(--usted-gold);
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            font-size: 0.78rem;
-            font-weight: 800;
-            margin-bottom: 0.55rem;
-        }
-
-        .section-title {
-            color: var(--usted-maroon);
-            font-weight: 800;
-            margin-bottom: 0.9rem;
-        }
-
-        .title-divider {
-            width: 88px;
-            height: 4px;
-            background: var(--usted-gold);
-            border-radius: 999px;
-            margin: 0.9rem auto 0;
-        }
-
-        .feature-card {
-            border: 1px solid #f1f5f9;
-            border-radius: 0.9rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 30px var(--usted-maroon-mid);
-        }
-
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover .feature-icon {
-            transform: scale(1.06);
-        }
-
-        .feature-overlay {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 96px;
-            height: 96px;
-            border-bottom-left-radius: 999px;
-            background: #f8fafc;
-            z-index: 0;
-        }
-
-        .step-section {
-            background: #f8fafc;
-            border-top: 1px solid #f1f5f9;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .step-node {
-            width: 96px;
-            height: 96px;
-            background: #fff;
-            border: 4px solid #fff;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-            position: relative;
-            font-size: 2rem;
-        }
-
-        .step-number {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 30px;
-            height: 30px;
-            border-radius: 999px;
-            background: var(--usted-gold);
-            color: var(--usted-maroon);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            font-weight: 800;
-            box-shadow: 0 8px 18px var(--usted-gold-shadow-soft);
-        }
-
-        .step-link {
-            color: var(--usted-maroon);
-            font-weight: 800;
-            text-decoration: none;
-        }
-
-        .step-link:hover {
-            color: var(--usted-maroon-hover);
-        }
-
-        .cta-band {
-            background: var(--usted-maroon);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-band::before {
-            content: "";
-            position: absolute;
-            top: -100px;
-            left: -100px;
-            width: 260px;
-            height: 260px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.09);
-        }
-
-        .cta-band::after {
-            content: "";
-            position: absolute;
-            right: -140px;
-            bottom: -120px;
-            width: 380px;
-            height: 380px;
-            border: 38px solid var(--usted-gold-ring);
-            border-radius: 999px;
-        }
-
-        .site-footer {
-            background: var(--usted-footer-bg);
-            color: #d1d5db;
-        }
-
-        .footer-link {
-            color: #d1d5db;
-            text-decoration: none;
-        }
-
-        .footer-link:hover {
-            color: var(--usted-gold);
-        }
-
-        .social-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--usted-footer-muted);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .social-btn:hover {
-            background: var(--usted-gold);
-            color: #fff;
-        }
-
-        @media (max-width: 991.98px) {
-            .desktop-nav {
-                display: none;
-            }
-        }
-
-        @media (min-width: 992px) {
-            .mobile-controls,
-            .mobile-menu {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body>
-    <nav class="public-navbar py-3">
-        <div class="container px-3 px-md-4">
-            <div class="d-flex justify-content-between align-items-center" style="min-height: 56px;">
-                <div class="d-flex align-items-center gap-2" role="button" aria-label="AAMUSTED Portal">
-                    <span class="logo-mark"><i class="bi bi-mortarboard-fill"></i></span>
-                    <span>
-                        <span class="brand-title">USTED</span>
-                        <span class="brand-sub">Student Portal</span>
-                    </span>
-                </div>
-
-                <div class="desktop-nav d-flex align-items-center gap-4">
-                    <a href="#">Home</a>
-                    <a href="#">Academics</a>
-                    <a href="#">Portal Features</a>
-                    <a href="#" class="d-inline-flex align-items-center">Helpdesk <span class="new-pill">New</span></a>
-                </div>
-
-                <div class="desktop-nav">
-                    <a href="{{ url_for('login') }}" class="btn btn-login">Student Login</a>
-                </div>
-
-                <div class="mobile-controls">
-                    <button class="mobile-menu-btn" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">
-                        <i class="bi bi-list" id="menuIcon"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="mobile-menu pt-2 pb-3" id="mobileMenu" style="display: none;">
-                <a href="#" class="d-block px-3 py-2 text-decoration-none text-dark fw-semibold">Home</a>
-                <a href="#" class="d-block px-3 py-2 text-decoration-none text-dark fw-semibold">Academics</a>
-                <a href="#" class="d-block px-3 py-2 text-decoration-none text-dark fw-semibold">Portal Features</a>
-                <a href="#" class="d-block px-3 py-2 text-decoration-none text-dark fw-semibold">Helpdesk</a>
-                <div class="px-3 pt-2">
-                    <a href="{{ url_for('login') }}" class="btn btn-login w-100">Student Login</a>
-                </div>
+<section class="landing-hero p-4 p-lg-5 mb-4 mb-lg-5">
+    <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+        <div class="col-12 col-lg-7">
+            <span class="badge rounded-pill mb-3" style="background: rgba(219, 161, 17, 0.2); color: #f7d983;">Enhanced SADSS Experience</span>
+            <h1 class="display-5 fw-bold mb-3">Student-Centered Portal Built for Clarity, Speed, and Support</h1>
+            <p class="lead mb-4" style="max-width: 680px;">
+                Access results, project your GPA, track financial clearance, and resolve issues from one streamlined platform.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('login') }}" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 800;">Log In to Portal</a>
+                <a href="{{ url_for('dashboard') if session.get('student_id') else url_for('login') }}" class="btn btn-outline-light">Open Dashboard</a>
             </div>
         </div>
-    </nav>
-
-    <header class="hero-banner">
-        <div class="hero-overlay">
-            <div class="hero-circle-a"></div>
-            <div class="hero-circle-b"></div>
-            <div class="hero-glow"></div>
-            <div class="hero-grid"></div>
-        </div>
-
-        <div class="container hero-content px-3 px-md-4" style="padding-top: 6rem; padding-bottom: 8rem;">
-            <div class="text-center">
-                <span class="hero-chip">Version 2.0 Now Live</span>
-                <h1 class="hero-title display-5 display-md-4 display-lg-2">Behold, the revamped <span>USTED</span> Portal.</h1>
-                <p class="hero-sub">
-                    Experience smarter academic tracking, faster support, and the tools you need to succeed.
-                    Your campus life, simplified.
-                </p>
-                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-                    <a href="{{ url_for('login') }}" class="btn btn-portal btn-lg">Log In Now</a>
-                    <a href="#platform-highlights" class="btn btn-outline-hero btn-lg">Explore Features</a>
-                </div>
+        <div class="col-12 col-lg-5">
+            <div class="bg-white rounded-4 p-4" style="color: var(--usted-ink);">
+                <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Quick Highlights</h2>
+                <ul class="mb-0 ps-3">
+                    <li class="mb-2">Transparent CA and Exam score breakdown</li>
+                    <li class="mb-2">Interactive GPA simulation before finals</li>
+                    <li class="mb-2">Real-time fee and clearance tracking</li>
+                    <li>Integrated academic and technical helpdesk</li>
+                </ul>
             </div>
         </div>
+    </div>
+</section>
 
-        <div class="hero-wave">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,123.6,198.39,112.55,240.56,105.62,283.47,85,321.39,56.44Z" fill="currentColor"></path>
-            </svg>
+<section class="mb-4 mb-lg-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+        <div>
+            <p class="text-uppercase fw-bold mb-1" style="font-size: 0.78rem; letter-spacing: 0.15em; color: var(--usted-gold-dark);">Core Modules</p>
+            <h2 class="h3 fw-bold mb-0" style="color: var(--usted-maroon);">Everything You Need in One Place</h2>
         </div>
-    </header>
+    </div>
 
-    <section class="notice-bar py-3">
-        <div class="container px-3 px-md-4 d-flex align-items-center gap-3">
-            <span class="notice-pill"><i class="bi bi-bell-fill"></i> Notice</span>
-            <div class="notice-track">
-                <p class="notice-text mb-0">
-                    Course Registration for the new semester is now open. The new GPA Simulator tool is live! Please complete your registration before the deadline.
-                </p>
-            </div>
+    <div class="row g-3 g-lg-4">
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-maroon mb-3"><i class="bi bi-journal-check"></i></span>
+                <h3 class="h5 fw-bold">Results Hub</h3>
+                <p class="text-muted mb-0">View course-by-course CA and exam marks with publication status.</p>
+            </article>
         </div>
-    </section>
-
-    <section id="platform-highlights" class="py-5 py-lg-6 bg-white">
-        <div class="container px-3 px-md-4">
-            <div class="text-center mb-5">
-                <p class="section-label">Platform Highlights</p>
-                <h2 class="section-title display-6">Built for Student Success</h2>
-                <div class="title-divider"></div>
-            </div>
-
-            <div class="row g-4">
-                <div class="col-12 col-md-6 col-xl-3">
-                    <article class="feature-card p-4 h-100">
-                        <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">
-                            <i class="bi bi-calculator-fill"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Advanced GPA Simulator</h4>
-                        <p class="text-muted mb-0">Project your grades, set academic targets, and precisely map your path to First Class honors.</p>
-                    </article>
-                </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
-                    <article class="feature-card p-4 h-100">
-                        <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: var(--usted-gold-soft-2); color: var(--usted-maroon);">
-                            <i class="bi bi-life-preserver"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Streamlined Helpdesk</h4>
-                        <p class="text-muted mb-0">Submit and track academic and IT support tickets with real-time updates.</p>
-                    </article>
-                </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
-                    <article class="feature-card p-4 h-100">
-                        <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: var(--usted-gold-soft-3); color: var(--usted-gold);">
-                            <i class="bi bi-book-fill"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Resource Hub</h4>
-                        <p class="text-muted mb-0">Access announcements, lecture slides, past questions, and digital library materials.</p>
-                    </article>
-                </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
-                    <article class="feature-card p-4 h-100">
-                        <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">
-                            <i class="bi bi-credit-card-fill"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Financial Overview</h4>
-                        <p class="text-muted mb-0">Track fee payments, view statements, and print valid receipts directly from your dashboard.</p>
-                    </article>
-                </div>
-            </div>
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-gold mb-3"><i class="bi bi-calculator-fill"></i></span>
+                <h3 class="h5 fw-bold">GPA Simulator</h3>
+                <p class="text-muted mb-0">Estimate semester GPA and understand performance impact instantly.</p>
+            </article>
         </div>
-    </section>
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-maroon mb-3"><i class="bi bi-wallet2"></i></span>
+                <h3 class="h5 fw-bold">Financials</h3>
+                <p class="text-muted mb-0">Track billed amounts, payments, arrears, and registration clearance.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-gold mb-3"><i class="bi bi-life-preserver"></i></span>
+                <h3 class="h5 fw-bold">Helpdesk</h3>
+                <p class="text-muted mb-0">Submit and monitor support tickets for academic and technical issues.</p>
+            </article>
+        </div>
+    </div>
+</section>
 
-    <section class="step-section py-5 py-lg-6">
-        <div class="container px-3 px-md-4">
-            <div class="text-center mb-5">
-                <h2 class="section-title display-6 mb-3">How It Works</h2>
-                <p class="text-muted mx-auto" style="max-width: 700px;">Mastering your academic journey is easier than ever. Get started in three simple steps.</p>
-            </div>
-
-            <div class="row g-4 text-center">
+<section class="steps-strip p-4 p-lg-5 mb-3">
+    <div class="row g-4 text-center text-lg-start align-items-center">
+        <div class="col-12 col-lg-3">
+            <h2 class="h4 fw-bold mb-0" style="color: var(--usted-maroon);">Get Started in 3 Steps</h2>
+        </div>
+        <div class="col-12 col-lg-9">
+            <div class="row g-3">
                 <div class="col-12 col-md-4">
-                    <div class="step-node mb-3" style="color: var(--usted-maroon);">
-                        <i class="bi bi-person-check-fill"></i>
-                        <span class="step-number">1</span>
+                    <div class="p-3 border rounded-3 h-100">
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">1. Log In</div>
+                        <div class="small text-muted">Use your student credentials securely.</div>
                     </div>
-                    <h4 class="fw-bold mb-2">Log In Securely</h4>
-                    <p class="text-muted mb-0">Access your customized dashboard using your USTED credentials.</p>
                 </div>
-
                 <div class="col-12 col-md-4">
-                    <div class="step-node mb-3" style="color: var(--usted-gold);">
-                        <i class="bi bi-bullseye"></i>
-                        <span class="step-number">2</span>
+                    <div class="p-3 border rounded-3 h-100">
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">2. Explore</div>
+                        <div class="small text-muted">Open Results, GPA Simulator, and Financials.</div>
                     </div>
-                    <h4 class="fw-bold mb-2">Set Your Targets</h4>
-                    <p class="text-muted mb-0">Use the simulator to plan your semester and target outcomes.</p>
                 </div>
-
                 <div class="col-12 col-md-4">
-                    <div class="step-node mb-3" style="color: var(--usted-maroon);">
-                        <i class="bi bi-graph-up-arrow"></i>
-                        <span class="step-number">3</span>
+                    <div class="p-3 border rounded-3 h-100">
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">3. Resolve</div>
+                        <div class="small text-muted">Submit helpdesk tickets and track updates.</div>
                     </div>
-                    <h4 class="fw-bold mb-2">Track Progress</h4>
-                    <p class="text-muted mb-0">Monitor your standing, tasks, and finances in real time.</p>
-                </div>
-            </div>
-
-            <div class="text-center mt-5">
-                <a href="#" class="step-link">View Full Documentation <i class="bi bi-chevron-right"></i></a>
-            </div>
-        </div>
-    </section>
-
-    <section class="cta-band py-5 py-lg-6 text-center text-white">
-        <div class="container px-3 px-md-4 position-relative" style="z-index: 1;">
-            <h2 class="display-6 fw-bold mb-4">Ready to take control of your academic journey?</h2>
-            <a href="{{ url_for('login') }}" class="btn btn-portal btn-lg">Log In to Your Portal</a>
-        </div>
-    </section>
-
-    <footer class="site-footer pt-5 pb-4">
-        <div class="container px-3 px-md-4">
-            <div class="row g-4 mb-5">
-                <div class="col-12 col-lg-4">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <span class="logo-mark" style="background: rgba(255,255,255,0.1);"><i class="bi bi-mortarboard-fill"></i></span>
-                        <div>
-                            <h3 class="mb-0 text-white">USTED</h3>
-                            <small class="text-uppercase" style="letter-spacing: 0.12em; color: var(--usted-gold);">Portal System</small>
-                        </div>
-                    </div>
-                    <p class="mb-0" style="color: var(--usted-footer-muted); max-width: 360px;">
-                        University of Skills Training and Entrepreneurial Development.
-                        Producing world-class graduates through technical, vocational, and entrepreneurial training.
-                    </p>
-                </div>
-
-                <div class="col-12 col-md-6 col-lg-4">
-                    <h5 class="text-white mb-3">Quick Links</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2"><a class="footer-link" href="{{ url_for('login') }}"><i class="bi bi-chevron-right"></i> Portal Login</a></li>
-                        <li class="mb-2"><a class="footer-link" href="#"><i class="bi bi-chevron-right"></i> Digital Library</a></li>
-                        <li class="mb-2"><a class="footer-link" href="#"><i class="bi bi-chevron-right"></i> Student Affairs</a></li>
-                        <li class="mb-2"><a class="footer-link" href="#"><i class="bi bi-chevron-right"></i> Academic Calendar</a></li>
-                        <li><a class="footer-link" href="#"><i class="bi bi-chevron-right"></i> IT Policies</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-12 col-md-6 col-lg-4">
-                    <h5 class="text-white mb-3">Contact Support</h5>
-                    <p class="mb-2"><i class="bi bi-envelope-fill" style="color: var(--usted-gold);"></i> <a class="footer-link" href="mailto:support@aamusted.edu.gh">support@aamusted.edu.gh</a></p>
-                    <p class="mb-3"><i class="bi bi-telephone-fill" style="color: var(--usted-gold);"></i> <a class="footer-link" href="tel:+233000000000">+233 (0) 322 000 000</a></p>
-                    <span class="d-inline-block px-3 py-2 rounded" style="font-size: 0.82rem; color: var(--usted-gold-text-soft); background: var(--usted-gold-soft-4); border: 1px solid var(--usted-gold-border-soft);">
-                        System Status: <strong>All Systems Operational</strong>
-                    </span>
-                </div>
-            </div>
-
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                <p class="mb-3 mb-md-0" style="color: var(--usted-footer-muted);">© 2026 USTED. Designed by Overhaul Inc.</p>
-                <div class="d-flex gap-2">
-                    <a href="#" class="social-btn" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="social-btn" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="social-btn" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
                 </div>
             </div>
         </div>
-    </footer>
-
-    <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"
-    ></script>
-    <script>
-        (function () {
-            var menuToggle = document.getElementById('menuToggle');
-            var mobileMenu = document.getElementById('mobileMenu');
-            var menuIcon = document.getElementById('menuIcon');
-
-            if (!menuToggle || !mobileMenu || !menuIcon) {
-                return;
-            }
-
-            menuToggle.addEventListener('click', function () {
-                var isOpen = mobileMenu.style.display === 'block';
-                mobileMenu.style.display = isOpen ? 'none' : 'block';
-                menuIcon.className = isOpen ? 'bi bi-list' : 'bi bi-x-lg';
-                menuToggle.setAttribute('aria-expanded', String(!isOpen));
-            });
-        })();
-    </script>
-</body>
-</html>
+    </div>
+</section>
+{% endblock %}

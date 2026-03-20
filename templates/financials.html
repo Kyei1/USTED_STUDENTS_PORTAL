@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Financial Statement - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Financial Statement</h1>
+            <p class="text-muted mb-0">Track billed amount, payments, and arrears across academic years.</p>
+        </div>
+        <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ student.student_id }}</span>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="small text-muted">Total Billed</div>
+                <div class="h5 mb-0" style="color: var(--usted-maroon);">GHS {{ '%.2f'|format(total_billed) }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="small text-muted">Total Cleared</div>
+                <div class="h5 mb-0" style="color: var(--usted-maroon);">GHS {{ '%.2f'|format(total_paid) }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="small text-muted">Outstanding Arrears</div>
+                <div class="h5 mb-0" style="color: var(--usted-maroon);">GHS {{ '%.2f'|format(total_arrears) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Academic Year</th>
+                    <th class="text-end">Billed (GHS)</th>
+                    <th class="text-end">Paid (GHS)</th>
+                    <th class="text-end">Arrears (GHS)</th>
+                    <th class="text-end">Clearance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                    {% set arrears = (record.amount_billed|float) - (record.amount_paid|float) %}
+                    <tr>
+                        <td>{{ record.academic_year }}</td>
+                        <td class="text-end">{{ '%.2f'|format(record.amount_billed|float) }}</td>
+                        <td class="text-end">{{ '%.2f'|format(record.amount_paid|float) }}</td>
+                        <td class="text-end">{{ '%.2f'|format(arrears) }}</td>
+                        <td class="text-end">
+                            {% if record.cleared_for_registration %}
+                                <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Cleared</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">Not Cleared</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No financial records available.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

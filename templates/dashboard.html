@@ -26,7 +26,7 @@
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        color: #cbd5e1;
+        color: rgba(255, 255, 255, 0.85);
         text-decoration: none;
         border-radius: 0.75rem;
         padding: 0.75rem 0.85rem;
@@ -47,7 +47,7 @@
     .quick-card {
         border: 1px solid #e5e7eb;
         border-radius: 1rem;
-        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 10px 22px rgba(122, 0, 22, 0.08);
     }
 </style>
 
@@ -60,12 +60,13 @@
             </div>
 
             <nav class="d-flex flex-column gap-2">
-                <a href="#" class="sidebar-link active">Dashboard</a>
-                <a href="#" class="sidebar-link">My Courses</a>
-                <a href="#" class="sidebar-link">Results</a>
-                <a href="#" class="sidebar-link">GPA Simulator</a>
+                <a href="{{ url_for('dashboard') }}" class="sidebar-link active">Dashboard</a>
+                <a href="{{ url_for('dashboard') }}" class="sidebar-link">My Courses</a>
+                <a href="{{ url_for('results') }}" class="sidebar-link">Results</a>
+                <a href="{{ url_for('gpa_simulator') }}" class="sidebar-link">GPA Simulator</a>
                 <a href="#" class="sidebar-link">Resource Hub</a>
-                <a href="#" class="sidebar-link">Helpdesk Tickets</a>
+                <a href="{{ url_for('helpdesk') }}" class="sidebar-link">Helpdesk Tickets</a>
+                <a href="{{ url_for('financials') }}" class="sidebar-link">Financials</a>
             </nav>
         </aside>
 
@@ -91,21 +92,21 @@
                     <article class="quick-card p-4 h-100">
                         <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Target Your GPA</h3>
                         <p class="text-muted mb-3">Simulate upcoming grades to preview your CGPA impact.</p>
-                        <a href="#" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
+                        <a href="{{ url_for('gpa_simulator') }}" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
                     </article>
                 </div>
                 <div class="col-12 col-md-4">
                     <article class="quick-card p-4 h-100">
                         <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Academic Helpdesk</h3>
                         <p class="text-muted mb-3">Need support with registration or advising issues?</p>
-                        <a href="#" class="btn btn-sm" style="background: var(--usted-gold); color: #1f2937;">Create Ticket</a>
+                        <a href="{{ url_for('helpdesk') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink);">Create Ticket</a>
                     </article>
                 </div>
                 <div class="col-12 col-md-4">
                     <article class="quick-card p-4 h-100">
-                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Resource Hub</h3>
-                        <p class="text-muted mb-3">Access study materials, slides, and past questions.</p>
-                        <a href="#" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Materials</a>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Financial Statement</h3>
+                        <p class="text-muted mb-3">Track billed amount, payments, and current clearance state.</p>
+                        <a href="{{ url_for('financials') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Open Financials</a>
                     </article>
                 </div>
             </div>
@@ -123,24 +124,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="fw-semibold">CS301</td>
-                                <td>Software Engineering</td>
-                                <td class="text-center">3</td>
-                                <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td class="fw-semibold">CS305</td>
-                                <td>Database Systems</td>
-                                <td class="text-center">3</td>
-                                <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td class="fw-semibold">ENG210</td>
-                                <td>Technical Communication</td>
-                                <td class="text-center">2</td>
-                                <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
-                            </tr>
+                            {% for enrollment in enrollments %}
+                                <tr>
+                                    <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
+                                    <td>{{ enrollment.course.course_name }}</td>
+                                    <td class="text-center">{{ enrollment.course.credit_hours }}</td>
+                                    <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No enrolled courses found.</td>
+                                </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>

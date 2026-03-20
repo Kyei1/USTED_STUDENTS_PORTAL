@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Results - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Results and Transcript View</h1>
+            <p class="text-muted mb-0">CA and exam score breakdown for {{ student.first_name }} {{ student.last_name }}.</p>
+        </div>
+        <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Student ID: {{ student.student_id }}</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Academic Year</th>
+                    <th>Semester</th>
+                    <th>Course Code</th>
+                    <th>Course Title</th>
+                    <th class="text-center">Credits</th>
+                    <th class="text-center">CA</th>
+                    <th class="text-center">Exam</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-center">Grade</th>
+                    <th class="text-end">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in records %}
+                    <tr>
+                        <td>{{ enrollment.academic_year }}</td>
+                        <td>{{ enrollment.semester }}</td>
+                        <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
+                        <td>{{ enrollment.course.course_name }}</td>
+                        <td class="text-center">{{ enrollment.course.credit_hours }}</td>
+                        <td class="text-center">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</td>
+                        <td class="text-center">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</td>
+                        <td class="text-center">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</td>
+                        <td class="text-center">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</td>
+                        <td class="text-end">
+                            {% if enrollment.grade %}
+                                <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ enrollment.grade.approval_status }}</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">No result records available yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <button type="button" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;" disabled>
+            Download Transcript (Coming Soon)
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+    </div>
+</section>
+{% endblock %}
