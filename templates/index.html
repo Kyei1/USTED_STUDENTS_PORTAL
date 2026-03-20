@@ -14,9 +14,26 @@
     <style>
         :root {
             --usted-maroon: #7A0016;
-            --usted-blue: #0f172a;
             --usted-gold: #DBA111;
-            --usted-green: #059669;
+            --usted-ink: #4a000d;
+            --usted-maroon-soft: rgba(122, 0, 22, 0.06);
+            --usted-maroon-mid: rgba(122, 0, 22, 0.08);
+            --usted-maroon-glow: rgba(122, 0, 22, 0.06);
+            --usted-gold-soft: rgba(219, 161, 17, 0.22);
+            --usted-gold-mid: rgba(219, 161, 17, 0.35);
+            --usted-gold-strong: rgba(219, 161, 17, 0.5);
+            --usted-gold-shadow: rgba(219, 161, 17, 0.4);
+            --usted-gold-hover: #c28e0e;
+            --usted-maroon-hover: #5a0010;
+            --usted-footer-bg: #4a000d;
+            --usted-footer-muted: #9ca3af;
+            --usted-gold-soft-2: rgba(219, 161, 17, 0.16);
+            --usted-gold-soft-3: rgba(219, 161, 17, 0.13);
+            --usted-gold-soft-4: rgba(219, 161, 17, 0.12);
+            --usted-gold-border-soft: rgba(219, 161, 17, 0.3);
+            --usted-gold-ring: rgba(219, 161, 17, 0.45);
+            --usted-gold-text-soft: #f8d577;
+            --usted-gold-shadow-soft: rgba(219, 161, 17, 0.35);
             --text-muted: #6b7280;
         }
 
@@ -78,15 +95,15 @@
             font-size: 0.62rem;
             padding: 0.1rem 0.4rem;
             border-radius: 999px;
-            background: #d1fae5;
-            color: #047857;
+            background: var(--usted-gold-soft);
+            color: var(--usted-ink);
             font-weight: 700;
         }
 
         .btn-login {
             background: var(--usted-gold);
             border: 0;
-            color: #4a000d;
+            color: var(--usted-ink);
             font-weight: 800;
             border-radius: 0.5rem;
             padding: 0.6rem 1.45rem;
@@ -95,8 +112,8 @@
         }
 
         .btn-login:hover {
-            background: #c28e0e;
-            color: #4a000d;
+            background: var(--usted-gold-hover);
+            color: var(--usted-ink);
             transform: translateY(-2px);
         }
 
@@ -150,7 +167,7 @@
             left: 20%;
             width: 8rem;
             height: 8rem;
-            background: var(--usted-green);
+            background: var(--usted-gold);
             border-radius: 999px;
             filter: blur(36px);
         }
@@ -172,8 +189,8 @@
             margin-bottom: 1rem;
             padding: 0.35rem 0.95rem;
             border-radius: 999px;
-            border: 1px solid rgba(219, 161, 17, 0.35);
-            background: rgba(219, 161, 17, 0.12);
+            border: 1px solid var(--usted-gold-mid);
+            background: var(--usted-gold-soft);
             color: var(--usted-gold);
             font-weight: 700;
             font-size: 0.88rem;
@@ -203,17 +220,17 @@
         .btn-portal {
             background: var(--usted-gold);
             border: 0;
-            color: #4a000d;
+            color: var(--usted-ink);
             font-weight: 700;
             padding: 0.9rem 1.75rem;
             border-radius: 0.5rem;
-            box-shadow: 0 0 20px rgba(219, 161, 17, 0.4);
+            box-shadow: 0 0 20px var(--usted-gold-shadow);
             transition: all 0.25s ease;
         }
 
         .btn-portal:hover {
-            background: #c28e0e;
-            color: #4a000d;
+            background: var(--usted-gold-hover);
+            color: var(--usted-ink);
             transform: translateY(-2px);
         }
 
@@ -249,19 +266,19 @@
         }
 
         .notice-bar {
-            background: #ecfdf5;
-            border-top: 1px solid #d1fae5;
-            border-bottom: 1px solid #d1fae5;
-            box-shadow: inset 0 2px 5px rgba(5, 150, 105, 0.06);
+            background: #fff7e3;
+            border-top: 1px solid var(--usted-gold-mid);
+            border-bottom: 1px solid var(--usted-gold-mid);
+            box-shadow: inset 0 2px 5px var(--usted-maroon-glow);
         }
 
         .notice-pill {
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            background: #d1fae5;
-            color: #047857;
-            border: 1px solid #a7f3d0;
+            background: var(--usted-gold-soft);
+            color: var(--usted-ink);
+            border: 1px solid var(--usted-gold-strong);
             border-radius: 999px;
             padding: 0.35rem 0.7rem;
             font-size: 0.83rem;
@@ -276,7 +293,7 @@
 
         .notice-text {
             display: inline-block;
-            color: #065f46;
+            color: var(--usted-ink);
             font-weight: 600;
             animation: marquee 20s linear infinite;
         }
@@ -304,7 +321,7 @@
         .title-divider {
             width: 88px;
             height: 4px;
-            background: var(--usted-green);
+            background: var(--usted-gold);
             border-radius: 999px;
             margin: 0.9rem auto 0;
         }
@@ -320,7 +337,7 @@
 
         .feature-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 10px 30px rgba(122, 0, 22, 0.08);
+            box-shadow: 0 10px 30px var(--usted-maroon-mid);
         }
 
         .feature-icon {
@@ -384,7 +401,7 @@
             justify-content: center;
             font-size: 0.85rem;
             font-weight: 800;
-            box-shadow: 0 8px 18px rgba(219, 161, 17, 0.35);
+            box-shadow: 0 8px 18px var(--usted-gold-shadow-soft);
         }
 
         .step-link {
@@ -394,11 +411,11 @@
         }
 
         .step-link:hover {
-            color: #5a0010;
+            color: var(--usted-maroon-hover);
         }
 
         .cta-band {
-            background: var(--usted-green);
+            background: var(--usted-maroon);
             position: relative;
             overflow: hidden;
         }
@@ -421,12 +438,12 @@
             bottom: -120px;
             width: 380px;
             height: 380px;
-            border: 38px solid rgba(52, 211, 153, 0.45);
+            border: 38px solid var(--usted-gold-ring);
             border-radius: 999px;
         }
 
         .site-footer {
-            background: #4a000d;
+            background: var(--usted-footer-bg);
             color: #d1d5db;
         }
 
@@ -447,7 +464,7 @@
             align-items: center;
             justify-content: center;
             background: rgba(255, 255, 255, 0.06);
-            color: #9ca3af;
+            color: var(--usted-footer-muted);
             text-decoration: none;
             transition: all 0.3s ease;
         }
@@ -566,7 +583,7 @@
                 <div class="col-12 col-md-6 col-xl-3">
                     <article class="feature-card p-4 h-100">
                         <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: rgba(122, 0, 22, 0.06); color: var(--usted-maroon);">
+                        <div class="feature-icon" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">
                             <i class="bi bi-calculator-fill"></i>
                         </div>
                         <h4 class="fw-bold mb-3">Advanced GPA Simulator</h4>
@@ -577,7 +594,7 @@
                 <div class="col-12 col-md-6 col-xl-3">
                     <article class="feature-card p-4 h-100">
                         <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: #ecfdf5; color: var(--usted-green);">
+                        <div class="feature-icon" style="background: var(--usted-gold-soft-2); color: var(--usted-maroon);">
                             <i class="bi bi-life-preserver"></i>
                         </div>
                         <h4 class="fw-bold mb-3">Streamlined Helpdesk</h4>
@@ -588,7 +605,7 @@
                 <div class="col-12 col-md-6 col-xl-3">
                     <article class="feature-card p-4 h-100">
                         <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: rgba(219, 161, 17, 0.13); color: var(--usted-gold);">
+                        <div class="feature-icon" style="background: var(--usted-gold-soft-3); color: var(--usted-gold);">
                             <i class="bi bi-book-fill"></i>
                         </div>
                         <h4 class="fw-bold mb-3">Resource Hub</h4>
@@ -599,7 +616,7 @@
                 <div class="col-12 col-md-6 col-xl-3">
                     <article class="feature-card p-4 h-100">
                         <span class="feature-overlay"></span>
-                        <div class="feature-icon" style="background: rgba(122, 0, 22, 0.06); color: var(--usted-maroon);">
+                        <div class="feature-icon" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">
                             <i class="bi bi-credit-card-fill"></i>
                         </div>
                         <h4 class="fw-bold mb-3">Financial Overview</h4>
@@ -637,7 +654,7 @@
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <div class="step-node mb-3" style="color: var(--usted-green);">
+                    <div class="step-node mb-3" style="color: var(--usted-maroon);">
                         <i class="bi bi-graph-up-arrow"></i>
                         <span class="step-number">3</span>
                     </div>
@@ -670,7 +687,7 @@
                             <small class="text-uppercase" style="letter-spacing: 0.12em; color: var(--usted-gold);">Portal System</small>
                         </div>
                     </div>
-                    <p class="mb-0" style="color: #9ca3af; max-width: 360px;">
+                    <p class="mb-0" style="color: var(--usted-footer-muted); max-width: 360px;">
                         University of Skills Training and Entrepreneurial Development.
                         Producing world-class graduates through technical, vocational, and entrepreneurial training.
                     </p>
@@ -691,14 +708,14 @@
                     <h5 class="text-white mb-3">Contact Support</h5>
                     <p class="mb-2"><i class="bi bi-envelope-fill" style="color: var(--usted-gold);"></i> <a class="footer-link" href="mailto:support@aamusted.edu.gh">support@aamusted.edu.gh</a></p>
                     <p class="mb-3"><i class="bi bi-telephone-fill" style="color: var(--usted-gold);"></i> <a class="footer-link" href="tel:+233000000000">+233 (0) 322 000 000</a></p>
-                    <span class="d-inline-block px-3 py-2 rounded" style="font-size: 0.82rem; color: #6ee7b7; background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <span class="d-inline-block px-3 py-2 rounded" style="font-size: 0.82rem; color: var(--usted-gold-text-soft); background: var(--usted-gold-soft-4); border: 1px solid var(--usted-gold-border-soft);">
                         System Status: <strong>All Systems Operational</strong>
                     </span>
                 </div>
             </div>
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                <p class="mb-3 mb-md-0" style="color: #9ca3af;">© 2026 USTED. Designed by Overhaul Inc.</p>
+                <p class="mb-3 mb-md-0" style="color: var(--usted-footer-muted);">© 2026 USTED. Designed by Overhaul Inc.</p>
                 <div class="d-flex gap-2">
                     <a href="#" class="social-btn" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
                     <a href="#" class="social-btn" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>

@@ -17,9 +17,11 @@
     <style>
         :root {
             --usted-maroon: #7A0016;
-            --usted-blue: #0f172a;
             --usted-gold: #DBA111;
-            --usted-green: #059669;
+            --usted-gold-hover: #c49f2b;
+            --usted-gold-shadow: rgba(219, 161, 17, 0.28);
+            --usted-gold-outline: rgba(219, 161, 17, 0.6);
+            --usted-maroon-focus: rgba(122, 0, 22, 0.15);
         }
 
         body {
@@ -106,7 +108,7 @@
             content: "";
             position: absolute;
             inset: 12px;
-            border: 2px solid rgba(219, 161, 17, 0.6);
+            border: 2px solid var(--usted-gold-outline);
             border-radius: 999px;
         }
 
@@ -189,7 +191,7 @@
         .themed-input:focus {
             background: #fff;
             border-color: var(--usted-maroon);
-            box-shadow: 0 0 0 0.25rem rgba(122, 0, 22, 0.15);
+            box-shadow: 0 0 0 0.25rem var(--usted-maroon-focus);
         }
 
         .pass-wrap {
@@ -220,11 +222,11 @@
             font-size: 1.05rem;
             border-radius: 0.85rem;
             padding: 0.9rem 1rem;
-            box-shadow: 0 12px 24px rgba(219, 161, 17, 0.28);
+            box-shadow: 0 12px 24px var(--usted-gold-shadow);
         }
 
         .btn-auth:hover {
-            background: #c49f2b;
+            background: var(--usted-gold-hover);
             color: #fff;
         }
 

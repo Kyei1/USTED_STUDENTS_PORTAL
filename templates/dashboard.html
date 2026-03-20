@@ -3,81 +3,149 @@
 {% block title %}Dashboard - USTED Portal{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-    <div class="col-12">
-        <section class="card border-0 overflow-hidden" style="background: #7a0016; box-shadow: 0 20px 40px rgba(122, 0, 22, 0.24);">
-            <div class="card-body p-4 p-md-5 position-relative">
-                <div class="position-absolute top-0 end-0" style="width: 240px; height: 240px; border: 34px solid rgba(255,255,255,0.14); border-radius: 50%; transform: translate(45%, -35%);"></div>
-                <div class="position-relative" style="z-index: 1; max-width: 760px;">
-                    <span class="badge rounded-pill mb-3" style="background: rgba(219,161,17,0.2); color: #f8d577; border: 1px solid rgba(219,161,17,0.4);">
-                        Version 2.0 Now Live
-                    </span>
-                    <h1 class="text-white fw-bold mb-3" style="line-height: 1.2;">Welcome, {{ student.first_name }} {{ student.last_name }}</h1>
-                    <p class="text-light mb-4" style="font-size: 1.02rem;">
-                        Manage your academics, stay informed, and track your progress through your personalized USTED portal dashboard.
-                    </p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <span class="badge rounded-pill px-3 py-2" style="background: #dba111; color: #4a000d;">ID: {{ student.student_id }}</span>
-                        <span class="badge rounded-pill px-3 py-2" style="background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.25);">Level {{ student.level }}</span>
-                    </div>
+<style>
+    :root {
+        --usted-ink: #4a000d;
+        --usted-gold-soft: rgba(212, 175, 55, 0.25);
+        --usted-gold-notice: #fff7e3;
+    }
+
+    .dashboard-shell {
+        background: #ffffff;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .dashboard-sidebar {
+        background: var(--usted-maroon);
+        color: #fff;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: #cbd5e1;
+        text-decoration: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-link:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.09);
+    }
+
+    .sidebar-link.active {
+        color: var(--usted-ink);
+        background: var(--usted-gold);
+    }
+
+    .quick-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+    }
+</style>
+
+<section class="dashboard-shell">
+    <div class="row g-0">
+        <aside class="col-12 col-lg-3 dashboard-sidebar p-4">
+            <div class="d-flex align-items-center gap-2 mb-4 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.12);">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-2" style="width: 36px; height: 36px; background: var(--usted-gold); color: var(--usted-ink);">U</span>
+                <strong class="fs-5">USTED</strong>
+            </div>
+
+            <nav class="d-flex flex-column gap-2">
+                <a href="#" class="sidebar-link active">Dashboard</a>
+                <a href="#" class="sidebar-link">My Courses</a>
+                <a href="#" class="sidebar-link">Results</a>
+                <a href="#" class="sidebar-link">GPA Simulator</a>
+                <a href="#" class="sidebar-link">Resource Hub</a>
+                <a href="#" class="sidebar-link">Helpdesk Tickets</a>
+            </nav>
+        </aside>
+
+        <div class="col-12 col-lg-9 p-4 p-lg-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+                <div>
+                    <h1 class="h2 fw-bold mb-1" style="color: var(--usted-maroon);">Welcome back, {{ student.first_name }}.</h1>
+                    <p class="text-muted mb-0">Here is your academic overview for Semester 2.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge rounded-pill text-bg-light">ID: {{ student.student_id }}</span>
+                    <span class="badge rounded-pill" style="background: rgba(122,0,22,0.12); color: var(--usted-maroon);">Level {{ student.level }}</span>
                 </div>
             </div>
-        </section>
-    </div>
 
-    <div class="col-12">
-        <div class="alert d-flex align-items-center mb-0" role="alert" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;">
-            <span class="me-2 fw-bold">Notice:</span>
-            <span>Course registration and semester updates are available. Check your resources and deadlines regularly.</span>
-        </div>
-    </div>
+            <div class="alert d-flex align-items-center mb-4" role="alert" style="background: var(--usted-gold-notice); border-left: 4px solid var(--usted-gold); color: var(--usted-ink);">
+                <span class="me-2">📢</span>
+                <span>Registration for Semester 2 closes Friday. New GPA Simulator is now active.</span>
+            </div>
 
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="card h-100 border-0" style="box-shadow: 0 12px 24px rgba(0,0,0,0.06);">
-            <div class="card-body p-4">
-                <h5 class="text-uppercase text-muted" style="font-size: 0.78rem; letter-spacing: 0.08em;">Current Program</h5>
-                <h4 class="fw-bold mb-0" style="color: #111827;">BSc. Information Technology Education</h4>
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <article class="quick-card p-4 h-100">
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Target Your GPA</h3>
+                        <p class="text-muted mb-3">Simulate upcoming grades to preview your CGPA impact.</p>
+                        <a href="#" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
+                    </article>
+                </div>
+                <div class="col-12 col-md-4">
+                    <article class="quick-card p-4 h-100">
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Academic Helpdesk</h3>
+                        <p class="text-muted mb-3">Need support with registration or advising issues?</p>
+                        <a href="#" class="btn btn-sm" style="background: var(--usted-gold); color: #1f2937;">Create Ticket</a>
+                    </article>
+                </div>
+                <div class="col-12 col-md-4">
+                    <article class="quick-card p-4 h-100">
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Resource Hub</h3>
+                        <p class="text-muted mb-3">Access study materials, slides, and past questions.</p>
+                        <a href="#" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Materials</a>
+                    </article>
+                </div>
+            </div>
+
+            <div class="quick-card p-4">
+                <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Current Enrolled Courses</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th class="text-center">Credits</th>
+                                <th class="text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">CS301</td>
+                                <td>Software Engineering</td>
+                                <td class="text-center">3</td>
+                                <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">CS305</td>
+                                <td>Database Systems</td>
+                                <td class="text-center">3</td>
+                                <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">ENG210</td>
+                                <td>Technical Communication</td>
+                                <td class="text-center">2</td>
+                                <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="card h-100 border-0" style="box-shadow: 0 12px 24px rgba(0,0,0,0.06);">
-            <div class="card-body p-4">
-                <h5 class="text-uppercase text-muted" style="font-size: 0.78rem; letter-spacing: 0.08em;">Student Status</h5>
-                <h4 class="fw-bold mb-0" style="color: #059669;">Active</h4>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="card h-100 border-0" style="box-shadow: 0 12px 24px rgba(0,0,0,0.06);">
-            <div class="card-body p-4">
-                <h5 class="text-uppercase text-muted" style="font-size: 0.78rem; letter-spacing: 0.08em;">Helpdesk</h5>
-                <h4 class="fw-bold mb-0" style="color: #111827;">No Open Tickets</h4>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="card h-100 border-0" style="box-shadow: 0 12px 24px rgba(0,0,0,0.06);">
-            <div class="card-body p-4">
-                <h5 class="text-uppercase text-muted" style="font-size: 0.78rem; letter-spacing: 0.08em;">Portal Tips</h5>
-                <p class="mb-2">Use GPA Simulator to project your semester outcome.</p>
-                <a href="#" class="fw-semibold" style="color: #7a0016; text-decoration: none;">Open Simulator</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12">
-        <div class="card border-0" style="box-shadow: 0 12px 24px rgba(0,0,0,0.06);">
-            <div class="card-body p-4 p-md-5">
-                <h3 class="fw-bold mb-3" style="color: #7a0016;">Built for Student Success</h3>
-                <p class="text-muted mb-0">
-                    Access learning resources, monitor your registration and financial status, and receive departmental announcements in one place.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+</section>
 {% endblock %}
