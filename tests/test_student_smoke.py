@@ -36,6 +36,14 @@ class StudentPortalSmokeTest(unittest.TestCase):
         self.assertEqual(self.client.get("/").status_code, 200)
         self.assertEqual(self.client.get("/login").status_code, 200)
 
+    def test_landing_hides_dashboard_for_logged_out_user(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertNotIn('>Dashboard<', body)
+        self.assertIn('>Explore Modules<', body)
+        self.assertIn('id="ready-to-start"', body)
+
     def test_protected_student_pages(self):
         self._login()
         routes = [

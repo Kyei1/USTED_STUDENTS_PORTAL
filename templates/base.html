@@ -18,6 +18,8 @@
 	{% block page_css %}{% endblock %}
 </head>
 <body>
+	{% set is_public_landing = request.endpoint == 'public.index' %}
+	{% if is_public_landing %}
 	<header class="main-nav">
 		<div class="container-xxl py-3">
 			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
@@ -41,14 +43,47 @@
 				</button>
 
 				<div id="navMenu" class="nav-menu d-lg-flex align-items-lg-center gap-lg-2 ms-lg-auto">
-					<a href="{{ url_for('student.dashboard') if session.get('student_id') else url_for('public.login') }}" class="nav-link-themed">Dashboard</a>
+					<a href="#modules" class="nav-link-themed">Modules</a>
+					<a href="#how-it-works" class="nav-link-themed">How It Works</a>
+					<a href="#ready-to-start" class="nav-link-themed">Apply</a>
+					<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Portal Login</a>
+				</div>
+			</div>
+		</div>
+	</header>
+	{% else %}
+	<header class="main-nav">
+		<div class="container-xxl py-3">
+			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+				<a href="{{ url_for('public.index') }}" class="brand-link">
+					<span class="brand-mark">U</span>
+					<span>
+						<span class="brand-title">USTED</span>
+						<span class="brand-subtitle">Student Portal</span>
+					</span>
+				</a>
+
+				<button
+					class="btn btn-outline-dark d-lg-none"
+					type="button"
+					id="menuToggle"
+					aria-controls="navMenu"
+					aria-expanded="false"
+					aria-label="Toggle navigation"
+				>
+					Menu
+				</button>
+
+				<div id="navMenu" class="nav-menu d-lg-flex align-items-lg-center gap-lg-2 ms-lg-auto">
 					{% if session.get('student_id') %}
+						<a href="{{ url_for('student.dashboard') }}" class="nav-link-themed">Dashboard</a>
 						<a href="{{ url_for('student.results') }}" class="nav-link-themed">Results</a>
 						<a href="{{ url_for('student.gpa_simulator') }}" class="nav-link-themed">GPA Simulator</a>
 						<a href="{{ url_for('student.financials') }}" class="nav-link-themed">Financials</a>
 						<a href="{{ url_for('student.helpdesk') }}" class="nav-link-themed">Helpdesk <span class="nav-highlight">New</span></a>
 					{% else %}
 						<a href="{{ url_for('public.index') }}" class="nav-link-themed">Portal Features</a>
+						<a href="{{ url_for('public.login') }}" class="nav-link-themed">Login</a>
 					{% endif %}
 
 					<div class="d-flex align-items-center gap-2 nav-right position-relative" id="topProfileWrap">
@@ -65,13 +100,14 @@
 								<a href="{{ url_for('student.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
 							</div>
 						{% else %}
-							<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Student Login</a>
+							<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Portal Login</a>
 						{% endif %}
 					</div>
 				</div>
 			</div>
 		</div>
 	</header>
+	{% endif %}
 
 	<main class="container-fluid content-wrap px-3 px-lg-4">
 		<section>
@@ -79,11 +115,38 @@
 		</section>
 	</main>
 
+	{% if is_public_landing %}
+	<footer class="site-footer py-4 px-3 px-lg-4" style="background: #8f2337; color: #fdf6f8; border-top: 1px solid rgba(255,255,255,0.15);">
+		<div class="container-xxl">
+			<div class="row g-4">
+				<div class="col-12 col-md-4">
+					<h3 class="h6 fw-bold mb-2">University of Skills Training and Entrepreneural Development</h3>
+					<p class="small mb-0" style="color: rgba(255,255,255,0.85);">Digital services for transparent, student-centered academic administration.</p>
+				</div>
+				<div class="col-12 col-md-4">
+					<h3 class="h6 fw-bold mb-2">Contact</h3>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Admissions and Registry: +233 000 000 000</p>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Student Affairs: support@usted.edu.gh</p>
+					<p class="small mb-0" style="color: rgba(255,255,255,0.9);">Campus: USTED Main Campus, Ghana</p>
+				</div>
+				<div class="col-12 col-md-4">
+					<h3 class="h6 fw-bold mb-2">Portal Scope</h3>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Results and Transcript</p>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Course Registration and GPA Simulation</p>
+					<p class="small mb-0" style="color: rgba(255,255,255,0.9);">Financials and Helpdesk Support</p>
+				</div>
+			</div>
+			<hr class="my-3" style="border-color: rgba(255,255,255,0.25);">
+			<p class="small mb-0" style="color: rgba(255,255,255,0.82);">&copy; {{ 2026 }} USTED. All rights reserved.</p>
+		</div>
+	</footer>
+	{% else %}
 	<footer class="site-footer py-3 px-3 px-lg-4">
 		<div class="container-fluid">
 			<p class="signature-text">Crafted with <span>late-night code</span> by LazyDev @ Overhaul Inc.</p>
 		</div>
 	</footer>
+	{% endif %}
 
 	<script
 		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
