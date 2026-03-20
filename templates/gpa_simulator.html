@@ -7,75 +7,173 @@
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">GPA Simulator</h1>
-            <p class="text-muted mb-0">Project your GPA by entering hypothetical total scores for enrolled courses.</p>
+            <p class="text-muted mb-0">Run single-course projection or full-semester target simulation with AAMUSTED grading rules.</p>
         </div>
         <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Level {{ student.level }}</span>
     </div>
 
-    <form method="post" class="mb-4">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Course</th>
-                        <th class="text-center">Credit Hours</th>
-                        <th class="text-center">Projected Total (0-100)</th>
-                        <th class="text-center">Grade Point</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in simulation_rows %}
-                        <tr>
-                            <td>
-                                <div class="fw-semibold">{{ row.enrollment.course.course_code }}</div>
-                                <small class="text-muted">{{ row.enrollment.course.course_name }}</small>
-                            </td>
-                            <td class="text-center">{{ row.enrollment.course.credit_hours }}</td>
-                            <td class="text-center" style="max-width: 150px;">
-                                <input
-                                    type="number"
-                                    class="form-control form-control-sm"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                    name="score_{{ row.enrollment.enrollment_id }}"
-                                    value="{{ row.score if row.score is not none else '' }}"
-                                >
-                            </td>
-                            <td class="text-center">{{ '%.2f'|format(row.points) if row.points is not none else 'N/A' }}</td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">No course enrollments found for simulation.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="d-flex flex-wrap gap-2 mt-4">
-            <button type="submit" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Calculate Projection</button>
-            <a href="{{ url_for('gpa_simulator') }}" class="btn btn-outline-secondary">Reset</a>
-        </div>
-    </form>
-
-    <div class="row g-3">
+    <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
             <div class="border rounded-3 p-3 h-100">
-                <div class="text-muted small">Total Credit Hours</div>
-                <div class="h4 mb-0" style="color: var(--usted-maroon);">{{ total_credit_hours }}</div>
+                <div class="text-muted small">Past CGPA</div>
+                <div class="h4 mb-0" style="color: var(--usted-maroon);">{{ '%.2f'|format(past_cgpa) }}</div>
             </div>
         </div>
-        <div class="col-12 col-md-8">
+        <div class="col-12 col-md-4">
             <div class="border rounded-3 p-3 h-100">
-                <div class="text-muted small">Projected GPA</div>
-                {% if projected_gpa is not none %}
-                    <div class="h4 mb-0" style="color: var(--usted-maroon);">{{ '%.2f'|format(projected_gpa) }}</div>
-                {% else %}
-                    <div class="h5 mb-0 text-muted">Enter course scores to project GPA.</div>
-                {% endif %}
+                <div class="text-muted small">Past Credits Attempted</div>
+                <div class="h4 mb-0" style="color: var(--usted-maroon);">{{ total_past_credits }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted small">Active Semester</div>
+                <div class="h6 mb-0" style="color: var(--usted-maroon);">
+                    {% if active_period %}
+                        {{ active_period[0] }} - {{ active_period[1] }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
+
+    {% if active_enrollments %}
+        <div class="row g-4">
+            <div class="col-12 col-xl-6">
+                <section class="border rounded-4 p-4 h-100">
+                    <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Path A: Single Course Projection</h2>
+                    <form method="post" class="d-flex flex-column gap-3">
+                        <input type="hidden" name="mode" value="single">
+
+                        <div>
+                            <label for="single_enrollment_id" class="form-label fw-semibold">Course</label>
+                            <select id="single_enrollment_id" name="single_enrollment_id" class="form-select" required>
+                                <option value="">Select course</option>
+                                {% for enrollment in active_enrollments %}
+                                    <option
+                                        value="{{ enrollment.enrollment_id }}"
+                                        {% if single_result and single_result.selected_enrollment_id == enrollment.enrollment_id|string %}selected{% endif %}
+                                    >
+                                        {{ enrollment.course.course_code }} - {{ enrollment.course.course_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label for="ca_score" class="form-label fw-semibold">CA Score (0-40)</label>
+                                <input id="ca_score" name="ca_score" type="number" class="form-control" min="0" max="40" step="0.01" value="{{ single_result.ca_score if single_result else '' }}" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="raw_exam_score" class="form-label fw-semibold">Raw Exam Score (0-100)</label>
+                                <input id="raw_exam_score" name="raw_exam_score" type="number" class="form-control" min="0" max="100" step="0.01" value="{{ single_result.raw_exam_score if single_result else '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Run Single Projection</button>
+                            <a href="{{ url_for('gpa_simulator') }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+
+                    {% if single_result %}
+                        <div class="row g-3 mt-1">
+                            <div class="col-12 col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="small text-muted">Scaled Exam (60%)</div>
+                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.scaled_exam_score) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="small text-muted">Projected Total</div>
+                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.projected_total) }} ({{ single_result.projected_letter }})</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="small text-muted">Baseline SGPA</div>
+                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.baseline_sgpa) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="small text-muted">Projected SGPA</div>
+                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.projected_sgpa) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="border rounded-3 p-3">
+                                    <div class="small text-muted">CGPA Impact</div>
+                                    <div class="fw-semibold">Baseline CGPA: {{ '%.2f'|format(single_result.baseline_cgpa) }} | Projected CGPA: {{ '%.2f'|format(single_result.projected_cgpa) }}</div>
+                                    <div class="fw-bold" style="color: var(--usted-maroon);">Delta: {{ '%+.2f'|format(single_result.cgpa_delta) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+
+            <div class="col-12 col-xl-6">
+                <section class="border rounded-4 p-4 h-100">
+                    <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Path B: Full Semester Target</h2>
+                    <form method="post" class="d-flex flex-column gap-3 mb-3">
+                        <input type="hidden" name="mode" value="target">
+                        <div>
+                            <label for="target_sgpa" class="form-label fw-semibold">Target SGPA (0.00 - 4.00)</label>
+                            <input id="target_sgpa" name="target_sgpa" type="number" class="form-control" min="0" max="4" step="0.01" value="{{ target_result.target_sgpa if target_result else '' }}" required>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Generate Target Plan</button>
+                            <a href="{{ url_for('gpa_simulator') }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+
+                    {% if target_result %}
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="small text-muted">Required Grade Points This Semester</div>
+                            <div class="h6 mb-1">{{ '%.2f'|format(target_result.required_total_grade_points) }}</div>
+                            <div class="small text-muted">Across {{ target_result.active_credit_hours }} credit hours</div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Course</th>
+                                        <th class="text-center">Difficulty</th>
+                                        <th class="text-center">Credits</th>
+                                        <th class="text-center">Required GP</th>
+                                        <th class="text-center">Min Total Score</th>
+                                        <th class="text-center">Suggested Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in target_result.required_rows %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold">{{ row.enrollment.course.course_code }}</div>
+                                                <small class="text-muted">{{ row.enrollment.course.course_name }}</small>
+                                            </td>
+                                            <td class="text-center">{{ row.difficulty_label }}</td>
+                                            <td class="text-center">{{ row.enrollment.course.credit_hours }}</td>
+                                            <td class="text-center">{{ '%.2f'|format(row.required_point) }}</td>
+                                            <td class="text-center">{{ row.minimum_total_score }}</td>
+                                            <td class="text-center">{{ row.minimum_letter }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning mb-0">No active semester enrollments found. Add enrollment data to run GPA simulation.</div>
+    {% endif %}
 </section>
 {% endblock %}
