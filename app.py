@@ -1,9 +1,11 @@
 import os
+from io import BytesIO
 from functools import wraps
+from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from werkzeug.security import check_password_hash
-from models import db, Student, Enrollment, Grade, FinancialStatus, SupportTicket, Course
+from models import db, Student, Enrollment, Grade, FinancialStatus, SupportTicket, Course, Resource
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'change-this-secret-key-in-production')
@@ -17,7 +19,7 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('public/index.html')
 
 
 def get_current_student():
@@ -204,9 +206,9 @@ def login():
             flash(f'Login successful! Welcome, {student.first_name}.', 'success')
             return redirect(url_for('dashboard'))
         flash('Invalid student ID or password. Please try again.', 'danger')
-        return render_template('login.html')
+        return render_template('public/login.html')
 
-    return render_template('login.html')
+    return render_template('public/login.html')
 
 
 @app.route('/dashboard')
@@ -231,7 +233,7 @@ def dashboard():
     )
 
     return render_template(
-        'dashboard.html',
+        'student/dashboard.html',
         student=student,
         enrollments=enrollments,
         latest_financial=latest_financial,
@@ -255,7 +257,7 @@ def results():
         .all()
     )
 
-    return render_template('results.html', student=student, records=records)
+    return render_template('student/results.html', student=student, records=records)
 
 
 @app.route('/results/transcript.pdf')
@@ -267,8 +269,115 @@ def results_transcript_pdf():
         flash('Student record not found. Please log in again.', 'danger')
         return redirect(url_for('login'))
 
-    flash('Transcript PDF export scaffold is active. Full PDF rendering will be connected next.', 'info')
-    return redirect(url_for('results'))
+    records = (
+        Enrollment.query.filter_by(student_id=student.student_id)
+        .join(Course, Enrollment.course_code == Course.course_code)
+        .outerjoin(Grade, Grade.enrollment_id == Enrollment.enrollment_id)
+        .order_by(Enrollment.academic_year.desc(), Course.course_code.asc())
+        .all()
+    )
+
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.units import mm
+        from reportlab.pdfgen import canvas
+    except ImportError:
+        flash('PDF export requires reportlab. Install dependencies and try again.', 'danger')
+        return redirect(url_for('results'))
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    page_width, page_height = A4
+
+    margin_left = 18 * mm
+    margin_right = 18 * mm
+    line_y = page_height - (20 * mm)
+    row_height = 7 * mm
+
+    def draw_header(y_pos):
+        pdf.setFillColor(colors.HexColor('#7a0016'))
+        pdf.rect(0, page_height - (28 * mm), page_width, 28 * mm, stroke=0, fill=1)
+        pdf.setFillColor(colors.white)
+        pdf.setFont('Helvetica-Bold', 15)
+        pdf.drawString(margin_left, page_height - (16 * mm), 'USTED Official Transcript')
+        pdf.setFont('Helvetica', 10)
+        pdf.drawString(margin_left, page_height - (22 * mm), f'Student: {student.first_name} {student.last_name} ({student.student_id})')
+        pdf.drawRightString(page_width - margin_right, page_height - (22 * mm), datetime.now().strftime('Generated %Y-%m-%d %H:%M'))
+
+        pdf.setFillColor(colors.HexColor('#4a000d'))
+        pdf.setFont('Helvetica-Bold', 10)
+        pdf.drawString(margin_left, y_pos, 'Academic Year')
+        pdf.drawString(margin_left + (32 * mm), y_pos, 'Sem')
+        pdf.drawString(margin_left + (46 * mm), y_pos, 'Course')
+        pdf.drawString(margin_left + (68 * mm), y_pos, 'Title')
+        pdf.drawString(margin_left + (128 * mm), y_pos, 'Cr')
+        pdf.drawString(margin_left + (138 * mm), y_pos, 'Total')
+        pdf.drawString(margin_left + (154 * mm), y_pos, 'Grade')
+        pdf.line(margin_left, y_pos - 2, page_width - margin_right, y_pos - 2)
+
+    draw_header(line_y)
+    line_y -= row_height
+
+    if not records:
+        pdf.setFont('Helvetica', 10)
+        pdf.setFillColor(colors.black)
+        pdf.drawString(margin_left, line_y, 'No result records available yet.')
+    else:
+        pdf.setFont('Helvetica', 9)
+        for enrollment in records:
+            if line_y < (20 * mm):
+                pdf.showPage()
+                line_y = page_height - (35 * mm)
+                draw_header(line_y)
+                line_y -= row_height
+                pdf.setFont('Helvetica', 9)
+
+            title = enrollment.course.course_name or ''
+            if len(title) > 34:
+                title = title[:31] + '...'
+
+            total = f"{float(enrollment.grade.total_score):.1f}" if enrollment.grade else 'N/A'
+            grade_letter = enrollment.grade.grade_letter if enrollment.grade else 'N/A'
+
+            pdf.setFillColor(colors.black)
+            pdf.drawString(margin_left, line_y, enrollment.academic_year)
+            pdf.drawString(margin_left + (32 * mm), line_y, enrollment.semester[:3])
+            pdf.drawString(margin_left + (46 * mm), line_y, enrollment.course.course_code)
+            pdf.drawString(margin_left + (68 * mm), line_y, title)
+            pdf.drawRightString(margin_left + (134 * mm), line_y, str(enrollment.course.credit_hours))
+            pdf.drawRightString(margin_left + (151 * mm), line_y, total)
+            pdf.drawRightString(margin_left + (170 * mm), line_y, grade_letter)
+            line_y -= row_height
+
+    pdf.setFont('Helvetica-Oblique', 8)
+    pdf.setFillColor(colors.HexColor('#4a000d'))
+    pdf.drawString(margin_left, 12 * mm, 'Generated by USTED Students Portal')
+
+    pdf.save()
+    buffer.seek(0)
+
+    filename = f"USTED_Transcript_{student.student_id}.pdf"
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
+
+
+@app.route('/resource-hub')
+@login_required
+def resource_hub():
+    student = get_current_student()
+    if not student:
+        session.clear()
+        flash('Student record not found. Please log in again.', 'danger')
+        return redirect(url_for('login'))
+
+    resources = (
+        Resource.query.join(Course, Resource.course_code == Course.course_code)
+        .filter(Resource.department_id == student.department_id)
+        .order_by(Resource.upload_date.desc())
+        .all()
+    )
+
+    return render_template('student/resource_hub.html', student=student, resources=resources)
 
 
 @app.route('/gpa-simulator', methods=['GET', 'POST'])
@@ -289,7 +398,7 @@ def gpa_simulator():
 
     if not enrollments:
         return render_template(
-            'gpa_simulator.html',
+            'student/gpa_simulator.html',
             student=student,
             active_enrollments=[],
             active_period=None,
@@ -443,7 +552,7 @@ def gpa_simulator():
                 }
 
     return render_template(
-        'gpa_simulator.html',
+        'student/gpa_simulator.html',
         student=student,
         active_enrollments=active_enrollments,
         active_period=active_period,
@@ -475,7 +584,7 @@ def financials():
     total_arrears = total_billed - total_paid
 
     return render_template(
-        'financials.html',
+        'student/financials.html',
         student=student,
         records=records,
         total_billed=total_billed,
@@ -534,7 +643,7 @@ def helpdesk():
         .all()
     )
 
-    return render_template('helpdesk.html', student=student, tickets=tickets, courses=courses)
+    return render_template('student/helpdesk.html', student=student, tickets=tickets, courses=courses)
 
 
 @app.route('/logout')

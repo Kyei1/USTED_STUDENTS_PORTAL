@@ -14,206 +14,8 @@
 		crossorigin="anonymous"
 	>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-	<style>
-		:root {
-			--usted-maroon: #7a0016;
-			--usted-gold: #dba111;
-			--usted-maroon-soft: rgba(122, 0, 22, 0.06);
-			--usted-maroon-mid: rgba(122, 0, 22, 0.25);
-			--usted-maroon-strong: rgba(122, 0, 22, 0.45);
-			--usted-gold-soft: rgba(219, 161, 17, 0.25);
-			--usted-gold-mid: rgba(219, 161, 17, 0.4);
-			--usted-gold-strong: rgba(219, 161, 17, 0.55);
-			--usted-ink: #4a000d;
-			--usted-ink-dark: #3a000a;
-			--usted-gold-dark: #c9920f;
-			--usted-gold-shadow: rgba(219, 161, 17, 0.35);
-			--usted-maroon-shadow: rgba(122, 0, 22, 0.24);
-			--usted-focus-ring: rgba(122, 0, 22, 0.12);
-			--usted-notice-bg: #fff7e3;
-			--usted-bg: #f8f9fa;
-			--usted-text-muted: #6b7280;
-		}
-
-		body {
-			font-family: "Manrope", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-			background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-			color: var(--usted-ink);
-			min-height: 100vh;
-		}
-
-		h1, h2, h3, h4, h5 {
-			letter-spacing: -0.02em;
-		}
-
-		.main-nav {
-			position: sticky;
-			top: 0;
-			z-index: 1040;
-			background: #fff;
-			border-bottom: 1px solid #e5e7eb;
-			box-shadow: 0 6px 24px rgba(122, 0, 22, 0.08);
-		}
-
-		.brand-link {
-			text-decoration: none;
-			display: inline-flex;
-			align-items: center;
-			gap: 0.75rem;
-		}
-
-		.brand-mark {
-			width: 44px;
-			height: 44px;
-			border-radius: 0.65rem;
-			background: var(--usted-maroon);
-			color: var(--usted-gold);
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			font-weight: 700;
-			box-shadow: 0 8px 18px var(--usted-maroon-mid);
-		}
-
-		.brand-title {
-			font-size: 1.35rem;
-			line-height: 1;
-			font-weight: 800;
-			color: var(--usted-maroon);
-			margin-bottom: 0.1rem;
-		}
-
-		.brand-subtitle {
-			display: block;
-			font-size: 0.65rem;
-			letter-spacing: 0.15em;
-			text-transform: uppercase;
-			color: var(--usted-text-muted);
-			font-weight: 700;
-		}
-
-		.nav-link-themed {
-			color: var(--usted-ink);
-			font-weight: 600;
-			text-decoration: none;
-			padding: 0.5rem 0.75rem;
-			border-radius: 0.5rem;
-			transition: all 0.2s ease;
-		}
-
-		.nav-link-themed:hover,
-		.nav-link-themed:focus {
-			color: var(--usted-maroon);
-			background: var(--usted-maroon-soft);
-		}
-
-		.nav-highlight {
-			font-size: 0.6rem;
-			font-weight: 700;
-			color: var(--usted-ink);
-			background: var(--usted-gold-soft);
-			border: 1px solid var(--usted-gold-strong);
-			padding: 0.05rem 0.4rem;
-			border-radius: 999px;
-			margin-left: 0.35rem;
-		}
-
-		.profile-pill {
-			width: 40px;
-			height: 40px;
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			border-radius: 50%;
-			background: linear-gradient(135deg, var(--usted-gold), #efc553);
-			color: var(--usted-ink);
-			font-weight: 800;
-			box-shadow: 0 8px 18px var(--usted-gold-shadow);
-		}
-
-		.content-wrap {
-			padding: 1.5rem 0;
-		}
-
-		.site-footer {
-			border-top: 1px solid var(--usted-gold-soft);
-			background: #ffffff;
-		}
-
-		.signature-text {
-			margin: 0;
-			font-weight: 700;
-			color: var(--usted-maroon);
-		}
-
-		.signature-text span {
-			color: var(--usted-gold-dark);
-		}
-
-		.btn-gold {
-			background: var(--usted-gold);
-			color: var(--usted-ink);
-			font-weight: 800;
-			border: 0;
-		}
-
-		.btn-gold:hover {
-			background: var(--usted-gold-dark);
-			color: var(--usted-ink-dark);
-		}
-
-		.hero-shell {
-			background: var(--usted-maroon);
-			box-shadow: 0 20px 40px var(--usted-maroon-shadow);
-			border-radius: 1rem;
-			overflow: hidden;
-		}
-
-		.hero-shell .hero-note {
-			background: var(--usted-gold-soft);
-			color: #f8d577;
-			border: 1px solid var(--usted-gold-mid);
-		}
-
-		.card-soft {
-			border: 0;
-			box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
-		}
-
-		.notice-strip {
-			background: var(--usted-notice-bg);
-			color: var(--usted-ink);
-			border: 1px solid rgba(219, 161, 17, 0.5);
-		}
-
-		.form-control:focus {
-			border-color: var(--usted-maroon-strong);
-			box-shadow: 0 0 0 0.25rem var(--usted-focus-ring);
-		}
-
-		@media (max-width: 991.98px) {
-			.nav-menu {
-				display: none;
-				width: 100%;
-				margin-top: 0.75rem;
-				padding-top: 0.75rem;
-				border-top: 1px solid #e5e7eb;
-			}
-
-			.nav-menu.show {
-				display: block;
-			}
-
-			.nav-link-themed {
-				display: block;
-				margin-bottom: 0.35rem;
-			}
-
-			.nav-right {
-				padding-top: 0.45rem;
-			}
-		}
-	</style>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+	{% block page_css %}{% endblock %}
 </head>
 <body>
 	<header class="main-nav">
@@ -249,13 +51,22 @@
 						<a href="{{ url_for('index') }}" class="nav-link-themed">Portal Features</a>
 					{% endif %}
 
-					<div class="d-flex align-items-center gap-2 nav-right">
+					<div class="d-flex align-items-center gap-2 nav-right position-relative" id="topProfileWrap">
 						{% if session.get('student_id') %}
-							<a href="{{ url_for('logout') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Log Out</a>
+							<button type="button" class="btn btn-sm d-inline-flex align-items-center gap-2" id="topProfileBtn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">
+								Profile
+								<span class="profile-pill" aria-label="Profile">{{ session.get('first_name', 'U')[:1]|upper }}</span>
+							</button>
+							<div class="profile-menu" id="topProfileMenu">
+								<a href="#" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
+								<a href="{{ url_for('financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
+								<a href="#" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
+								<hr class="my-2">
+								<a href="{{ url_for('logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+							</div>
 						{% else %}
 							<a href="{{ url_for('login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Student Login</a>
 						{% endif %}
-						<span class="profile-pill" aria-label="Profile">{{ session.get('first_name', 'U')[:1]|upper }}</span>
 					</div>
 				</div>
 			</div>
@@ -279,20 +90,7 @@
 		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
 		crossorigin="anonymous"
 	></script>
-	<script>
-		(function () {
-			var menu = document.getElementById("navMenu");
-			var toggle = document.getElementById("menuToggle");
-
-			if (!menu || !toggle) {
-				return;
-			}
-
-			toggle.addEventListener("click", function () {
-				var isOpen = menu.classList.toggle("show");
-				toggle.setAttribute("aria-expanded", String(isOpen));
-			});
-		})();
-	</script>
+	<script src="{{ url_for('static', filename='js/base.js') }}"></script>
+	{% block page_js %}{% endblock %}
 </body>
 </html>

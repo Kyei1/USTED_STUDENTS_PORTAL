@@ -2,182 +2,11 @@
 
 {% block title %}Dashboard - USTED Portal{% endblock %}
 
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
 {% block content %}
-<style>
-    .student-layout {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 1rem;
-        overflow: hidden;
-        position: relative;
-        min-height: 76vh;
-        display: flex;
-    }
-
-    .student-sidebar {
-        width: 16rem;
-        background: var(--usted-maroon);
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0;
-        transition: transform 0.25s ease;
-        z-index: 30;
-    }
-
-    .sidebar-link {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        color: rgba(255, 255, 255, 0.86);
-        text-decoration: none;
-        border-radius: 0.75rem;
-        padding: 0.75rem 0.85rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-
-    .sidebar-link:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.08);
-    }
-
-    .sidebar-link.active {
-        color: var(--usted-ink);
-        background: var(--usted-gold);
-    }
-
-    .student-main {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        background: #f8f9fa;
-    }
-
-    .student-topbar {
-        height: 64px;
-        border-bottom: 1px solid #e5e7eb;
-        background: #fff;
-        padding: 0 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: relative;
-        z-index: 10;
-    }
-
-    .topbar-icon-btn {
-        border: 0;
-        background: transparent;
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: #6b7280;
-        transition: all 0.2s ease;
-    }
-
-    .topbar-icon-btn:hover {
-        color: var(--usted-maroon);
-        background: #f3f4f6;
-    }
-
-    .notify-dot {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 999px;
-        background: var(--usted-gold);
-        position: absolute;
-        top: 0.45rem;
-        right: 0.45rem;
-        border: 2px solid #fff;
-    }
-
-    .profile-menu {
-        position: absolute;
-        right: 0;
-        top: calc(100% + 0.45rem);
-        width: 15rem;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.75rem;
-        box-shadow: 0 16px 34px rgba(122, 0, 22, 0.12);
-        padding: 0.5rem;
-        display: none;
-    }
-
-    .profile-menu.show {
-        display: block;
-    }
-
-    .profile-item {
-        text-decoration: none;
-        color: #374151;
-        font-size: 0.92rem;
-        font-weight: 600;
-        border-radius: 0.6rem;
-        padding: 0.55rem 0.65rem;
-        display: flex;
-        align-items: center;
-        gap: 0.55rem;
-    }
-
-    .profile-item:hover {
-        background: #f9fafb;
-        color: var(--usted-maroon);
-    }
-
-    .student-content {
-        padding: 1rem;
-        overflow: auto;
-    }
-
-    .quick-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 1rem;
-        box-shadow: 0 10px 22px rgba(122, 0, 22, 0.08);
-        background: #fff;
-    }
-
-    .records-panel {
-        border: 1px solid #e5e7eb;
-        border-radius: 1rem;
-        background: #fff;
-    }
-
-    .sidebar-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(17, 24, 39, 0.42);
-        display: none;
-        z-index: 20;
-    }
-
-    .sidebar-overlay.show {
-        display: block;
-    }
-
-    @media (max-width: 991.98px) {
-        .student-sidebar {
-            position: absolute;
-            inset: 0 auto 0 0;
-            transform: translateX(-100%);
-        }
-
-        .student-sidebar.show {
-            transform: translateX(0);
-        }
-    }
-
-    @media (min-width: 992px) {
-        .menu-toggle {
-            display: none;
-        }
-    }
-</style>
 
 <section class="student-layout">
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -201,7 +30,7 @@
                 <a href="{{ url_for('dashboard') }}" class="sidebar-link"><i class="bi bi-book-fill"></i> My Courses</a>
                 <a href="{{ url_for('results') }}" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> Results</a>
                 <a href="{{ url_for('gpa_simulator') }}" class="sidebar-link"><i class="bi bi-calculator-fill"></i> GPA Simulator</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-folder-fill"></i> Resource Hub</a>
+                <a href="{{ url_for('resource_hub') }}" class="sidebar-link"><i class="bi bi-folder-fill"></i> Resource Hub</a>
                 <a href="{{ url_for('helpdesk') }}" class="sidebar-link"><i class="bi bi-life-preserver"></i> Helpdesk Tickets</a>
             </nav>
 
@@ -252,7 +81,7 @@
                 </div>
             </div>
 
-            <div class="alert d-flex align-items-center mb-4" role="alert" style="background: var(--usted-gold-notice); border-left: 4px solid var(--usted-gold); color: var(--usted-ink);">
+            <div class="alert d-flex align-items-center mb-4" role="alert" style="background: var(--usted-notice-bg); border-left: 4px solid var(--usted-gold); color: var(--usted-ink);">
                 <span class="me-2"><i class="bi bi-megaphone-fill"></i></span>
                 <span>Registration for Semester 2 closes Friday. New GPA Simulator is now active.</span>
             </div>
@@ -260,7 +89,7 @@
             <div class="row g-3 mb-4">
                 <div class="col-12 col-md-4">
                     <article class="quick-card p-4 h-100">
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: rgba(122,0,22,0.08); color: var(--usted-maroon);">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
                             <i class="bi bi-calculator-fill"></i>
                         </div>
                         <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Target Your GPA</h3>
@@ -270,7 +99,7 @@
                 </div>
                 <div class="col-12 col-md-4">
                     <article class="quick-card p-4 h-100">
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: rgba(219,161,17,0.16); color: var(--usted-ink);">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-gold-soft); color: var(--usted-ink);">
                             <i class="bi bi-ticket-detailed-fill"></i>
                         </div>
                         <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Academic Helpdesk</h3>
@@ -280,12 +109,12 @@
                 </div>
                 <div class="col-12 col-md-4">
                     <article class="quick-card p-4 h-100">
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: rgba(122,0,22,0.08); color: var(--usted-maroon);">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
                             <i class="bi bi-folder-fill"></i>
                         </div>
-                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Financial Statement</h3>
-                        <p class="text-muted mb-3">Track billed amount, payments, and current clearance state.</p>
-                        <a href="{{ url_for('financials') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Open Financials</a>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Resource Hub</h3>
+                        <p class="text-muted mb-3">Access course materials and downloadable resources.</p>
+                        <a href="{{ url_for('resource_hub') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Resources</a>
                     </article>
                 </div>
             </div>
@@ -321,7 +150,7 @@
             </section>
 
             <section class="records-panel p-4 text-center">
-                <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 66px; height: 66px; border: 2px dashed #d1d5db; background: #fff; color: #9ca3af;" id="recordsIconWrap">
+                <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 66px; height: 66px; border: 2px dashed #d1d5db; background: #fff; color: var(--usted-text-muted);" id="recordsIconWrap">
                     <i class="bi bi-lock-fill fs-4" id="recordsLockIcon"></i>
                 </div>
                 <h2 class="h4 fw-bold mb-2" style="color: var(--usted-maroon);">Results and CGPA</h2>
@@ -352,70 +181,8 @@
     </div>
 </section>
 
-<script>
-    (function () {
-        var sidebar = document.getElementById('studentSidebar');
-        var overlay = document.getElementById('sidebarOverlay');
-        var openBtn = document.getElementById('sidebarOpenBtn');
-        var closeBtn = document.getElementById('sidebarCloseBtn');
+{% endblock %}
 
-        var profileWrap = document.getElementById('profileDropdownWrap');
-        var profileBtn = document.getElementById('profileDropdownBtn');
-        var profileMenu = document.getElementById('profileDropdownMenu');
-
-        var recordsBtn = document.getElementById('recordsToggleBtn');
-        var recordsBody = document.getElementById('recordsPanelBody');
-        var recordsHint = document.getElementById('recordsHint');
-        var recordsIcon = document.getElementById('recordsLockIcon');
-
-        function openSidebar() {
-            if (!sidebar || !overlay) return;
-            sidebar.classList.add('show');
-            overlay.classList.add('show');
-        }
-
-        function closeSidebar() {
-            if (!sidebar || !overlay) return;
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
-        }
-
-        if (openBtn) openBtn.addEventListener('click', openSidebar);
-        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
-        if (overlay) overlay.addEventListener('click', closeSidebar);
-
-        if (profileBtn && profileMenu) {
-            profileBtn.addEventListener('click', function (event) {
-                event.stopPropagation();
-                profileMenu.classList.toggle('show');
-            });
-
-            document.addEventListener('click', function (event) {
-                if (!profileWrap || !profileMenu.classList.contains('show')) return;
-                if (!profileWrap.contains(event.target)) {
-                    profileMenu.classList.remove('show');
-                }
-            });
-        }
-
-        if (recordsBtn && recordsBody && recordsHint && recordsIcon) {
-            recordsBtn.addEventListener('click', function () {
-                var isHidden = recordsBody.classList.contains('d-none');
-                recordsBody.classList.toggle('d-none');
-
-                if (isHidden) {
-                    recordsBtn.innerHTML = '<i class="bi bi-eye-slash-fill me-1"></i> Hide Results';
-                    recordsHint.textContent = 'You can hide your academic standing again anytime.';
-                    recordsIcon.className = 'bi bi-mortarboard-fill fs-4';
-                    recordsIcon.style.color = 'var(--usted-maroon)';
-                } else {
-                    recordsBtn.innerHTML = '<i class="bi bi-eye-fill me-1"></i> Reveal Current Academic Standing';
-                    recordsHint.textContent = 'For your privacy, this section is hidden by default.';
-                    recordsIcon.className = 'bi bi-lock-fill fs-4';
-                    recordsIcon.style.color = '#9ca3af';
-                }
-            });
-        }
-    })();
-</script>
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

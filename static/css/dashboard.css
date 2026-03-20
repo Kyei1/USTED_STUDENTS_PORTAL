@@ -1,0 +1,139 @@
+.student-layout {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    overflow: hidden;
+    position: relative;
+    min-height: 76vh;
+    display: flex;
+}
+
+.student-sidebar {
+    width: 16rem;
+    background: var(--usted-maroon);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+    z-index: 30;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: rgba(255, 255, 255, 0.86);
+    text-decoration: none;
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-link.active {
+    color: var(--usted-ink);
+    background: var(--usted-gold);
+}
+
+.student-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--usted-bg);
+}
+
+.student-topbar {
+    height: 64px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
+}
+
+.topbar-icon-btn {
+    border: 0;
+    background: transparent;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--usted-text-muted);
+    transition: all 0.2s ease;
+}
+
+.topbar-icon-btn:hover {
+    color: var(--usted-maroon);
+    background: var(--usted-maroon-soft);
+}
+
+.notify-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--usted-gold);
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    border: 2px solid #fff;
+}
+
+.student-content {
+    padding: 1rem;
+    overflow: auto;
+}
+
+.quick-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    box-shadow: 0 10px 22px var(--usted-maroon-shadow);
+    background: #fff;
+}
+
+.records-panel {
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.sidebar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.42);
+    display: none;
+    z-index: 20;
+}
+
+.sidebar-overlay.show {
+    display: block;
+}
+
+@media (max-width: 991.98px) {
+    .student-sidebar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        transform: translateX(-100%);
+    }
+
+    .student-sidebar.show {
+        transform: translateX(0);
+    }
+}
+
+@media (min-width: 992px) {
+    .menu-toggle {
+        display: none;
+    }
+}
