@@ -92,9 +92,9 @@
         {% endwith %}
 
         <div class="welcome-card">
-            <h2>Welcome, {{ first_name }}!</h2>
+            <h2>Welcome, {{ student.first_name }} {{ student.last_name }}!</h2>
             <p>You are successfully logged in to the USTED Student Portal.</p>
-            <span class="badge">ID: {{ student_id }}</span>
+            <span class="badge">ID: {{ student.student_id }} | Level: {{ student.level }}</span>
         </div>
     </main>
 </body>

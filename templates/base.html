@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{% block title %}USTED Portal{% endblock %}</title>
+	<link
+		href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+		rel="stylesheet"
+		integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+		crossorigin="anonymous"
+	>
+	<style>
+		:root {
+			--usted-maroon: #8B0000;
+			--usted-blue: #0f172a;
+			--usted-gold: #D4AF37;
+			--usted-green: #198754;
+			--usted-bg: #f8f9fa;
+			--sidebar-width: 260px;
+		}
+
+		body {
+			background: var(--usted-bg);
+			min-height: 100vh;
+		}
+
+		.app-sidebar {
+			width: var(--sidebar-width);
+			background: var(--usted-blue);
+			color: #fff;
+			position: fixed;
+			inset: 0 auto 0 0;
+			z-index: 1040;
+			padding: 1rem;
+		}
+
+		.brand {
+			color: #fff;
+			font-weight: 700;
+			letter-spacing: 0.3px;
+			text-decoration: none;
+			display: block;
+			padding: 0.5rem 0.25rem 1rem;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+			margin-bottom: 0.75rem;
+		}
+
+		.sidebar-link {
+			display: block;
+			padding: 0.65rem 0.75rem;
+			border-radius: 0.5rem;
+			color: rgba(255, 255, 255, 0.9);
+			text-decoration: none;
+			transition: background-color 0.2s ease;
+			margin-bottom: 0.25rem;
+		}
+
+		.sidebar-link:hover,
+		.sidebar-link:focus {
+			background: rgba(255, 255, 255, 0.12);
+			color: #fff;
+		}
+
+		.app-main {
+			margin-left: var(--sidebar-width);
+			min-height: 100vh;
+		}
+
+		.top-header {
+			background: #fff;
+			border-bottom: 4px solid var(--usted-maroon);
+			position: sticky;
+			top: 0;
+			z-index: 1030;
+		}
+
+		.profile-icon {
+			width: 38px;
+			height: 38px;
+			border-radius: 50%;
+			background: var(--usted-gold);
+			color: var(--usted-blue);
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 700;
+		}
+
+		@media (max-width: 991.98px) {
+			.app-sidebar {
+				transform: translateX(-100%);
+				transition: transform 0.25s ease;
+			}
+
+			.app-sidebar.show {
+				transform: translateX(0);
+			}
+
+			.app-main {
+				margin-left: 0;
+			}
+		}
+	</style>
+</head>
+<body>
+	<aside id="appSidebar" class="app-sidebar">
+		<a class="brand" href="#">AAMUSTED Portal</a>
+		<nav aria-label="Sidebar">
+			<a class="sidebar-link" href="#">Dashboard</a>
+			<a class="sidebar-link" href="#">GPA Simulator</a>
+			<a class="sidebar-link" href="#">Helpdesk</a>
+		</nav>
+	</aside>
+
+	<main class="app-main">
+		<header class="top-header">
+			<div class="container-fluid py-3 px-3 px-md-4 d-flex align-items-center justify-content-between">
+				<button
+					class="btn btn-outline-secondary d-lg-none"
+					type="button"
+					id="sidebarToggle"
+					aria-controls="appSidebar"
+					aria-expanded="false"
+					aria-label="Toggle navigation"
+				>
+					Menu
+				</button>
+				<div class="ms-auto profile-icon" aria-label="Profile">U</div>
+			</div>
+		</header>
+
+		<section class="container-fluid p-3 p-md-4">
+			{% block content %}{% endblock %}
+		</section>
+	</main>
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+		crossorigin="anonymous"
+	></script>
+	<script>
+		(function () {
+			var sidebar = document.getElementById("appSidebar");
+			var toggle = document.getElementById("sidebarToggle");
+
+			if (!sidebar || !toggle) {
+				return;
+			}
+
+			toggle.addEventListener("click", function () {
+				var isOpen = sidebar.classList.toggle("show");
+				toggle.setAttribute("aria-expanded", String(isOpen));
+			});
+		})();
+	</script>
+</body>
+</html>
