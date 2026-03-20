@@ -21,7 +21,7 @@
 	<header class="main-nav">
 		<div class="container-xxl py-3">
 			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-				<a href="{{ url_for('index') }}" class="brand-link">
+				<a href="{{ url_for('public.index') }}" class="brand-link">
 					<span class="brand-mark">U</span>
 					<span>
 						<span class="brand-title">USTED</span>
@@ -41,14 +41,14 @@
 				</button>
 
 				<div id="navMenu" class="nav-menu d-lg-flex align-items-lg-center gap-lg-2 ms-lg-auto">
-					<a href="{{ url_for('dashboard') if session.get('student_id') else url_for('login') }}" class="nav-link-themed">Dashboard</a>
+					<a href="{{ url_for('student.dashboard') if session.get('student_id') else url_for('public.login') }}" class="nav-link-themed">Dashboard</a>
 					{% if session.get('student_id') %}
-						<a href="{{ url_for('results') }}" class="nav-link-themed">Results</a>
-						<a href="{{ url_for('gpa_simulator') }}" class="nav-link-themed">GPA Simulator</a>
-						<a href="{{ url_for('financials') }}" class="nav-link-themed">Financials</a>
-						<a href="{{ url_for('helpdesk') }}" class="nav-link-themed">Helpdesk <span class="nav-highlight">New</span></a>
+						<a href="{{ url_for('student.results') }}" class="nav-link-themed">Results</a>
+						<a href="{{ url_for('student.gpa_simulator') }}" class="nav-link-themed">GPA Simulator</a>
+						<a href="{{ url_for('student.financials') }}" class="nav-link-themed">Financials</a>
+						<a href="{{ url_for('student.helpdesk') }}" class="nav-link-themed">Helpdesk <span class="nav-highlight">New</span></a>
 					{% else %}
-						<a href="{{ url_for('index') }}" class="nav-link-themed">Portal Features</a>
+						<a href="{{ url_for('public.index') }}" class="nav-link-themed">Portal Features</a>
 					{% endif %}
 
 					<div class="d-flex align-items-center gap-2 nav-right position-relative" id="topProfileWrap">
@@ -59,13 +59,13 @@
 							</button>
 							<div class="profile-menu" id="topProfileMenu">
 								<a href="#" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
-								<a href="{{ url_for('financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
+								<a href="{{ url_for('student.financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
 								<a href="#" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
 								<hr class="my-2">
-								<a href="{{ url_for('logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+								<a href="{{ url_for('student.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
 							</div>
 						{% else %}
-							<a href="{{ url_for('login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Student Login</a>
+							<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Student Login</a>
 						{% endif %}
 					</div>
 				</div>

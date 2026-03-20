@@ -26,16 +26,16 @@
             </div>
 
             <nav class="flex-grow-1 px-3 py-3 d-flex flex-column gap-1">
-                <a href="{{ url_for('dashboard') }}" class="sidebar-link active"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
-                <a href="{{ url_for('dashboard') }}" class="sidebar-link"><i class="bi bi-book-fill"></i> My Courses</a>
-                <a href="{{ url_for('results') }}" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> Results</a>
-                <a href="{{ url_for('gpa_simulator') }}" class="sidebar-link"><i class="bi bi-calculator-fill"></i> GPA Simulator</a>
-                <a href="{{ url_for('resource_hub') }}" class="sidebar-link"><i class="bi bi-folder-fill"></i> Resource Hub</a>
-                <a href="{{ url_for('helpdesk') }}" class="sidebar-link"><i class="bi bi-life-preserver"></i> Helpdesk Tickets</a>
+                <a href="{{ url_for('student.dashboard') }}" class="sidebar-link active"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+                <a href="{{ url_for('student.dashboard') }}" class="sidebar-link"><i class="bi bi-book-fill"></i> My Courses</a>
+                <a href="{{ url_for('student.results') }}" class="sidebar-link"><i class="bi bi-bar-chart-fill"></i> Results</a>
+                <a href="{{ url_for('student.gpa_simulator') }}" class="sidebar-link"><i class="bi bi-calculator-fill"></i> GPA Simulator</a>
+                <a href="{{ url_for('student.resource_hub') }}" class="sidebar-link"><i class="bi bi-folder-fill"></i> Resource Hub</a>
+                <a href="{{ url_for('student.helpdesk') }}" class="sidebar-link"><i class="bi bi-life-preserver"></i> Helpdesk Tickets</a>
             </nav>
 
             <div class="p-3" style="border-top: 1px solid rgba(255,255,255,0.12);">
-                <a href="{{ url_for('logout') }}" class="sidebar-link"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+                <a href="{{ url_for('student.logout') }}" class="sidebar-link"><i class="bi bi-box-arrow-right"></i> Log Out</a>
             </div>
         </div>
     </aside>
@@ -60,10 +60,10 @@
 
                     <div class="profile-menu" id="profileDropdownMenu">
                         <a href="#" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
-                        <a href="{{ url_for('financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
+                        <a href="{{ url_for('student.financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
                         <a href="#" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
                         <hr class="my-2">
-                        <a href="{{ url_for('logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+                        <a href="{{ url_for('student.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                         </div>
                         <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Target Your GPA</h3>
                         <p class="text-muted mb-3">Simulate upcoming grades to preview your CGPA impact.</p>
-                        <a href="{{ url_for('gpa_simulator') }}" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
+                        <a href="{{ url_for('student.gpa_simulator') }}" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
                     </article>
                 </div>
                 <div class="col-12 col-md-4">
@@ -104,7 +104,7 @@
                         </div>
                         <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Academic Helpdesk</h3>
                         <p class="text-muted mb-3">Need support with registration or advising issues?</p>
-                        <a href="{{ url_for('helpdesk') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink);">Create Ticket</a>
+                        <a href="{{ url_for('student.helpdesk') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink);">Create Ticket</a>
                     </article>
                 </div>
                 <div class="col-12 col-md-4">
@@ -114,7 +114,7 @@
                         </div>
                         <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Resource Hub</h3>
                         <p class="text-muted mb-3">Access course materials and downloadable resources.</p>
-                        <a href="{{ url_for('resource_hub') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Resources</a>
+                        <a href="{{ url_for('student.resource_hub') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Resources</a>
                     </article>
                 </div>
             </div>

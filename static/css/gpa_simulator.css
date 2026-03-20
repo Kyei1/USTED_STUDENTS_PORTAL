@@ -1,0 +1,147 @@
+.gpa-shell {
+    background:
+        radial-gradient(circle at 12% 8%, var(--usted-gold-soft), transparent 32%),
+        radial-gradient(circle at 88% 20%, rgba(122, 0, 22, 0.08), transparent 28%),
+        #fff;
+    border: 1px solid rgba(122, 0, 22, 0.1);
+    border-radius: 1.25rem;
+    box-shadow: 0 14px 38px rgba(74, 0, 13, 0.08);
+}
+
+.gpa-hero {
+    border: 1px solid rgba(122, 0, 22, 0.12);
+    border-radius: 1rem;
+    padding: 1rem 1.1rem;
+    background: linear-gradient(120deg, rgba(122, 0, 22, 0.07), rgba(219, 161, 17, 0.12));
+}
+
+.hero-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--usted-maroon);
+}
+
+.level-pill {
+    background: var(--usted-gold-soft);
+    color: var(--usted-ink);
+    border: 1px solid rgba(219, 161, 17, 0.35);
+    font-weight: 700;
+}
+
+.metric-card {
+    border: 1px solid rgba(122, 0, 22, 0.12);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #fff;
+}
+
+.metric-label {
+    color: #6b7280;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.metric-value {
+    color: var(--usted-maroon);
+    font-size: 1.65rem;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.metric-value.metric-sm {
+    font-size: 1.05rem;
+    line-height: 1.25;
+}
+
+.panel-card {
+    border: 1px solid rgba(122, 0, 22, 0.13);
+    border-radius: 1rem;
+    padding: 1.15rem;
+    background: #fff;
+}
+
+.panel-title {
+    color: var(--usted-maroon);
+    font-weight: 800;
+    font-size: 1.03rem;
+    margin-bottom: 0.9rem;
+}
+
+.btn-gold {
+    background: var(--usted-gold);
+    color: var(--usted-ink);
+    font-weight: 800;
+}
+
+.btn-gold:hover {
+    background: #c98f0f;
+    color: var(--usted-ink);
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.compare-card {
+    border: 1px solid rgba(74, 0, 13, 0.14);
+    border-radius: 0.9rem;
+    padding: 0.8rem;
+    background: linear-gradient(170deg, #fff, rgba(248, 249, 250, 0.95));
+}
+
+.compare-label {
+    color: #6b7280;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.compare-value {
+    color: var(--usted-maroon);
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.delta-line {
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+.delta-line strong {
+    color: var(--usted-maroon);
+}
+
+.target-table td,
+.target-table th {
+    white-space: nowrap;
+}
+
+.chart-panel {
+    min-height: 290px;
+}
+
+.chart-badge {
+    background: rgba(122, 0, 22, 0.08);
+    color: var(--usted-maroon);
+    border: 1px solid rgba(122, 0, 22, 0.2);
+    border-radius: 999px;
+    padding: 0.24rem 0.7rem;
+    font-size: 0.73rem;
+    font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-value {
+        font-size: 1.4rem;
+    }
+}

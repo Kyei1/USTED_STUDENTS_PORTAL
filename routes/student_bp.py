@@ -12,6 +12,7 @@ from services import (
     score_to_letter,
     point_to_min_total_score,
     scaled_exam_score,
+    difficulty_label,
     allocate_uneven_target_points,
     academic_period_rank,
 )
@@ -370,7 +371,7 @@ def gpa_simulator():
                     min_total_score = point_to_min_total_score(row['required_point'])
                     row['minimum_total_score'] = min_total_score
                     row['minimum_letter'] = score_to_letter(min_total_score)
-                    # Note: difficulty_label moved to util, will import separately if needed
+                    row['difficulty_label'] = difficulty_label(row['difficulty_weight'])
 
                 target_result = {
                     'target_sgpa': target_sgpa,

@@ -2,49 +2,56 @@
 
 {% block title %}GPA Simulator - USTED Portal{% endblock %}
 
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gpa_simulator.css') }}">
+{% endblock %}
+
 {% block content %}
-<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-        <div>
-            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">GPA Simulator</h1>
-            <p class="text-muted mb-0">Run single-course projection or full-semester target simulation with AAMUSTED grading rules.</p>
+<section class="gpa-shell p-3 p-lg-4">
+    <div class="gpa-hero mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <p class="hero-kicker mb-1">Projection Lab</p>
+                <h1 class="h3 fw-bold mb-2">GPA Simulator</h1>
+                <p class="mb-0 text-muted">Run single-course projections, plan a target SGPA, and view your grade history trajectory in one place.</p>
+            </div>
+            <span class="badge level-pill">Level {{ student.level }}</span>
         </div>
-        <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Level {{ student.level }}</span>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
-            <div class="border rounded-3 p-3 h-100">
-                <div class="text-muted small">Past CGPA</div>
-                <div class="h4 mb-0" style="color: var(--usted-maroon);">{{ '%.2f'|format(past_cgpa) }}</div>
-            </div>
+            <article class="metric-card h-100">
+                <p class="metric-label mb-1">Past CGPA</p>
+                <p class="metric-value mb-0">{{ '%.2f'|format(past_cgpa) }}</p>
+            </article>
         </div>
         <div class="col-12 col-md-4">
-            <div class="border rounded-3 p-3 h-100">
-                <div class="text-muted small">Past Credits Attempted</div>
-                <div class="h4 mb-0" style="color: var(--usted-maroon);">{{ total_past_credits }}</div>
-            </div>
+            <article class="metric-card h-100">
+                <p class="metric-label mb-1">Past Credits Attempted</p>
+                <p class="metric-value mb-0">{{ total_past_credits }}</p>
+            </article>
         </div>
         <div class="col-12 col-md-4">
-            <div class="border rounded-3 p-3 h-100">
-                <div class="text-muted small">Active Semester</div>
-                <div class="h6 mb-0" style="color: var(--usted-maroon);">
+            <article class="metric-card h-100">
+                <p class="metric-label mb-1">Active Semester</p>
+                <p class="metric-value mb-0 metric-sm">
                     {% if active_period %}
                         {{ active_period[0] }} - {{ active_period[1] }}
                     {% else %}
                         N/A
                     {% endif %}
-                </div>
-            </div>
+                </p>
+            </article>
         </div>
     </div>
 
     {% if active_enrollments %}
-        <div class="row g-4">
+        <div class="row g-4 mb-4">
             <div class="col-12 col-xl-6">
-                <section class="border rounded-4 p-4 h-100">
-                    <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Path A: Single Course Projection</h2>
-                    <form method="post" class="d-flex flex-column gap-3">
+                <section class="panel-card h-100">
+                    <h2 class="panel-title">Path A: Single Course Projection</h2>
+                    <form method="post" class="d-flex flex-column gap-3 mb-3">
                         <input type="hidden" name="mode" value="single">
 
                         <div>
@@ -74,52 +81,43 @@
                         </div>
 
                         <div class="d-flex flex-wrap gap-2">
-                            <button type="submit" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Run Single Projection</button>
-                            <a href="{{ url_for('gpa_simulator') }}" class="btn btn-outline-secondary">Reset</a>
+                            <button type="submit" class="btn btn-gold">Run Single Projection</button>
+                            <a href="{{ url_for('student.gpa_simulator') }}" class="btn btn-outline-secondary">Reset</a>
                         </div>
                     </form>
 
-                    {% if single_result %}
-                        <div class="row g-3 mt-1">
-                            <div class="col-12 col-md-6">
-                                <div class="border rounded-3 p-3 h-100">
-                                    <div class="small text-muted">Scaled Exam (60%)</div>
-                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.scaled_exam_score) }}</div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="border rounded-3 p-3 h-100">
-                                    <div class="small text-muted">Projected Total</div>
-                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.projected_total) }} ({{ single_result.projected_letter }})</div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="border rounded-3 p-3 h-100">
-                                    <div class="small text-muted">Baseline SGPA</div>
-                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.baseline_sgpa) }}</div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="border rounded-3 p-3 h-100">
-                                    <div class="small text-muted">Projected SGPA</div>
-                                    <div class="h6 mb-0">{{ '%.2f'|format(single_result.projected_sgpa) }}</div>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="border rounded-3 p-3">
-                                    <div class="small text-muted">CGPA Impact</div>
-                                    <div class="fw-semibold">Baseline CGPA: {{ '%.2f'|format(single_result.baseline_cgpa) }} | Projected CGPA: {{ '%.2f'|format(single_result.projected_cgpa) }}</div>
-                                    <div class="fw-bold" style="color: var(--usted-maroon);">Delta: {{ '%+.2f'|format(single_result.cgpa_delta) }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+                    <div class="comparison-grid" id="whatIfComparison">
+                        <article class="compare-card">
+                            <p class="compare-label mb-1">Baseline SGPA</p>
+                            <p class="compare-value mb-0">{{ '%.2f'|format(single_result.baseline_sgpa if single_result else 0) }}</p>
+                        </article>
+                        <article class="compare-card">
+                            <p class="compare-label mb-1">Projected SGPA</p>
+                            <p class="compare-value mb-0">{{ '%.2f'|format(single_result.projected_sgpa if single_result else 0) }}</p>
+                        </article>
+                        <article class="compare-card">
+                            <p class="compare-label mb-1">Baseline CGPA</p>
+                            <p class="compare-value mb-0">{{ '%.2f'|format(single_result.baseline_cgpa if single_result else past_cgpa) }}</p>
+                        </article>
+                        <article class="compare-card">
+                            <p class="compare-label mb-1">Projected CGPA</p>
+                            <p class="compare-value mb-0">{{ '%.2f'|format(single_result.projected_cgpa if single_result else past_cgpa) }}</p>
+                        </article>
+                    </div>
+
+                    <p class="delta-line mt-3 mb-0">
+                        {% if single_result %}
+                            CGPA Delta: <strong>{{ '%+.2f'|format(single_result.cgpa_delta) }}</strong>
+                        {% else %}
+                            Run Path A to preview your CGPA impact.
+                        {% endif %}
+                    </p>
                 </section>
             </div>
 
             <div class="col-12 col-xl-6">
-                <section class="border rounded-4 p-4 h-100">
-                    <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Path B: Full Semester Target</h2>
+                <section class="panel-card h-100">
+                    <h2 class="panel-title">Path B: Full Semester Target</h2>
                     <form method="post" class="d-flex flex-column gap-3 mb-3">
                         <input type="hidden" name="mode" value="target">
                         <div>
@@ -127,20 +125,20 @@
                             <input id="target_sgpa" name="target_sgpa" type="number" class="form-control" min="0" max="4" step="0.01" value="{{ target_result.target_sgpa if target_result else '' }}" required>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
-                            <button type="submit" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Generate Target Plan</button>
-                            <a href="{{ url_for('gpa_simulator') }}" class="btn btn-outline-secondary">Reset</a>
+                            <button type="submit" class="btn btn-gold">Generate Target Plan</button>
+                            <a href="{{ url_for('student.gpa_simulator') }}" class="btn btn-outline-secondary">Reset</a>
                         </div>
                     </form>
 
                     {% if target_result %}
                         <div class="border rounded-3 p-3 mb-3">
-                            <div class="small text-muted">Required Grade Points This Semester</div>
-                            <div class="h6 mb-1">{{ '%.2f'|format(target_result.required_total_grade_points) }}</div>
-                            <div class="small text-muted">Across {{ target_result.active_credit_hours }} credit hours</div>
+                            <p class="small text-muted mb-1">Required Grade Points This Semester</p>
+                            <p class="h6 mb-1">{{ '%.2f'|format(target_result.required_total_grade_points) }}</p>
+                            <p class="small text-muted mb-0">Across {{ target_result.active_credit_hours }} credit hours</p>
                         </div>
 
                         <div class="table-responsive">
-                            <table class="table align-middle mb-0">
+                            <table class="table align-middle mb-0 target-table">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Course</th>
@@ -172,8 +170,58 @@
                 </section>
             </div>
         </div>
+
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <section class="panel-card chart-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 mb-0">What-If Comparison</h3>
+                        <span class="chart-badge">SGPA / CGPA</span>
+                    </div>
+                    <canvas id="comparisonChart" height="220"></canvas>
+                </section>
+            </div>
+            <div class="col-12 col-lg-6">
+                <section class="panel-card chart-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 mb-0">Grade History Trajectory</h3>
+                        <span class="chart-badge">Trend View</span>
+                    </div>
+                    <canvas id="historyChart" height="220"></canvas>
+                </section>
+            </div>
+        </div>
     {% else %}
         <div class="alert alert-warning mb-0">No active semester enrollments found. Add enrollment data to run GPA simulation.</div>
     {% endif %}
 </section>
+
+{% set target_projected_cgpa = past_cgpa %}
+{% if target_result and (total_past_credits + target_result.active_credit_hours) > 0 %}
+    {% set target_projected_cgpa = ((past_cgpa * total_past_credits) + target_result.required_total_grade_points) / (total_past_credits + target_result.active_credit_hours) %}
+{% endif %}
+
+<script id="gpa-ui-data" type="application/json">
+{
+    "single": {
+        "baselineSgpa": {{ '%.4f'|format(single_result.baseline_sgpa if single_result else 0)|float }},
+        "projectedSgpa": {{ '%.4f'|format(single_result.projected_sgpa if single_result else 0)|float }},
+        "baselineCgpa": {{ '%.4f'|format(single_result.baseline_cgpa if single_result else past_cgpa)|float }},
+        "projectedCgpa": {{ '%.4f'|format(single_result.projected_cgpa if single_result else target_projected_cgpa)|float }}
+    },
+    "history": {
+        "labels": ["Past CGPA", "Baseline End-Sem", "Projected End-Sem"],
+        "values": [
+            {{ '%.4f'|format(past_cgpa)|float }},
+            {{ '%.4f'|format(single_result.baseline_cgpa if single_result else past_cgpa)|float }},
+            {{ '%.4f'|format(single_result.projected_cgpa if single_result else target_projected_cgpa)|float }}
+        ]
+    }
+}
+</script>
+{% endblock %}
+
+{% block page_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/gpa_simulator.js') }}"></script>
 {% endblock %}
