@@ -72,3 +72,15 @@
     background: #f3f4f6;
     color: #374151;
 }
+
+.resource-file-name {
+    min-width: 12rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (max-width: 767.98px) {
+    .resource-file-name {
+        min-width: 10rem;
+    }
+}

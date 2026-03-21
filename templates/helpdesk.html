@@ -95,9 +95,9 @@
                                         <span class="priority-badge priority-medium">Medium</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ ticket.course_code or 'General' }}</td>
+                                <td class="ticket-course">{{ ticket.course_code or 'General' }}</td>
                                 <td>{{ ticket.date_submitted.strftime('%Y-%m-%d') if ticket.date_submitted else 'N/A' }}</td>
-                                <td>{{ ticket.description }}</td>
+                                <td class="ticket-description">{{ ticket.description }}</td>
                                 <td>
                                     {% if ticket.status == 'Resolved' %}
                                         <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Resolved</span>
