@@ -181,6 +181,22 @@ class Announcement(db.Model):
 	date_posted = db.Column("Date_Posted", db.TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
 
 	admin = db.relationship("Admin", back_populates="announcements")
+	read_receipts = db.relationship("StudentAnnouncementRead", back_populates="announcement", lazy=True)
+
+
+class StudentAnnouncementRead(db.Model):
+	__tablename__ = "student_announcement_read"
+
+	id = db.Column(db.Integer, primary_key=True)
+	student_id = db.Column(db.String(10), db.ForeignKey("student.student_id"), nullable=False)
+	announcement_id = db.Column(db.Integer, db.ForeignKey("announcement.announcement_id"), nullable=False)
+	read_at = db.Column(db.TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
+	__table_args__ = (
+		db.UniqueConstraint('student_id', 'announcement_id', name='uq_student_announcement_read'),
+	)
+
+	student = db.relationship("Student", lazy=True)
+	announcement = db.relationship("Announcement", back_populates="read_receipts")
 
 
 class SupportTicket(db.Model):

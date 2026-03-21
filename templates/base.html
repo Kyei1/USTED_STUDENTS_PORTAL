@@ -19,9 +19,10 @@
 </head>
 <body>
 	{% set is_public_landing = request.endpoint == 'public.index' %}
+	{% set is_student_route = request.blueprint == 'student' and session.get('student_id') %}
 	{% set public_footer_endpoints = ['public.index', 'public.login', 'public.forgot_password', 'public.it_helpdesk'] %}
 	{% set uses_public_footer = request.endpoint in public_footer_endpoints %}
-	{% if is_public_landing %}
+	{% if not is_student_route and is_public_landing %}
 	<header class="main-nav">
 		<div class="container-xxl py-3">
 			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
@@ -58,7 +59,7 @@
 			</div>
 		</div>
 	</header>
-	{% else %}
+	{% elif not is_student_route %}
 	<header class="main-nav">
 		<div class="container-xxl py-3">
 			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
@@ -87,47 +88,134 @@
 				</button>
 
 				<div id="navMenu" class="nav-menu d-lg-flex align-items-lg-center gap-lg-2 ms-lg-auto">
-					{% if session.get('student_id') %}
-						<a href="{{ url_for('student.dashboard') }}" class="nav-link-themed">Dashboard</a>
-						<a href="{{ url_for('student.results') }}" class="nav-link-themed">Results</a>
-						<a href="{{ url_for('student.gpa_simulator') }}" class="nav-link-themed">GPA Simulator</a>
-						<a href="{{ url_for('student.financials') }}" class="nav-link-themed">Financials</a>
-						<a href="{{ url_for('student.helpdesk') }}" class="nav-link-themed">Helpdesk <span class="nav-highlight">New</span></a>
-					{% else %}
-						<a href="{{ url_for('public.index') }}" class="nav-link-themed">Portal Features</a>
-						<a href="{{ url_for('public.login') }}" class="nav-link-themed">Login</a>
-					{% endif %}
-
-					<div class="d-flex align-items-center gap-2 nav-right position-relative" id="topProfileWrap">
-						{% if session.get('student_id') %}
-							<button type="button" class="btn btn-sm d-inline-flex align-items-center gap-2" id="topProfileBtn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">
-								Profile
-								<span class="profile-pill" aria-label="Profile">{{ session.get('first_name', 'U')[:1]|upper }}</span>
-							</button>
-							<div class="profile-menu" id="topProfileMenu">
-								<a href="{{ url_for('student.profile') }}" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
-								<a href="{{ url_for('student.financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
-								<a href="{{ url_for('student.account_settings') }}" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
-								<hr class="my-2">
-								<a href="{{ url_for('student.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
-							</div>
-						{% else %}
-							<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Portal Login</a>
-						{% endif %}
-					</div>
+					<a href="{{ url_for('public.index') }}" class="nav-link-themed">Portal Features</a>
+					<a href="{{ url_for('public.login') }}" class="nav-link-themed">Login</a>
+					<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Portal Login</a>
 				</div>
 			</div>
 		</div>
 	</header>
 	{% endif %}
 
+	{% set page_content %}{% block content %}{% endblock %}{% endset %}
+
+	{% if is_student_route %}
+	<section class="student-shell-layout">
+		<header class="student-shell-topbar">
+			<div class="d-flex align-items-center gap-2">
+				<button class="topbar-icon-btn d-lg-none" id="studentSidebarOpenBtn" type="button" aria-label="Open sidebar">
+					<i class="bi bi-list fs-5"></i>
+				</button>
+				<a href="{{ url_for('student.dashboard') }}" class="student-shell-brand-link">
+					<img src="{{ url_for('static', filename='images/usted-logo.png') }}" alt="USTED Logo" style="width: 36px; height: 36px; object-fit: contain;">
+					<span class="student-shell-brand-text">
+						<strong class="student-shell-brand-title">USTED</strong>
+						<small class="student-shell-brand-subtitle">Student Portal</small>
+					</span>
+				</a>
+			</div>
+
+			<div class="d-flex align-items-center gap-2 ms-auto">
+					<div class="position-relative" id="topNotifyWrap">
+						<button type="button" class="btn btn-sm top-notify-btn position-relative" id="topNotifyBtn" aria-label="View announcements">
+							<i class="bi bi-bell-fill"></i>
+							{% if top_unread_count > 0 %}
+								<span class="top-notify-badge" id="topNotifyBadge">{{ top_unread_count }}</span>
+							{% endif %}
+						</button>
+						<div class="profile-menu notify-menu" id="topNotifyMenu">
+							<p class="notify-title mb-2">Announcements</p>
+							<ul class="notify-list mb-0">
+								{% for item in top_announcements %}
+									<li class="notify-item {% if item.announcement_id not in top_read_announcement_ids %}notify-unread{% endif %}">
+										<strong>{{ item.title }}</strong>
+										<span>{{ item.message }}</span>
+										<small class="text-muted">{{ item.date_posted.strftime('%Y-%m-%d') if item.date_posted else '' }}</small>
+									</li>
+								{% else %}
+									<li class="notify-item">
+										<strong>No announcements yet</strong>
+										<span>New student notices will appear here.</span>
+									</li>
+								{% endfor %}
+							</ul>
+						</div>
+					</div>
+
+					<div class="position-relative" id="topProfileWrap">
+						<button type="button" class="btn btn-sm top-profile-btn d-inline-flex align-items-center gap-2" id="topProfileBtn" aria-label="Open profile menu">
+							<i class="bi bi-person-circle profile-icon"></i>
+							<span class="profile-pill" aria-label="Profile">{{ session.get('first_name', 'U')[:1]|upper }}</span>
+						</button>
+						<div class="profile-menu" id="topProfileMenu">
+							<a href="{{ url_for('student.profile') }}" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
+							<a href="{{ url_for('student.financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
+							<a href="{{ url_for('student.account_settings') }}" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
+							<hr class="my-2">
+							<a href="{{ url_for('student.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+						</div>
+					</div>
+			</div>
+		</header>
+
+		<div class="student-shell-body">
+			<div class="student-shell-overlay" id="studentSidebarOverlay"></div>
+			<aside class="student-shell-sidebar" id="studentSidebar">
+				<div class="student-sidebar-mobile-head d-flex align-items-center justify-content-between px-3 py-2 d-lg-none">
+					<strong class="text-white">Menu</strong>
+					<button class="btn btn-sm text-white" type="button" id="studentSidebarCloseBtn" aria-label="Close sidebar">
+						<i class="bi bi-x-lg"></i>
+					</button>
+				</div>
+				<nav class="flex-grow-1 p-3 d-flex flex-column gap-1">
+					<a href="{{ url_for('student.dashboard') }}" class="student-shell-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+					<a href="{{ url_for('student.my_courses') }}" class="student-shell-link {% if request.endpoint == 'student.my_courses' %}active{% endif %}"><i class="bi bi-book-fill"></i> My Courses</a>
+					<a href="{{ url_for('student.results') }}" class="student-shell-link {% if request.endpoint == 'student.results' %}active{% endif %}"><i class="bi bi-bar-chart-fill"></i> Results</a>
+					<a href="{{ url_for('student.gpa_simulator') }}" class="student-shell-link {% if request.endpoint == 'student.gpa_simulator' %}active{% endif %}"><i class="bi bi-calculator-fill"></i> GPA Simulator</a>
+					<a href="{{ url_for('student.resource_hub') }}" class="student-shell-link {% if request.endpoint == 'student.resource_hub' %}active{% endif %}"><i class="bi bi-folder-fill"></i> Resource Hub</a>
+					<a href="{{ url_for('student.helpdesk') }}" class="student-shell-link {% if request.endpoint == 'student.helpdesk' %}active{% endif %}"><i class="bi bi-life-preserver"></i> Helpdesk Tickets</a>
+				</nav>
+				<div class="p-3" style="border-top: 1px solid rgba(255,255,255,0.12);">
+					<a href="{{ url_for('student.logout') }}" class="student-shell-link"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+				</div>
+			</aside>
+
+			<main class="student-shell-content">
+				{% with messages = get_flashed_messages(with_categories=true) %}
+					{% if messages %}
+						<div class="mb-3">
+							{% for category, message in messages %}
+								<div class="alert alert-{{ 'danger' if category == 'error' else category }} mb-2" role="alert">
+									{{ message }}
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				{% endwith %}
+				{{ page_content | safe }}
+			</main>
+		</div>
+	</section>
+	{% else %}
 	<main class="container-fluid content-wrap px-3 px-lg-4">
 		<section>
-			{% block content %}{% endblock %}
+			{% with messages = get_flashed_messages(with_categories=true) %}
+				{% if messages %}
+					<div class="mb-3">
+						{% for category, message in messages %}
+							<div class="alert alert-{{ 'danger' if category == 'error' else category }} mb-2" role="alert">
+								{{ message }}
+							</div>
+						{% endfor %}
+					</div>
+				{% endif %}
+			{% endwith %}
+			{{ page_content | safe }}
 		</section>
 	</main>
+	{% endif %}
 
-	{% if uses_public_footer %}
+	{% if not is_student_route and uses_public_footer %}
 	<footer class="site-footer py-4 px-3 px-lg-4" style="background: #8f2337; color: #fdf6f8; border-top: 1px solid rgba(255,255,255,0.15);">
 		<div class="container-xxl">
 			<div class="row g-4">
@@ -152,7 +240,7 @@
 			<p class="small mb-0" style="color: rgba(255,255,255,0.82);">&copy; {{ 2026 }} USTED. All rights reserved.</p>
 		</div>
 	</footer>
-	{% else %}
+	{% elif not is_student_route %}
 	<footer class="site-footer py-3 px-3 px-lg-4">
 		<div class="container-fluid">
 			<p class="signature-text">Crafted with <span>late-night code</span> by LazyDev @ Overhaul Inc.</p>

@@ -13,6 +13,8 @@ from werkzeug.security import generate_password_hash
 
 from app import app, db
 from models import (
+	Admin,
+	Announcement,
 	Course,
 	Department,
 	Enrollment,
@@ -148,6 +150,64 @@ def seed_initial_data(reset_schema=True):
 		else:
 			print(f"  ✓ Exists: {student.first_name} {student.last_name} ({student.student_id})")
 		
+		db.session.commit()
+
+		# ===== STEP 3b: Create Admin and Announcements =====
+		print("\n[3b/4] Creating Admin & Announcements...")
+
+		admin = Admin.query.filter_by(email_address="registrar@usted.edu.gh").first()
+		if not admin:
+			admin = Admin(
+				first_name="Portal",
+				middle_name=None,
+				last_name="Registrar",
+				email_address="registrar@usted.edu.gh",
+				password_hash=generate_password_hash("admin1234"),
+				role="Registrar",
+			)
+			db.session.add(admin)
+			db.session.flush()
+			print("  ✓ Created: Registrar admin account")
+		else:
+			print("  ✓ Exists: Registrar admin account")
+
+		announcement_payload = [
+			(
+				"Registration Deadline",
+				"Semester 2 registration closes Friday at 5:00 PM.",
+				"Students",
+			),
+			(
+				"Academic Advising",
+				"Course advising window opens next Monday.",
+				"Students",
+			),
+			(
+				"Support Update",
+				"IT Helpdesk response time has improved to within 24 hours.",
+				"All",
+			),
+		]
+
+		for title, message, audience in announcement_payload:
+			existing_announcement = Announcement.query.filter_by(
+				title=title,
+				message=message,
+				target_audience=audience,
+			).first()
+			if not existing_announcement:
+				db.session.add(
+					Announcement(
+						admin_id=admin.admin_id,
+						title=title,
+						message=message,
+						target_audience=audience,
+					)
+				)
+				print(f"  ✓ Created announcement: {title}")
+			else:
+				print(f"  ✓ Exists:  announcement {title}")
+
 		db.session.commit()
 		
 		# ===== STEP 4: Create Active Enrollments (7 courses, First Semester) =====

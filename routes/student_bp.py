@@ -5,8 +5,8 @@ from io import BytesIO
 from datetime import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file
-from models import db, Student, Enrollment, Grade, FinancialStatus, SupportTicket, Course, Resource
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file, jsonify
+from models import db, Student, Enrollment, Grade, FinancialStatus, SupportTicket, Course, Resource, Announcement, StudentAnnouncementRead
 from services import (
     get_current_student,
     score_to_point,
@@ -36,6 +36,46 @@ def login_required(view_func):
     return wrapped_view
 
 
+@student_bp.route('/announcements/mark-read', methods=['POST'])
+@login_required
+def mark_announcements_read():
+    """Mark current top student-facing announcements as read for badge updates."""
+    student = get_current_student()
+    if not student:
+        return jsonify({'ok': False, 'error': 'student-not-found'}), 404
+
+    announcements = (
+        Announcement.query
+        .filter(Announcement.target_audience.in_(['All', 'Students']))
+        .order_by(Announcement.date_posted.desc())
+        .limit(5)
+        .all()
+    )
+    announcement_ids = [item.announcement_id for item in announcements]
+
+    if not announcement_ids:
+        return jsonify({'ok': True, 'unread_count': 0})
+
+    existing_ids = {
+        row.announcement_id
+        for row in StudentAnnouncementRead.query.filter_by(student_id=student.student_id)
+        .filter(StudentAnnouncementRead.announcement_id.in_(announcement_ids))
+        .all()
+    }
+
+    for announcement_id in announcement_ids:
+        if announcement_id not in existing_ids:
+            db.session.add(
+                StudentAnnouncementRead(
+                    student_id=student.student_id,
+                    announcement_id=announcement_id,
+                )
+            )
+
+    db.session.commit()
+    return jsonify({'ok': True, 'unread_count': 0})
+
+
 @student_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -58,11 +98,27 @@ def dashboard():
         .first()
     )
 
+    hour = datetime.now().hour
+    if 5 <= hour < 12:
+        greeting_phrase = 'Good Morning'
+        greeting_emoji = '☀️'
+    elif 12 <= hour < 17:
+        greeting_phrase = 'Good Afternoon'
+        greeting_emoji = '🌤️'
+    elif 17 <= hour < 22:
+        greeting_phrase = 'Good Evening'
+        greeting_emoji = '🌙'
+    else:
+        greeting_phrase = 'Good Night'
+        greeting_emoji = '✨'
+
     return render_template(
         'student/dashboard.html',
         student=student,
         enrollments=enrollments,
         latest_financial=latest_financial,
+        greeting_phrase=greeting_phrase,
+        greeting_emoji=greeting_emoji,
     )
 
 
