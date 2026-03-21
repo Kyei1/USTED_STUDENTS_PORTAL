@@ -31,35 +31,53 @@
         </div>
     </div>
     <div class="surface-panel">
-    <div class="row g-3 g-lg-4">
-        <div class="col-12 col-md-6 col-xl-3 d-flex">
-            <article class="landing-info-card w-100">
-                <span class="mini-icon mini-icon-maroon"><i class="bi bi-journal-check"></i></span>
-                <h3>Results Visibility</h3>
-                <p>View CA and exam score status clearly from one results workspace.</p>
-            </article>
+    <div id="highlightsCarousel" class="carousel slide" data-bs-touch="true" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
         </div>
-        <div class="col-12 col-md-6 col-xl-3 d-flex">
-            <article class="landing-info-card w-100">
-                <span class="mini-icon mini-icon-gold"><i class="bi bi-graph-up-arrow"></i></span>
-                <h3>GPA Simulation</h3>
-                <p>Project SGPA performance and see score targets before final exams.</p>
-            </article>
+
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-maroon"><i class="bi bi-journal-check"></i></span>
+                    <h3>Results Visibility</h3>
+                    <p>View CA and exam score status clearly from one results workspace.</p>
+                </article>
+            </div>
+            <div class="carousel-item">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-gold"><i class="bi bi-graph-up-arrow"></i></span>
+                    <h3>GPA Simulation</h3>
+                    <p>Project SGPA performance and see score targets before final exams.</p>
+                </article>
+            </div>
+            <div class="carousel-item">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-maroon"><i class="bi bi-wallet2"></i></span>
+                    <h3>Financial Tracking</h3>
+                    <p>Monitor billed, paid, and arrears balances with registration clarity.</p>
+                </article>
+            </div>
+            <div class="carousel-item">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-gold"><i class="bi bi-life-preserver"></i></span>
+                    <h3>Helpdesk Support</h3>
+                    <p>Submit technical or academic tickets and track response status.</p>
+                </article>
+            </div>
         </div>
-        <div class="col-12 col-md-6 col-xl-3 d-flex">
-            <article class="landing-info-card w-100">
-                <span class="mini-icon mini-icon-maroon"><i class="bi bi-wallet2"></i></span>
-                <h3>Financial Tracking</h3>
-                <p>Monitor billed, paid, and arrears balances with registration clarity.</p>
-            </article>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3 d-flex">
-            <article class="landing-info-card w-100">
-                <span class="mini-icon mini-icon-gold"><i class="bi bi-life-preserver"></i></span>
-                <h3>Helpdesk Support</h3>
-                <p>Submit technical or academic tickets and track response status.</p>
-            </article>
-        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#highlightsCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#highlightsCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
     </div>
     </div>
 </section>
@@ -116,21 +134,21 @@
                 <div class="col-12 col-md-4">
                     <article class="landing-info-card h-100">
                         <span class="mini-icon mini-icon-maroon"><i class="bi bi-box-arrow-in-right"></i></span>
-                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">1. Log In</div>
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">Log In</div>
                         <div class="small text-muted">Use your portal credentials securely.</div>
                     </article>
                 </div>
                 <div class="col-12 col-md-4">
                     <article class="landing-info-card h-100">
                         <span class="mini-icon mini-icon-gold"><i class="bi bi-grid-3x3-gap-fill"></i></span>
-                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">2. Explore</div>
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">Explore</div>
                         <div class="small text-muted">Open Results, GPA Simulator, and Financials.</div>
                     </article>
                 </div>
                 <div class="col-12 col-md-4">
                     <article class="landing-info-card h-100">
                         <span class="mini-icon mini-icon-maroon"><i class="bi bi-check2-circle"></i></span>
-                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">3. Resolve</div>
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">Resolve</div>
                         <div class="small text-muted">Submit helpdesk tickets and track updates.</div>
                     </article>
                 </div>
