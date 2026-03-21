@@ -35,3 +35,15 @@ def login():
         return render_template('public/login.html')
 
     return render_template('public/login.html')
+
+
+@public_bp.route('/forgot-password')
+def forgot_password():
+    """Public password recovery guidance page."""
+    return render_template('public/forgot_password.html')
+
+
+@public_bp.route('/it-helpdesk')
+def it_helpdesk():
+    """Public IT helpdesk contact page for portal access issues."""
+    return render_template('public/it_helpdesk.html')

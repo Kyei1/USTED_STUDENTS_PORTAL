@@ -105,6 +105,29 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
         }
 
+        .auth-logo {
+            width: min(340px, 82%);
+            height: auto;
+            display: block;
+            margin: 0 auto 1.4rem;
+            filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2));
+            mix-blend-mode: multiply;
+        }
+
+        .logo-shell {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: min(390px, 94%);
+            margin: 0 auto 1.4rem;
+            border-radius: 1rem;
+            padding: 0.35rem 0.6rem;
+            background: rgba(74, 0, 13, 0.46);
+            border: 1px solid rgba(219, 161, 17, 0.35);
+            backdrop-filter: blur(2px);
+            box-shadow: 0 16px 30px rgba(122, 0, 22, 0.38);
+        }
+
         .crest::before {
             content: "";
             position: absolute;
@@ -158,6 +181,10 @@
             flex-direction: column;
             justify-content: center;
             padding: 1rem;
+            border-radius: 1rem;
+            background: #ffffff;
+            border: 1px solid rgba(122, 0, 22, 0.12);
+            box-shadow: 0 20px 38px rgba(122, 0, 22, 0.2);
         }
 
         .kicker {
@@ -242,6 +269,10 @@
             text-decoration-color: var(--usted-maroon);
         }
 
+        .meta-row {
+            gap: 0.65rem;
+        }
+
         .alert {
             border-radius: 0.75rem;
         }
@@ -268,6 +299,14 @@
             .crest-main {
                 font-size: 2.6rem;
             }
+
+            .auth-logo {
+                width: min(300px, 88%);
+            }
+
+            .logo-shell {
+                width: min(340px, 94%);
+            }
         }
 
         @media (max-width: 767.98px) {
@@ -283,16 +322,68 @@
             }
 
             .brand-side {
-                min-height: 42vh;
-                padding: 2.5rem 1.5rem;
+                min-height: 34vh;
+                padding: 2rem 1.15rem;
             }
 
             .form-side {
-                padding: 1.25rem 1rem 2rem;
+                padding: 1.1rem 0.9rem 1.5rem;
             }
 
             .form-panel {
                 max-width: 560px;
+            }
+
+            .meta-row {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            .brand-title {
+                font-size: 1.75rem;
+            }
+
+            .brand-copy {
+                font-size: 0.98rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .logo-shell {
+                width: min(300px, 96%);
+                padding: 0.3rem 0.5rem;
+            }
+
+            .auth-logo {
+                width: min(280px, 92%);
+            }
+
+            .kicker {
+                letter-spacing: 0.12em;
+            }
+        }
+
+        @media (max-height: 760px) and (min-width: 768px) {
+            .brand-side {
+                padding: 1.7rem;
+            }
+
+            .auth-logo {
+                width: min(280px, 74%);
+                margin-bottom: 0.9rem;
+            }
+
+            .brand-title {
+                font-size: 2rem;
+                margin-bottom: 0.55rem;
+            }
+
+            .brand-copy {
+                font-size: 1rem;
+            }
+
+            .form-panel {
+                padding: 0.4rem 0.8rem;
             }
         }
     </style>
@@ -302,9 +393,8 @@
         <div class="auth-grid">
             <section class="brand-side">
                 <div class="brand-content">
-                    <div class="crest" aria-hidden="true">
-                        <i class="bi bi-mortarboard-fill crest-main"></i>
-                        <i class="bi bi-book crest-sub"></i>
+                    <div class="logo-shell">
+                        <img src="{{ url_for('static', filename='images/usted-logo.png') }}" alt="USTED Logo" class="auth-logo">
                     </div>
                     <h2 class="brand-title display-6">Welcome back.</h2>
                     <p class="brand-copy">Log in to access your courses, grades, and support.</p>
@@ -314,6 +404,9 @@
             <section class="form-side">
                 <div class="form-panel">
                     <div class="mb-4 mb-md-5">
+                        <a href="{{ url_for('public.index') }}" class="small text-decoration-none fw-semibold" style="color: var(--usted-maroon);">
+                            <i class="bi bi-arrow-left-short"></i> Back to landing page
+                        </a>
                         <p class="kicker">USTED</p>
                         <h1 class="login-title display-6">Portal Login</h1>
                     </div>
@@ -358,12 +451,12 @@
                             </div>
                         </div>
 
-                        <div class="d-flex align-items-center justify-content-between mb-3 mt-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3 mt-4 meta-row">
                             <div class="form-check m-0">
                                 <input class="form-check-input" type="checkbox" id="rememberMe">
                                 <label class="form-check-label text-muted" for="rememberMe">Remember Me</label>
                             </div>
-                            <a href="#" class="fw-semibold text-decoration-none" style="color: var(--usted-maroon);">Forgot Password?</a>
+                            <a href="{{ url_for('public.forgot_password') }}" class="fw-semibold text-decoration-none" style="color: var(--usted-maroon);">Forgot Password?</a>
                         </div>
 
                         <button type="submit" class="btn btn-auth w-100">
@@ -374,7 +467,7 @@
                     <div class="pt-5 text-center mt-auto">
                         <p class="text-muted mb-0">
                             Need help?
-                            <a href="#" class="help-link">Contact the IT Helpdesk</a>
+                            <a href="{{ url_for('public.it_helpdesk') }}" class="help-link">Contact the IT Helpdesk</a>
                         </p>
                     </div>
                 </div>

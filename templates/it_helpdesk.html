@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}IT Helpdesk - USTED Portal{% endblock %}
+
+{% block page_css %}
+<style>
+    .content-wrap {
+        background:
+            radial-gradient(circle at 10% 10%, rgba(219, 161, 17, 0.14) 0%, rgba(219, 161, 17, 0) 35%),
+            linear-gradient(160deg, #6d0012 0%, #7a0016 52%, #5e0010 100%);
+    }
+
+    .support-shell {
+        background: #fff9fb;
+        border-color: rgba(255, 255, 255, 0.18) !important;
+        box-shadow: 0 20px 38px rgba(122, 0, 22, 0.28) !important;
+    }
+
+    .support-shell article {
+        background: #ffffff;
+        box-shadow: 0 14px 28px rgba(122, 0, 22, 0.16);
+    }
+
+    .helpdesk-info-card {
+        min-width: 0;
+    }
+
+    .helpdesk-info-card p,
+    .helpdesk-info-card li,
+    .helpdesk-info-card a {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    @media (max-width: 576px) {
+        .support-shell {
+            padding: 1rem !important;
+        }
+
+        .helpdesk-info-card {
+            padding: 1rem !important;
+        }
+
+        .helpdesk-info-card p,
+        .helpdesk-info-card li {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="support-shell border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">IT Helpdesk</h1>
+            <p class="text-muted mb-0">Portal access and technical assistance for all user roles.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-6">
+            <article class="border rounded-4 p-4 h-100 helpdesk-info-card">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Contact Channels</h2>
+                <p class="mb-2"><strong>Email:</strong> support@usted.edu.gh</p>
+                <p class="mb-2"><strong>Phone:</strong> +233 000 000 000</p>
+                <p class="mb-0"><strong>Office:</strong> ICT Directorate, USTED Main Campus</p>
+            </article>
+        </div>
+        <div class="col-12 col-lg-6">
+            <article class="border rounded-4 p-4 h-100 helpdesk-info-card">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">When contacting support</h2>
+                <ul class="mb-0">
+                    <li class="mb-2">Include your full name and portal ID.</li>
+                    <li class="mb-2">Describe the issue and when it started.</li>
+                    <li class="mb-2">Attach screenshots if possible.</li>
+                    <li>State whether you are Student, Lecturer, or Admin.</li>
+                </ul>
+            </article>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Back to Login</a>
+        <a href="{{ url_for('public.forgot_password') }}" class="btn btn-sm btn-outline-secondary">Forgot Password</a>
+        <a href="{{ url_for('public.index') }}" class="btn btn-sm btn-outline-secondary">Back to Landing</a>
+    </div>
+</section>
+{% endblock %}

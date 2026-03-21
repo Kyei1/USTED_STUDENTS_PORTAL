@@ -58,6 +58,12 @@ h1, h2, h3, h4, h5 {
     box-shadow: 0 8px 18px var(--usted-maroon-mid);
 }
 
+.brand-logo {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+
 .brand-title {
     font-size: 1.35rem;
     line-height: 1;
