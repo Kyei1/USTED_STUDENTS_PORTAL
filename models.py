@@ -122,10 +122,10 @@ class Grade(db.Model):
 
 	grade_id = db.Column(db.Integer, primary_key=True)
 	enrollment_id = db.Column(db.Integer, db.ForeignKey("enrollment.Enrollment_ID"), nullable=False, unique=True)
-	ca_score = db.Column("CA_score", db.Numeric(5, 2), nullable=False)
-	exam_score = db.Column("Exam_Score", db.Numeric(5, 2), nullable=False)
-	total_score = db.Column("Total_Score", db.Numeric(5, 2), nullable=False)
-	grade_letter = db.Column("Grade_Letter", db.String(2), nullable=False)
+	ca_score = db.Column("CA_score", db.Numeric(5, 2), nullable=True)
+	exam_score = db.Column("Exam_Score", db.Numeric(5, 2), nullable=True)
+	total_score = db.Column("Total_Score", db.Numeric(5, 2), nullable=True)
+	grade_letter = db.Column("Grade_Letter", db.String(2), nullable=True)
 	approval_status = db.Column(
 		"Approval_Status",
 		db.Enum("Draft", "Pending_HOD", "Pending_Board", "Published", name="approval_status"),

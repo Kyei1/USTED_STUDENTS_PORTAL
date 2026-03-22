@@ -77,12 +77,18 @@ def assumed_scores_for_grade(grade_letter):
         'C': 62.0,
         'D+': 57.0,
         'D': 52.0,
-        'E/F': 45.0,
+        'E': 45.0,
     }
-    total = score_map.get(grade_letter, 62.0)
-    ca = round(min(40.0, total * 0.4), 2)
-    exam = round(total - ca, 2)
-    return ca, exam, total
+    total_target = score_map.get(grade_letter, 62.0)
+    ca = round(min(40.0, total_target * 0.4), 2)
+
+    # exam_score in DB is raw out of 100. Convert the needed exam contribution
+    # (out of 60) back to raw scale so Total = CA + (Exam/100 * 60).
+    needed_exam_component = max(0.0, total_target - ca)
+    raw_exam = round(min(100.0, (needed_exam_component / 60.0) * 100.0), 2)
+
+    total = round(ca + ((raw_exam / 100.0) * 60.0), 2)
+    return ca, raw_exam, total
 
 
 def load_transcript(student_id, department_id=None, upsert_existing_grades=False):

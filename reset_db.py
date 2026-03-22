@@ -40,6 +40,7 @@ def reset_database():
 		print("     - Lecturer.role defaults to 'Lecturer'")
 		print("     - Resource.course_code is nullable (Department OR Course)")
 		print("     - FinancialStatus unique constraint on (student_id, academic_year)")
+		print("     - Grade CA/Exam/Total/Letter fields allow NULL for IC handling")
 		print("     - All enum values validated per ERD rules")
 		
 		# Import and run comprehensive seed script

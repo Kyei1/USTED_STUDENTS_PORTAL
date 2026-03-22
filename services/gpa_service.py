@@ -36,7 +36,7 @@ def score_to_letter(score):
         return 'D+'
     if score >= 50:
         return 'D'
-    return 'E/F'
+    return 'E'
 
 
 def point_to_min_total_score(grade_point):

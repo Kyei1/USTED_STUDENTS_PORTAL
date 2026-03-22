@@ -47,6 +47,33 @@
 
     <section class="mb-4">
         <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 2: Detailed Results Records</h2>
+        {% if period_options %}
+            <form method="get" class="row g-2 align-items-end mb-3" id="resultsScopeForm">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <label for="resultsScopePicker" class="form-label small fw-semibold mb-1">Choose semester view</label>
+                    <select id="resultsScopePicker" name="result_scope" class="form-select form-select-sm">
+                        <option value="all" {% if selected_scope == 'all' %}selected{% endif %}>All Results (Published)</option>
+                        {% for period in period_options %}
+                            {% set period_key = period[0] ~ '|' ~ period[1] %}
+                            <option value="{{ period_key }}" {% if selected_scope == period_key %}selected{% endif %}>
+                                Semester {{ semester_lookup.get((period[0], period[1])) }} - {{ period[0] }} {{ period[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">View</button>
+                </div>
+                {% if download_url %}
+                    <div class="col-auto">
+                        <a href="{{ download_url }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">
+                            Download {{ 'All Results' if selected_scope == 'all' else 'This Semester' }} PDF
+                        </a>
+                    </div>
+                {% endif %}
+            </form>
+        {% endif %}
+
         {% if grouped_records %}
             <div class="d-grid gap-3 d-lg-none">
                 {% for period in grouped_records %}
@@ -56,6 +83,7 @@
                         </p>
                         <div class="d-grid gap-3">
                             {% for enrollment in period.records %}
+                                {% set snap = result_snapshots.get(enrollment.enrollment_id, {}) %}
                                 <article class="result-record-card">
                                     <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                         <div>
@@ -68,10 +96,10 @@
                                     </div>
                                     <div class="record-grid">
                                         <div class="record-item"><span class="record-label">Credits</span><span class="record-value">{{ enrollment.course.credit_hours }}</span></div>
-                                        <div class="record-item"><span class="record-label">CA</span><span class="record-value">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</span></div>
-                                        <div class="record-item"><span class="record-label">Exam</span><span class="record-value">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</span></div>
-                                        <div class="record-item"><span class="record-label">Total</span><span class="record-value">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</span></div>
-                                        <div class="record-item"><span class="record-label">Grade</span><span class="record-value record-grade-value">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">CA</span><span class="record-value">{{ '%.2f'|format(snap.get('ca_score')) if snap.get('ca_score') is not none else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">Exam</span><span class="record-value">{{ '%.2f'|format(snap.get('raw_exam_score')) if snap.get('raw_exam_score') is not none else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">Total</span><span class="record-value">{{ '%.2f'|format(snap.get('total_score')) if snap.get('total_score') is not none else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">Grade</span><span class="record-value record-grade-value">{{ snap.get('grade_letter', 'N/A') }}</span></div>
                                     </div>
                                 </article>
                             {% endfor %}
@@ -103,14 +131,15 @@
                             </thead>
                             <tbody>
                                 {% for enrollment in period.records %}
+                                    {% set snap = result_snapshots.get(enrollment.enrollment_id, {}) %}
                                     <tr>
                                         <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
                                         <td>{{ enrollment.course.course_name }}</td>
                                         <td class="text-center">{{ enrollment.course.credit_hours }}</td>
-                                        <td class="text-center">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</td>
-                                        <td class="text-center">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</td>
-                                        <td class="text-center">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</td>
-                                        <td class="text-center">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</td>
+                                        <td class="text-center">{{ '%.2f'|format(snap.get('ca_score')) if snap.get('ca_score') is not none else 'N/A' }}</td>
+                                        <td class="text-center">{{ '%.2f'|format(snap.get('raw_exam_score')) if snap.get('raw_exam_score') is not none else 'N/A' }}</td>
+                                        <td class="text-center">{{ '%.2f'|format(snap.get('total_score')) if snap.get('total_score') is not none else 'N/A' }}</td>
+                                        <td class="text-center">{{ snap.get('grade_letter', 'N/A') }}</td>
                                         <td class="text-end">
                                             {% if enrollment.grade and enrollment.grade.approval_status == 'Published' %}
                                                 <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ enrollment.grade.approval_status }}</span>
@@ -125,6 +154,8 @@
                     </div>
                 {% endfor %}
             </div>
+        {% elif period_options %}
+            <div class="text-center text-muted py-4 border rounded-3">No published results available for the selected view yet.</div>
         {% else %}
             <div class="text-center text-muted py-4 border rounded-3">No result records available yet.</div>
         {% endif %}
@@ -252,10 +283,22 @@
     </section>
 
     <div class="d-flex flex-wrap gap-2 mt-4">
-        <a href="{{ url_for('student.results_transcript_pdf') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">
-            Download Transcript PDF
-        </a>
         <a href="{{ url_for('student.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
     </div>
 </section>
+{% endblock %}
+
+{% block page_js %}
+<script>
+    (function () {
+        const scopeForm = document.getElementById('resultsScopeForm');
+        const scopePicker = document.getElementById('resultsScopePicker');
+        if (!scopeForm || !scopePicker) {
+            return;
+        }
+        scopePicker.addEventListener('change', function () {
+            scopeForm.submit();
+        });
+    })();
+</script>
 {% endblock %}

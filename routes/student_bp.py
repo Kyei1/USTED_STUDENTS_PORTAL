@@ -101,6 +101,8 @@ def dashboard():
         .limit(6)
         .all()
     )
+
+    all_enrollments = Enrollment.query.filter_by(student_id=student.student_id).all()
     latest_financial = (
         FinancialStatus.query.filter_by(student_id=student.student_id)
         .order_by(FinancialStatus.academic_year.desc())
@@ -121,6 +123,52 @@ def dashboard():
         greeting_phrase = 'Good Night'
         greeting_emoji = '✨'
 
+    if all_enrollments:
+        active_enrollment = max(all_enrollments, key=academic_period_rank)
+        current_period = (active_enrollment.academic_year, active_enrollment.semester)
+    else:
+        start_year = datetime.now().year
+        current_period = (f'{start_year}/{start_year + 1}', 'First')
+
+    current_period_enrolled_codes = {
+        row.course_code
+        for row in Enrollment.query.filter_by(
+            student_id=student.student_id,
+            academic_year=current_period[0],
+            semester=current_period[1],
+        ).all()
+    }
+
+    offered_current_courses = build_semester_course_offering(student.department_id)
+    offered_current_codes = {course.course_code for course in offered_current_courses}
+
+    if not offered_current_codes:
+        registration_status = 'No active offering yet'
+        registration_status_note = 'No current-semester course list is available yet.'
+        registration_complete = False
+    elif offered_current_codes.issubset(current_period_enrolled_codes):
+        registration_status = 'Registration complete'
+        registration_status_note = 'You are fully registered for the current semester.'
+        registration_complete = True
+    elif current_period_enrolled_codes:
+        remaining = len(offered_current_codes - current_period_enrolled_codes)
+        registration_status = 'Registration in progress'
+        registration_status_note = f'{remaining} offered course(s) are still pending registration.'
+        registration_complete = False
+    else:
+        registration_status = 'Not registered yet'
+        registration_status_note = 'Start your course registration for the current semester.'
+        registration_complete = False
+
+    dashboard_registration = {
+        'current_period': current_period,
+        'offered_count': len(offered_current_codes),
+        'enrolled_count': len(current_period_enrolled_codes),
+        'status': registration_status,
+        'note': registration_status_note,
+        'is_complete': registration_complete,
+    }
+
     return render_template(
         'student/dashboard.html',
         student=student,
@@ -128,6 +176,7 @@ def dashboard():
         latest_financial=latest_financial,
         greeting_phrase=greeting_phrase,
         greeting_emoji=greeting_emoji,
+        dashboard_registration=dashboard_registration,
     )
 
 
@@ -634,23 +683,70 @@ def results():
         .all()
     )
 
-    results_payload = compute_results_analytics(records, score_to_point)
     semester_lookup = build_semester_number_lookup(
         [(record.academic_year, record.semester) for record in records]
     )
-    grouped_records = group_records_by_period(records, semester_lookup)
+
+    published_records_all = [
+        record
+        for record in records
+        if record.grade and record.grade.approval_status == 'Published'
+    ]
+
+    period_options = sorted(
+        set((record.academic_year, record.semester) for record in published_records_all),
+        key=lambda period: academic_period_rank(
+            type('PeriodObj', (), {'academic_year': period[0], 'semester': period[1]})
+        ),
+        reverse=True,
+    )
+
+    selected_scope_raw = (request.args.get('result_scope') or 'all').strip()
+    selected_scope = 'all' if selected_scope_raw.lower() in {'', 'all'} else selected_scope_raw
+    selected_period = None
+    if selected_scope != 'all' and '|' in selected_scope:
+        year, sem = selected_scope.split('|', 1)
+        selected_period = (year.strip(), sem.strip())
+
+    results_payload = compute_results_analytics(
+        records,
+        score_to_point,
+        score_to_letter,
+        scaled_exam_score,
+        selected_period=selected_period,
+    )
+
+    grouped_records = group_records_by_period(results_payload['scoped_published_records'], semester_lookup)
 
     for row in results_payload['period_rows_desc']:
         row['semester_number'] = semester_lookup.get((row['academic_year'], row['semester']))
 
+    if selected_period and selected_period not in period_options:
+        selected_scope = 'all'
+        selected_period = None
+
+    if selected_scope == 'all':
+        download_url = url_for('student.results_transcript_pdf', result_scope='all')
+    elif selected_period:
+        download_url = url_for(
+            'student.results_transcript_pdf',
+            result_scope=f"{selected_period[0]}|{selected_period[1]}",
+        )
+    else:
+        download_url = None
+
     return render_template(
         'student/results.html',
         student=student,
-        records=records,
         grouped_records=grouped_records,
+        result_snapshots=results_payload['result_snapshots'],
         analytics=results_payload['analytics'],
         abbreviation_summary=results_payload['abbreviation_summary'],
         period_rows=results_payload['period_rows_desc'],
+        period_options=period_options,
+        semester_lookup=semester_lookup,
+        selected_scope=selected_scope,
+        download_url=download_url,
     )
 
 
@@ -672,8 +768,23 @@ def results_transcript_pdf():
         .all()
     )
 
-    results_payload = compute_results_analytics(records, score_to_point)
+    selected_scope_raw = (request.args.get('result_scope') or 'all').strip()
+    selected_scope = 'all' if selected_scope_raw.lower() in {'', 'all'} else selected_scope_raw
+    selected_period = None
+    if selected_scope != 'all' and '|' in selected_scope:
+        year, sem = selected_scope.split('|', 1)
+        selected_period = (year.strip(), sem.strip())
+
+    results_payload = compute_results_analytics(
+        records,
+        score_to_point,
+        score_to_letter,
+        scaled_exam_score,
+        selected_period=selected_period,
+    )
+    records = results_payload['scoped_published_records']
     abbreviation_summary = results_payload['abbreviation_summary']
+    result_snapshots = results_payload['result_snapshots']
 
     try:
         from reportlab.lib import colors
@@ -766,8 +877,10 @@ def results_transcript_pdf():
             if len(title) > 34:
                 title = title[:31] + '...'
 
-            total = f"{float(enrollment.grade.total_score):.1f}" if enrollment.grade else 'N/A'
-            grade_letter = enrollment.grade.grade_letter if enrollment.grade else 'N/A'
+            snapshot = result_snapshots.get(enrollment.enrollment_id, {})
+            total_score = snapshot.get('total_score')
+            total = f"{float(total_score):.2f}" if total_score is not None else 'N/A'
+            grade_letter = snapshot.get('grade_letter', 'N/A')
 
             pdf.setFillColor(colors.black)
             pdf.drawString(margin_left, line_y, enrollment.academic_year)
@@ -807,7 +920,10 @@ def results_transcript_pdf():
     pdf.save()
     buffer.seek(0)
 
-    filename = f"USTED_Transcript_{student.student_id}.pdf"
+    if selected_period:
+        filename = f"USTED_Results_Semester_{selected_period[0].replace('/', '-')}_{selected_period[1]}_{student.student_id}.pdf"
+    else:
+        filename = f"USTED_Results_All_{student.student_id}.pdf"
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
 
 
