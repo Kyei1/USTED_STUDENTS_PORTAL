@@ -15,7 +15,9 @@
         <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Student ID: {{ student.student_id }}</span>
     </div>
 
-    <div class="row g-3 mb-4">
+    <section class="mb-4">
+        <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 1: Academic Overview</h2>
+        <div class="row g-3">
         <div class="col-6 col-xl-3">
             <article class="result-metric h-100">
                 <p class="metric-label">Cumulative GPA</p>
@@ -40,19 +42,131 @@
                 <p class="metric-value">{{ analytics.pending_records }}</p>
             </article>
         </div>
-    </div>
+        </div>
+    </section>
 
-    <div class="row g-4 mb-4">
+    <section class="mb-4">
+        <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 2: Detailed Results Records</h2>
+        <div class="d-grid gap-3 d-lg-none">
+            {% for enrollment in records %}
+                <article class="result-record-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <p class="record-course-code mb-1">{{ enrollment.course.course_code }}</p>
+                            <p class="record-course-name mb-0">{{ enrollment.course.course_name }}</p>
+                        </div>
+                        <span class="record-status-badge {{ 'record-status-published' if enrollment.grade else 'record-status-pending' }}">
+                            {{ enrollment.grade.approval_status if enrollment.grade else 'Pending' }}
+                        </span>
+                    </div>
+
+                    <div class="record-grid">
+                        <div class="record-item">
+                            <span class="record-label">Academic Year</span>
+                            <span class="record-value">{{ enrollment.academic_year }}</span>
+                        </div>
+                        <div class="record-item">
+                            <span class="record-label">Semester</span>
+                            <span class="record-value">{{ enrollment.semester }}</span>
+                        </div>
+                        <div class="record-item">
+                            <span class="record-label">Credits</span>
+                            <span class="record-value">{{ enrollment.course.credit_hours }}</span>
+                        </div>
+                        <div class="record-item">
+                            <span class="record-label">CA</span>
+                            <span class="record-value">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</span>
+                        </div>
+                        <div class="record-item">
+                            <span class="record-label">Exam</span>
+                            <span class="record-value">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</span>
+                        </div>
+                        <div class="record-item">
+                            <span class="record-label">Total</span>
+                            <span class="record-value">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</span>
+                        </div>
+                        <div class="record-item">
+                            <span class="record-label">Grade</span>
+                            <span class="record-value record-grade-value">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</span>
+                        </div>
+                    </div>
+                </article>
+            {% else %}
+                <div class="text-center text-muted py-4 border rounded-3">No result records available yet.</div>
+            {% endfor %}
+        </div>
+
+        <div class="table-responsive d-none d-lg-block">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Academic Year</th>
+                        <th>Semester</th>
+                        <th>Course Code</th>
+                        <th>Course Title</th>
+                        <th class="text-center">Credits</th>
+                        <th class="text-center">CA</th>
+                        <th class="text-center">Exam</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-center">Grade</th>
+                        <th class="text-end">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in records %}
+                        <tr>
+                            <td>{{ enrollment.academic_year }}</td>
+                            <td>{{ enrollment.semester }}</td>
+                            <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
+                            <td>{{ enrollment.course.course_name }}</td>
+                            <td class="text-center">{{ enrollment.course.credit_hours }}</td>
+                            <td class="text-center">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</td>
+                            <td class="text-center">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</td>
+                            <td class="text-center">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</td>
+                            <td class="text-center">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</td>
+                            <td class="text-end">
+                                {% if enrollment.grade %}
+                                    <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ enrollment.grade.approval_status }}</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">No result records available yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 3: Performance Trends and Insights</h2>
+        <div class="row g-4">
         <div class="col-12 col-xl-7">
             <article class="border rounded-4 p-3 p-lg-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Semester SGPA Trend</h2>
-                    <span class="small text-muted">Chronological</span>
+                    <span class="small text-muted">Scale: 0.00 to 4.00</span>
                 </div>
-                {% if trend_labels %}
-                    <canvas id="sgpaTrendChart" height="120"></canvas>
+                {% if period_rows %}
+                    <div class="sgpa-trend-list" aria-label="Semester SGPA trend list">
+                        {% for row in period_rows|reverse %}
+                            <div class="sgpa-trend-item">
+                                <div class="sgpa-trend-head">
+                                    <span class="sgpa-period">{{ row.academic_year }} {{ row.semester }}</span>
+                                    <span class="sgpa-value">{{ '%.2f'|format(row.sgpa) }}</span>
+                                </div>
+                                <div class="sgpa-track" role="img" aria-label="SGPA {{ '%.2f'|format(row.sgpa) }} out of 4.00">
+                                    <span class="sgpa-fill" style="width: {{ ((row.sgpa / 4) * 100)|round(1) }}%;"></span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
                 {% else %}
-                    <p class="text-muted mb-0">Trend chart will appear once graded records are available.</p>
+                    <p class="text-muted mb-0">Trend view will appear once graded records are available.</p>
                 {% endif %}
             </article>
         </div>
@@ -93,52 +207,61 @@
                 {% endif %}
             </article>
         </div>
-    </div>
+        </div>
+    </section>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Academic Year</th>
-                    <th>Semester</th>
-                    <th>Course Code</th>
-                    <th>Course Title</th>
-                    <th class="text-center">Credits</th>
-                    <th class="text-center">CA</th>
-                    <th class="text-center">Exam</th>
-                    <th class="text-center">Total</th>
-                    <th class="text-center">Grade</th>
-                    <th class="text-end">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for enrollment in records %}
-                    <tr>
-                        <td>{{ enrollment.academic_year }}</td>
-                        <td>{{ enrollment.semester }}</td>
-                        <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
-                        <td>{{ enrollment.course.course_name }}</td>
-                        <td class="text-center">{{ enrollment.course.credit_hours }}</td>
-                        <td class="text-center">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</td>
-                        <td class="text-center">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</td>
-                        <td class="text-center">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</td>
-                        <td class="text-center">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</td>
-                        <td class="text-end">
-                            {% if enrollment.grade %}
-                                <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ enrollment.grade.approval_status }}</span>
-                            {% else %}
-                                <span class="badge text-bg-secondary">Pending</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="10" class="text-center text-muted py-4">No result records available yet.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <section class="mb-4">
+        <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 4: Abbreviations Summary</h2>
+        <p class="small text-muted mb-3">
+            Current period reference: <strong>{{ abbreviation_summary.period_label }}</strong>
+        </p>
+        <div class="row g-3">
+            <div class="col-12 col-xl-6">
+                <article class="abbr-card h-100">
+                    <h3 class="abbr-title">Semester Metrics</h3>
+                    <div class="abbr-grid">
+                        <div class="abbr-item">
+                            <span class="abbr-key">SCR</span>
+                            <span class="abbr-val">{{ abbreviation_summary.scr }}</span>
+                            <span class="abbr-note">Semester Credit Registered</span>
+                        </div>
+                        <div class="abbr-item">
+                            <span class="abbr-key">SGP</span>
+                            <span class="abbr-val">{{ '%.2f'|format(abbreviation_summary.sgp) }}</span>
+                            <span class="abbr-note">Semester Grade Points</span>
+                        </div>
+                        <div class="abbr-item">
+                            <span class="abbr-key">SGPA</span>
+                            <span class="abbr-val">{{ '%.2f'|format(abbreviation_summary.sgpa) }}</span>
+                            <span class="abbr-note">Semester Grade Point Average</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            <div class="col-12 col-xl-6">
+                <article class="abbr-card h-100">
+                    <h3 class="abbr-title">Cumulative Metrics</h3>
+                    <div class="abbr-grid">
+                        <div class="abbr-item">
+                            <span class="abbr-key">CCR</span>
+                            <span class="abbr-val">{{ abbreviation_summary.ccr }}</span>
+                            <span class="abbr-note">Cumulative Credit Registered</span>
+                        </div>
+                        <div class="abbr-item">
+                            <span class="abbr-key">CGV</span>
+                            <span class="abbr-val">{{ '%.2f'|format(abbreviation_summary.cgv) }}</span>
+                            <span class="abbr-note">Cumulative Grade Value</span>
+                        </div>
+                        <div class="abbr-item">
+                            <span class="abbr-key">CGPA</span>
+                            <span class="abbr-val">{{ '%.2f'|format(abbreviation_summary.cgpa) }}</span>
+                            <span class="abbr-note">Cumulative Grade Point Average</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
 
     <div class="d-flex flex-wrap gap-2 mt-4">
         <a href="{{ url_for('student.results_transcript_pdf') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">
@@ -147,70 +270,4 @@
         <a href="{{ url_for('student.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
     </div>
 </section>
-{% endblock %}
-
-{% block page_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script id="sgpaTrendData" type="application/json">{{ {'labels': trend_labels, 'values': trend_sgpa}|tojson }}</script>
-<script>
-    (function () {
-        const dataNode = document.getElementById('sgpaTrendData');
-        if (!dataNode) {
-            return;
-        }
-
-        const parsed = JSON.parse(dataNode.textContent || '{}');
-        const labels = parsed.labels || [];
-        const values = parsed.values || [];
-        const canvas = document.getElementById('sgpaTrendChart');
-        if (!canvas || !labels.length) {
-            return;
-        }
-
-        new Chart(canvas, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'SGPA',
-                    data: values,
-                    borderColor: '#7a0016',
-                    backgroundColor: 'rgba(219, 161, 17, 0.22)',
-                    fill: true,
-                    borderWidth: 2,
-                    tension: 0.28,
-                    pointRadius: 4,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: '#dba111',
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 4,
-                        ticks: {
-                            stepSize: 0.5,
-                        },
-                        grid: {
-                            color: 'rgba(74, 0, 13, 0.10)',
-                        },
-                    },
-                    x: {
-                        grid: {
-                            display: false,
-                        },
-                    },
-                },
-                plugins: {
-                    legend: {
-                        display: false,
-                    },
-                },
-            },
-        });
-    })();
-</script>
 {% endblock %}

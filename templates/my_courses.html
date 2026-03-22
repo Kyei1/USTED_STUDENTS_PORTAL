@@ -13,61 +13,122 @@
     </div>
 
     <div class="row g-4 mb-4">
-        <div class="col-12 col-lg-6">
+        <div class="col-12">
             <article class="border rounded-4 p-4 h-100">
-                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Current Semester Registration</h2>
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 1: Current Semester Registration</h2>
                 <p class="small text-muted mb-3">Period: {{ current_period[0] }} - {{ current_period[1] }}</p>
 
                 {% if available_current_courses %}
-                    <p class="small text-muted mb-2">You can register by selecting a course below and clicking <strong>Register Course</strong>.</p>
+                    <p class="small text-muted mb-2">Select the courses being offered this semester, then click <strong>Register Courses</strong>.</p>
                     <form method="post" class="d-flex flex-column gap-3">
+                        <input type="hidden" name="action" value="preview">
                         <input type="hidden" name="academic_year" value="{{ current_period[0] }}">
                         <input type="hidden" name="semester" value="{{ current_period[1] }}">
-                        <div>
-                            <label for="course_code" class="form-label fw-semibold">Available Department Courses</label>
-                            <select id="course_code" name="course_code" class="form-select" required>
-                                <option value="">Select a course</option>
-                                {% for course in available_current_courses %}
-                                    <option value="{{ course.course_code }}">
-                                        {{ course.course_code }} - {{ course.course_name }} ({{ course.credit_hours }} credits)
-                                    </option>
-                                {% endfor %}
-                            </select>
+                        <div class="border rounded-3 p-3">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                <p class="small fw-semibold mb-0">Courses Offered ({{ available_current_courses|length }})</p>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" id="selectAllCourses">
+                                    <label class="form-check-label small fw-semibold" for="selectAllCourses">Select All Offered Courses</label>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 56px;">Pick</th>
+                                            <th>Course</th>
+                                            <th class="text-center">Credits</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for course in available_current_courses %}
+                                            <tr>
+                                                <td>
+                                                    <input class="form-check-input course-check" type="checkbox" name="course_codes" value="{{ course.course_code }}" id="pick_{{ course.course_code }}">
+                                                </td>
+                                                <td>
+                                                    <label for="pick_{{ course.course_code }}" class="fw-semibold mb-0" style="cursor: pointer;">
+                                                        {{ course.course_code }} - {{ course.course_name }}
+                                                    </label>
+                                                </td>
+                                                <td class="text-center">{{ course.credit_hours }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="small text-muted mt-2 mb-0">Warning will be shown if you submit without selecting all offered courses.</p>
                         </div>
-                        <button type="submit" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700; width: fit-content;">
-                            Register Course
+                        <button type="submit" id="registerCoursesBtn" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700; width: fit-content;" disabled>
+                            Register Courses
                         </button>
                     </form>
+
+                    {% if pending_selected_courses %}
+                        <hr class="my-4">
+                        <div class="border rounded-3 p-3" style="background: #fffcf2;">
+                            <h3 class="h6 fw-bold mb-2" style="color: var(--usted-maroon);">Selected Courses Aligned for Confirmation</h3>
+                            <p class="small text-muted mb-3">Review your selected courses below, then click <strong>Complete Registration</strong>.</p>
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Course</th>
+                                            <th class="text-center">Credits</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for course in pending_selected_courses %}
+                                            <tr>
+                                                <td class="fw-semibold">{{ course.course_code }} - {{ course.course_name }}</td>
+                                                <td class="text-center">{{ course.credit_hours }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% if pending_missing_count > 0 %}
+                                <div class="alert alert-warning small py-2 mb-3">
+                                    You selected {{ pending_selected_courses|length }} course(s). {{ pending_missing_count }} offered course(s) are still not included.
+                                </div>
+                            {% endif %}
+
+                            <form method="post" class="d-flex flex-wrap gap-2">
+                                <input type="hidden" name="action" value="complete">
+                                <input type="hidden" name="academic_year" value="{{ current_period[0] }}">
+                                <input type="hidden" name="semester" value="{{ current_period[1] }}">
+                                {% for code in pending_selected_codes %}
+                                    <input type="hidden" name="selected_course_codes" value="{{ code }}">
+                                {% endfor %}
+                                <button type="submit" class="btn btn-sm" style="background: var(--usted-maroon); color: #fff; font-weight: 700;">
+                                    Complete Registration
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
                 {% else %}
                     <div class="alert alert-success mb-2">No additional courses available for your current semester. You are fully registered.</div>
                     <p class="small text-muted mb-0">This often happens in demo mode when seed data already enrolled you in all department courses.</p>
                 {% endif %}
-            </article>
-        </div>
 
-        <div class="col-12 col-lg-6">
-            <article class="border rounded-4 p-4 h-100">
-                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Next Semester Preview</h2>
-                <p class="small text-muted mb-2">Upcoming Period: {{ next_period[0] }} - {{ next_period[1] }}</p>
-                {% if available_next_courses %}
-                    <p class="small mb-3">Available if opened for registration:</p>
-                    <ul class="small mb-0 ps-3">
-                        {% for course in available_next_courses[:8] %}
-                            <li>{{ course.course_code }} - {{ course.course_name }} ({{ course.credit_hours }} credits)</li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="alert alert-secondary mb-0">No additional course list available for next semester yet.</div>
+                {% if has_registration_download %}
+                    <div class="mt-3">
+                        <a href="{{ url_for('student.my_courses_registration_download') }}" class="btn btn-sm btn-outline-success">
+                            Download Registration Slip
+                        </a>
+                    </div>
                 {% endif %}
             </article>
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
         <div class="col-12 col-xl-6">
             <article class="border rounded-4 p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Current Semester Courses</h2>
+                    <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Step 2: Current Semester Courses</h2>
                     <span class="badge rounded-pill" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">{{ total_current_credits }} credits</span>
                 </div>
 
@@ -98,9 +159,28 @@
             </article>
         </div>
 
-        <div class="col-12 col-xl-6">
+        <div class="col-12 col-lg-6">
             <article class="border rounded-4 p-4 h-100">
-                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Past Enrollment Records</h2>
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 3: Next Semester Preview</h2>
+                <p class="small text-muted mb-2">Upcoming Period: {{ next_period[0] }} - {{ next_period[1] }}</p>
+                {% if available_next_courses %}
+                    <p class="small mb-3">Available if opened for registration:</p>
+                    <ul class="small mb-0 ps-3">
+                        {% for course in available_next_courses[:8] %}
+                            <li>{{ course.course_code }} - {{ course.course_name }} ({{ course.credit_hours }} credits)</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="alert alert-secondary mb-0">No additional course list available for next semester yet.</div>
+                {% endif %}
+            </article>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 4: Past Enrollment Records</h2>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
                         <thead class="table-light">
@@ -136,4 +216,42 @@
         <a href="{{ url_for('student.results') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Open Results</a>
     </div>
 </section>
+{% endblock %}
+
+{% block page_js %}
+<script>
+    (function () {
+        const selectAll = document.getElementById('selectAllCourses');
+        const checkboxes = Array.from(document.querySelectorAll('.course-check'));
+        const registerBtn = document.getElementById('registerCoursesBtn');
+
+        if (!selectAll || !checkboxes.length || !registerBtn) {
+            return;
+        }
+
+        function syncSelectionState() {
+            const checkedCount = checkboxes.filter(function (item) {
+                return item.checked;
+            }).length;
+            selectAll.checked = checkedCount === checkboxes.length;
+            selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+            registerBtn.disabled = checkedCount === 0;
+        }
+
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = selectAll.checked;
+            });
+            syncSelectionState();
+        });
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                syncSelectionState();
+            });
+        });
+
+        syncSelectionState();
+    })();
+</script>
 {% endblock %}

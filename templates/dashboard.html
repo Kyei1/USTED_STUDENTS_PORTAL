@@ -23,39 +23,6 @@
                 <span>Registration for Semester 2 closes Friday. New GPA Simulator is now active.</span>
             </div>
 
-            <div class="row g-3 mb-4">
-                <div class="col-12 col-md-4">
-                    <article class="quick-card p-4 h-100">
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
-                            <i class="bi bi-calculator-fill"></i>
-                        </div>
-                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Target Your GPA</h3>
-                        <p class="text-muted mb-3">Simulate upcoming grades to preview your CGPA impact.</p>
-                        <a href="{{ url_for('student.gpa_simulator') }}" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
-                    </article>
-                </div>
-                <div class="col-12 col-md-4">
-                    <article class="quick-card p-4 h-100">
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-gold-soft); color: var(--usted-ink);">
-                            <i class="bi bi-ticket-detailed-fill"></i>
-                        </div>
-                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Academic Helpdesk</h3>
-                        <p class="text-muted mb-3">Need support with registration or advising issues?</p>
-                        <a href="{{ url_for('student.helpdesk') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink);">Create Ticket</a>
-                    </article>
-                </div>
-                <div class="col-12 col-md-4">
-                    <article class="quick-card p-4 h-100">
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
-                            <i class="bi bi-folder-fill"></i>
-                        </div>
-                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Resource Hub</h3>
-                        <p class="text-muted mb-3">Access course materials and downloadable resources.</p>
-                        <a href="{{ url_for('student.resource_hub') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Resources</a>
-                    </article>
-                </div>
-            </div>
-
             <section class="quick-card p-4 mb-4">
                 <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Current Enrolled Courses</h2>
                 <div class="table-responsive">
@@ -114,6 +81,43 @@
                     </div>
                 </div>
             </section>
+
+            <section class="mb-2">
+                <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">What You Can Do Next</h2>
+            </section>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <article class="quick-card p-4 h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
+                            <i class="bi bi-folder-fill"></i>
+                        </div>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Resource Hub</h3>
+                        <p class="text-muted mb-3">Access course materials and downloadable resources.</p>
+                        <a href="{{ url_for('student.resource_hub') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Resources</a>
+                    </article>
+                </div>
+                <div class="col-12 col-md-4">
+                    <article class="quick-card p-4 h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
+                            <i class="bi bi-calculator-fill"></i>
+                        </div>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Target Your GPA</h3>
+                        <p class="text-muted mb-3">Simulate upcoming grades to preview your CGPA impact.</p>
+                        <a href="{{ url_for('student.gpa_simulator') }}" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
+                    </article>
+                </div>
+                <div class="col-12 col-md-4">
+                    <article class="quick-card p-4 h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-gold-soft); color: var(--usted-ink);">
+                            <i class="bi bi-ticket-detailed-fill"></i>
+                        </div>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Academic Helpdesk</h3>
+                        <p class="text-muted mb-3">Need support with registration or advising issues?</p>
+                        <a href="{{ url_for('student.helpdesk') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink);">Create Ticket</a>
+                    </article>
+                </div>
+            </div>
 
 {% endblock %}
 
