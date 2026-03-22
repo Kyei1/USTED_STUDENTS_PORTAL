@@ -3,14 +3,15 @@
 from functools import wraps
 from io import BytesIO
 from datetime import datetime
-import csv
-import io
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file, jsonify, current_app
 from models import db, Student, Enrollment, Grade, FinancialStatus, SupportTicket, Course, Resource, Announcement, StudentAnnouncementRead
 from services import (
     get_current_student,
+    build_next_period,
+    build_semester_course_offering,
+    build_past_period_catalog,
     score_to_point,
     score_to_letter,
     point_to_min_total_score,
@@ -18,6 +19,12 @@ from services import (
     difficulty_label,
     allocate_uneven_target_points,
     academic_period_rank,
+    compute_results_analytics,
+    build_semester_number_lookup,
+    group_records_by_period,
+    get_default_logo_path,
+    draw_logo_and_titles,
+    draw_two_column_metadata,
 )
 
 student_bp = Blueprint(
@@ -231,16 +238,6 @@ def my_courses():
         start_year = datetime.now().year
         current_period = (f'{start_year}/{start_year + 1}', 'First')
 
-    def build_next_period(period):
-        year, semester = period
-        if semester == 'First':
-            return (year, 'Second')
-        try:
-            start = int(str(year).split('/')[0])
-            return (f'{start + 1}/{start + 2}', 'First')
-        except (ValueError, IndexError):
-            return (year, 'First')
-
     next_period = build_next_period(current_period)
 
     current_period_enrolled_codes = {
@@ -252,11 +249,29 @@ def my_courses():
         ).all()
     }
 
-    offered_current_q = Course.query.filter_by(department_id=student.department_id)
-    if current_period_enrolled_codes:
-        offered_current_q = offered_current_q.filter(~Course.course_code.in_(current_period_enrolled_codes))
-    offered_current_courses = offered_current_q.order_by(Course.course_code.asc()).all()
+    offered_current_courses = build_semester_course_offering(
+        student.department_id,
+        current_period_enrolled_codes,
+    )
     offered_current_codes = {course.course_code for course in offered_current_courses}
+
+    past_periods = build_past_period_catalog(all_enrollments, current_period)
+    selected_past_period_key = (request.args.get('past_period') or '').strip()
+
+    if selected_past_period_key:
+        selected_past_period = next(
+            (
+                period
+                for period in past_periods
+                if f"{period['academic_year']}|{period['semester']}" == selected_past_period_key
+            ),
+            None,
+        )
+    else:
+        selected_past_period = past_periods[0] if past_periods else None
+
+    if selected_past_period:
+        selected_past_period_key = f"{selected_past_period['academic_year']}|{selected_past_period['semester']}"
 
     def _validate_selected_codes(codes, semester, year):
         if not codes:
@@ -285,41 +300,53 @@ def my_courses():
             flash(validation_error, 'danger')
             return redirect(url_for('student.my_courses'))
 
+        existing_selected = {
+            row.course_code
+            for row in Enrollment.query.filter_by(
+                student_id=student.student_id,
+                academic_year=reg_year,
+                semester=reg_semester,
+            )
+            .filter(Enrollment.course_code.in_(selected_course_codes))
+            .all()
+        }
+        if existing_selected:
+            flash(
+                'Duplicate registration blocked. You are already registered for: '
+                + ', '.join(sorted(existing_selected)),
+                'warning',
+            )
+            return redirect(url_for('student.my_courses'))
+
         selected_courses = [
             course for course in offered_current_courses if course.course_code in set(selected_course_codes)
         ]
 
         if action != 'complete':
+            preview_current_enrollments = [
+                enrollment
+                for enrollment in all_enrollments
+                if (enrollment.academic_year, enrollment.semester) == current_period
+            ]
             return render_template(
                 'student/my_courses.html',
                 student=student,
                 current_period=current_period,
                 next_period=next_period,
-                current_enrollments=[
-                    enrollment
-                    for enrollment in all_enrollments
-                    if (enrollment.academic_year, enrollment.semester) == current_period
-                ],
-                past_enrollments=[
-                    enrollment
-                    for enrollment in all_enrollments
-                    if (enrollment.academic_year, enrollment.semester) != current_period
-                ],
+                current_enrollments=preview_current_enrollments,
                 available_current_courses=offered_current_courses,
-                available_next_courses=(
-                    Course.query.filter_by(department_id=student.department_id)
-                    .order_by(Course.course_code.asc())
-                    .all()
-                ),
+                available_next_courses=build_semester_course_offering(student.department_id),
                 total_current_credits=sum(
                     enrollment.course.credit_hours
-                    for enrollment in all_enrollments
-                    if (enrollment.academic_year, enrollment.semester) == current_period
+                    for enrollment in preview_current_enrollments
                 ),
                 pending_selected_courses=selected_courses,
                 pending_selected_codes=selected_course_codes,
                 pending_missing_count=len(offered_current_codes) - len(selected_course_codes),
                 has_registration_download=False,
+                past_periods=past_periods,
+                selected_past_period=selected_past_period,
+                selected_past_period_key=selected_past_period_key,
             )
 
         for course_code in selected_course_codes:
@@ -359,13 +386,6 @@ def my_courses():
         for enrollment in all_enrollments
         if (enrollment.academic_year, enrollment.semester) == current_period
     ]
-    past_enrollments = [
-        enrollment
-        for enrollment in all_enrollments
-        if (enrollment.academic_year, enrollment.semester) != current_period
-    ]
-
-    current_course_codes = {enrollment.course_code for enrollment in current_enrollments}
     next_course_codes = {
         enrollment.course_code
         for enrollment in all_enrollments
@@ -374,10 +394,10 @@ def my_courses():
 
     available_current_courses = offered_current_courses
 
-    available_next_q = Course.query.filter_by(department_id=student.department_id)
-    if next_course_codes:
-        available_next_q = available_next_q.filter(~Course.course_code.in_(next_course_codes))
-    available_next_courses = available_next_q.order_by(Course.course_code.asc()).all()
+    available_next_courses = build_semester_course_offering(
+        student.department_id,
+        next_course_codes,
+    )
 
     total_current_credits = sum(enrollment.course.credit_hours for enrollment in current_enrollments)
 
@@ -393,7 +413,6 @@ def my_courses():
         current_period=current_period,
         next_period=next_period,
         current_enrollments=current_enrollments,
-        past_enrollments=past_enrollments,
         available_current_courses=available_current_courses,
         available_next_courses=available_next_courses,
         total_current_credits=total_current_credits,
@@ -401,13 +420,125 @@ def my_courses():
         pending_selected_codes=[],
         pending_missing_count=0,
         has_registration_download=has_registration_download,
+        past_periods=past_periods,
+        selected_past_period=selected_past_period,
+        selected_past_period_key=selected_past_period_key,
     )
+
+
+def _build_registration_pdf(student, academic_year, semester, courses):
+    """Build a registration slip PDF and return it as an in-memory buffer."""
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.units import mm
+        from reportlab.pdfgen import canvas
+    except ImportError:
+        return None
+
+    total_credits = sum(course.credit_hours for course in courses)
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    page_width, page_height = A4
+
+    margin_left = 18 * mm
+    logo_path = get_default_logo_path(current_app.root_path)
+
+    pdf.setFillColor(colors.white)
+    pdf.rect(0, 0, page_width, page_height, stroke=0, fill=1)
+
+    draw_logo_and_titles(
+        pdf,
+        page_height,
+        margin_left,
+        colors,
+        mm,
+        logo_path,
+        [
+            ('Course Registration Slip', 'Helvetica-Bold', 11, 18),
+        ],
+    )
+
+    generated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    details_left = [
+        ('Student', f'{student.first_name} {student.last_name}'),
+        ('ID', student.student_id),
+        ('Academic Year', academic_year or 'N/A'),
+        ('Semester', semester or 'N/A'),
+    ]
+    details_right = [
+        ('Generated', generated_at),
+        ('No. of Courses', str(len(courses))),
+        ('Total Credits', str(total_credits)),
+    ]
+
+    metadata_bottom = draw_two_column_metadata(
+        pdf,
+        page_height,
+        margin_left,
+        details_left,
+        details_right,
+        colors,
+        mm,
+    )
+
+    line_y = metadata_bottom - (8 * mm)
+    pdf.setFillColor(colors.HexColor('#7a0016'))
+    pdf.setFont('Helvetica-Bold', 10)
+    pdf.drawString(margin_left, line_y, 'Registered Courses')
+    line_y -= (5 * mm)
+
+    pdf.setFillColor(colors.HexColor('#e8e8e8'))
+    pdf.rect(margin_left, line_y - (5 * mm), page_width - (2 * margin_left), 5 * mm, stroke=1, fill=1)
+    pdf.setFillColor(colors.HexColor('#7a0016'))
+    pdf.setFont('Helvetica-Bold', 9)
+    pdf.drawString(margin_left + (2 * mm), line_y - (3.5 * mm), 'Course Code')
+    pdf.drawString(margin_left + (32 * mm), line_y - (3.5 * mm), 'Course Title')
+    pdf.drawRightString(page_width - margin_left - (2 * mm), line_y - (3.5 * mm), 'Credits')
+    line_y -= (7 * mm)
+
+    pdf.setFont('Helvetica', 9)
+    for idx, course in enumerate(courses):
+        if line_y < (24 * mm):
+            pdf.showPage()
+            pdf.setFillColor(colors.white)
+            pdf.rect(0, 0, page_width, page_height, stroke=0, fill=1)
+            line_y = page_height - (22 * mm)
+            pdf.setFillColor(colors.HexColor('#7a0016'))
+            pdf.setFont('Helvetica-Bold', 10)
+            pdf.drawString(margin_left, line_y, 'Registered Courses (continued)')
+            line_y -= (6 * mm)
+            pdf.setFillColor(colors.black)
+            pdf.setFont('Helvetica', 9)
+
+        if idx % 2 == 0:
+            pdf.setFillColor(colors.HexColor('#f9f9f9'))
+            pdf.rect(margin_left, line_y - (5 * mm), page_width - (2 * margin_left), 5 * mm, stroke=0, fill=1)
+
+        title = course.course_name or ''
+        if len(title) > 50:
+            title = title[:47] + '...'
+
+        pdf.setFillColor(colors.black)
+        pdf.drawString(margin_left + (2 * mm), line_y - (3.5 * mm), course.course_code)
+        pdf.drawString(margin_left + (32 * mm), line_y - (3.5 * mm), title)
+        pdf.drawRightString(page_width - margin_left - (2 * mm), line_y - (3.5 * mm), str(course.credit_hours))
+        line_y -= (6 * mm)
+
+    pdf.setFont('Helvetica-Oblique', 8)
+    pdf.setFillColor(colors.HexColor('#999999'))
+    pdf.drawString(margin_left, 10 * mm, 'This is an official course registration slip generated by USTED Students Portal.')
+    pdf.drawString(margin_left, 7 * mm, 'Please retain this document for your records.')
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
 
 
 @student_bp.route('/my-courses/registration-download')
 @login_required
 def my_courses_registration_download():
-    """Download the latest registration confirmation slip as CSV."""
+    """Download the latest registration confirmation slip as PDF."""
     student = get_current_student()
     if not student:
         session.clear()
@@ -426,22 +557,60 @@ def my_courses_registration_download():
         .all()
     )
 
-    csv_buffer = io.StringIO()
-    writer = csv.writer(csv_buffer)
-    writer.writerow(['Student ID', student.student_id])
-    writer.writerow(['Student Name', f'{student.first_name} {student.last_name}'])
-    writer.writerow(['Academic Year', receipt.get('academic_year', '')])
-    writer.writerow(['Semester', receipt.get('semester', '')])
-    writer.writerow([])
-    writer.writerow(['Course Code', 'Course Name', 'Credits'])
-    for course in courses:
-        writer.writerow([course.course_code, course.course_name, course.credit_hours])
+    buffer = _build_registration_pdf(
+        student,
+        receipt.get('academic_year', ''),
+        receipt.get('semester', ''),
+        courses,
+    )
+    if not buffer:
+        flash('PDF export requires reportlab. Install dependencies and try again.', 'danger')
+        return redirect(url_for('student.my_courses'))
 
-    payload = csv_buffer.getvalue().encode('utf-8')
-    filename = f"registration_{student.student_id}_{receipt.get('academic_year', '').replace('/', '-')}_{receipt.get('semester', '')}.csv"
+    filename = f"registration_{student.student_id}_{receipt.get('academic_year', '').replace('/', '-')}_{receipt.get('semester', '')}.pdf"
     return send_file(
-        BytesIO(payload),
-        mimetype='text/csv',
+        buffer,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@student_bp.route('/my-courses/registration-download/<academic_year>/<semester>')
+@login_required
+def my_courses_registration_download_by_period(academic_year, semester):
+    """Download a historical registration slip for a specific period as PDF."""
+    student = get_current_student()
+    if not student:
+        session.clear()
+        flash('Student record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    period_enrollments = (
+        Enrollment.query.filter_by(
+            student_id=student.student_id,
+            academic_year=academic_year,
+            semester=semester,
+        )
+        .join(Course, Enrollment.course_code == Course.course_code)
+        .order_by(Course.course_code.asc())
+        .all()
+    )
+
+    if not period_enrollments:
+        flash('No registration record found for the selected period.', 'warning')
+        return redirect(url_for('student.my_courses'))
+
+    courses = [enrollment.course for enrollment in period_enrollments]
+    buffer = _build_registration_pdf(student, academic_year, semester, courses)
+    if not buffer:
+        flash('PDF export requires reportlab. Install dependencies and try again.', 'danger')
+        return redirect(url_for('student.my_courses'))
+
+    filename = f"registration_{student.student_id}_{academic_year.replace('/', '-')}_{semester}.pdf"
+    return send_file(
+        buffer,
+        mimetype='application/pdf',
         as_attachment=True,
         download_name=filename,
     )
@@ -461,140 +630,27 @@ def results():
         Enrollment.query.filter_by(student_id=student.student_id)
         .join(Course, Enrollment.course_code == Course.course_code)
         .outerjoin(Grade, Grade.enrollment_id == Enrollment.enrollment_id)
-        .order_by(Enrollment.academic_year.desc(), Course.course_code.asc())
+        .order_by(Enrollment.academic_year.desc(), Enrollment.semester.desc(), Course.course_code.asc())
         .all()
     )
 
-    graded_records = [record for record in records if record.grade]
-    total_credits = sum(record.course.credit_hours for record in graded_records)
-    total_grade_points = sum(
-        score_to_point(float(record.grade.total_score)) * record.course.credit_hours
-        for record in graded_records
+    results_payload = compute_results_analytics(records, score_to_point)
+    semester_lookup = build_semester_number_lookup(
+        [(record.academic_year, record.semester) for record in records]
     )
-    cgpa = (total_grade_points / total_credits) if total_credits else 0.0
+    grouped_records = group_records_by_period(records, semester_lookup)
 
-    by_period = {}
-    for record in graded_records:
-        key = (record.academic_year, record.semester)
-        if key not in by_period:
-            by_period[key] = {'credits': 0, 'points': 0.0}
-        by_period[key]['credits'] += record.course.credit_hours
-        by_period[key]['points'] += score_to_point(float(record.grade.total_score)) * record.course.credit_hours
-
-    period_rows = []
-    for (year, semester), stats in by_period.items():
-        sgpa = (stats['points'] / stats['credits']) if stats['credits'] else 0.0
-        period_rows.append(
-            {
-                'academic_year': year,
-                'semester': semester,
-                'credits': stats['credits'],
-                'points': round(stats['points'], 2),
-                'sgpa': round(sgpa, 2),
-            }
-        )
-
-    period_rows_desc = sorted(
-        period_rows,
-        key=lambda row: academic_period_rank(
-            type(
-                'PeriodObj',
-                (),
-                {
-                    'academic_year': row['academic_year'],
-                    'semester': row['semester'],
-                },
-            )
-        ),
-        reverse=True,
-    )
-    graded_records = [record for record in records if record.grade]
-    published_count = sum(1 for record in graded_records if record.grade.approval_status == 'Published')
-    pending_count = len(records) - len(graded_records)
-
-    total_credits = sum(record.course.credit_hours for record in graded_records)
-    total_grade_points = sum(
-        score_to_point(float(record.grade.total_score)) * record.course.credit_hours
-        for record in graded_records
-    )
-    cgpa = (total_grade_points / total_credits) if total_credits else 0.0
-
-    by_period = {}
-    for record in graded_records:
-        key = (record.academic_year, record.semester)
-        if key not in by_period:
-            by_period[key] = {'credits': 0, 'points': 0.0, 'courses': 0}
-        by_period[key]['credits'] += record.course.credit_hours
-        by_period[key]['points'] += score_to_point(float(record.grade.total_score)) * record.course.credit_hours
-        by_period[key]['courses'] += 1
-
-    period_rows = []
-    for (year, semester), stats in by_period.items():
-        sgpa = (stats['points'] / stats['credits']) if stats['credits'] else 0.0
-        period_rows.append(
-            {
-                'academic_year': year,
-                'semester': semester,
-                'courses': stats['courses'],
-                'credits': stats['credits'],
-                'points': round(stats['points'], 2),
-                'sgpa': round(sgpa, 2),
-            }
-        )
-
-    period_rows_desc = sorted(
-        period_rows,
-        key=lambda row: academic_period_rank(
-            type(
-                'PeriodObj',
-                (),
-                {
-                    'academic_year': row['academic_year'],
-                    'semester': row['semester'],
-                },
-            )
-        ),
-        reverse=True,
-    )
-    period_rows_asc = list(reversed(period_rows_desc))
-
-    trend_labels = [f"{row['academic_year']} {row['semester']}" for row in period_rows_asc]
-    trend_sgpa = [row['sgpa'] for row in period_rows_asc]
-    best_period = max(period_rows_desc, key=lambda row: row['sgpa']) if period_rows_desc else None
-    latest_period = period_rows_desc[0] if period_rows_desc else None
-
-    abbreviation_summary = {
-        'ccr': total_credits,
-        'cgv': round(total_grade_points, 2),
-        'cgpa': round(cgpa, 2),
-        'scr': latest_period['credits'] if latest_period else 0,
-        'sgp': latest_period['points'] if latest_period else 0.0,
-        'sgpa': latest_period['sgpa'] if latest_period else 0.0,
-        'period_label': (
-            f"{latest_period['academic_year']} {latest_period['semester']}"
-            if latest_period
-            else 'N/A'
-        ),
-    }
-
-    analytics = {
-        'total_records': len(records),
-        'graded_records': len(graded_records),
-        'pending_records': pending_count,
-        'published_records': published_count,
-        'cgpa': round(cgpa, 2),
-        'best_period': best_period,
-    }
+    for row in results_payload['period_rows_desc']:
+        row['semester_number'] = semester_lookup.get((row['academic_year'], row['semester']))
 
     return render_template(
         'student/results.html',
         student=student,
         records=records,
-        analytics=analytics,
-        abbreviation_summary=abbreviation_summary,
-        period_rows=period_rows_desc,
-        trend_labels=trend_labels,
-        trend_sgpa=trend_sgpa,
+        grouped_records=grouped_records,
+        analytics=results_payload['analytics'],
+        abbreviation_summary=results_payload['abbreviation_summary'],
+        period_rows=results_payload['period_rows_desc'],
     )
 
 
@@ -612,67 +668,12 @@ def results_transcript_pdf():
         Enrollment.query.filter_by(student_id=student.student_id)
         .join(Course, Enrollment.course_code == Course.course_code)
         .outerjoin(Grade, Grade.enrollment_id == Enrollment.enrollment_id)
-        .order_by(Enrollment.academic_year.desc(), Course.course_code.asc())
+        .order_by(Enrollment.academic_year.desc(), Enrollment.semester.desc(), Course.course_code.asc())
         .all()
     )
 
-    graded_records = [record for record in records if record.grade]
-    total_credits = sum(record.course.credit_hours for record in graded_records)
-    total_grade_points = sum(
-        score_to_point(float(record.grade.total_score)) * record.course.credit_hours
-        for record in graded_records
-    )
-    cgpa = (total_grade_points / total_credits) if total_credits else 0.0
-
-    by_period = {}
-    for record in graded_records:
-        key = (record.academic_year, record.semester)
-        if key not in by_period:
-            by_period[key] = {'credits': 0, 'points': 0.0}
-        by_period[key]['credits'] += record.course.credit_hours
-        by_period[key]['points'] += score_to_point(float(record.grade.total_score)) * record.course.credit_hours
-
-    period_rows = []
-    for (year, semester), stats in by_period.items():
-        sgpa = (stats['points'] / stats['credits']) if stats['credits'] else 0.0
-        period_rows.append(
-            {
-                'academic_year': year,
-                'semester': semester,
-                'credits': stats['credits'],
-                'points': round(stats['points'], 2),
-                'sgpa': round(sgpa, 2),
-            }
-        )
-
-    period_rows_desc = sorted(
-        period_rows,
-        key=lambda row: academic_period_rank(
-            type(
-                'PeriodObj',
-                (),
-                {
-                    'academic_year': row['academic_year'],
-                    'semester': row['semester'],
-                },
-            )
-        ),
-        reverse=True,
-    )
-    latest_period = period_rows_desc[0] if period_rows_desc else None
-    abbreviation_summary = {
-        'ccr': total_credits,
-        'cgv': round(total_grade_points, 2),
-        'cgpa': round(cgpa, 2),
-        'scr': latest_period['credits'] if latest_period else 0,
-        'sgp': latest_period['points'] if latest_period else 0.0,
-        'sgpa': latest_period['sgpa'] if latest_period else 0.0,
-        'period_label': (
-            f"{latest_period['academic_year']} {latest_period['semester']}"
-            if latest_period
-            else 'N/A'
-        ),
-    }
+    results_payload = compute_results_analytics(records, score_to_point)
+    abbreviation_summary = results_payload['abbreviation_summary']
 
     try:
         from reportlab.lib import colors
@@ -689,18 +690,49 @@ def results_transcript_pdf():
 
     margin_left = 18 * mm
     margin_right = 18 * mm
-    line_y = page_height - (20 * mm)
+    line_y = page_height - (60 * mm)
     row_height = 7 * mm
+    logo_path = get_default_logo_path(current_app.root_path)
+    generated_at = datetime.now().strftime('Generated %Y-%m-%d %H:%M')
 
-    def draw_header(y_pos):
-        pdf.setFillColor(colors.HexColor('#7a0016'))
-        pdf.rect(0, page_height - (28 * mm), page_width, 28 * mm, stroke=0, fill=1)
-        pdf.setFillColor(colors.white)
-        pdf.setFont('Helvetica-Bold', 15)
-        pdf.drawString(margin_left, page_height - (16 * mm), 'USTED Official Transcript')
-        pdf.setFont('Helvetica', 10)
-        pdf.drawString(margin_left, page_height - (22 * mm), f'Student: {student.first_name} {student.last_name} ({student.student_id})')
-        pdf.drawRightString(page_width - margin_right, page_height - (22 * mm), datetime.now().strftime('Generated %Y-%m-%d %H:%M'))
+    def draw_header(y_pos, first_page=False):
+        if first_page:
+            draw_logo_and_titles(
+                pdf,
+                page_height,
+                margin_left,
+                colors,
+                mm,
+                logo_path,
+                [
+                    ('USTED Official Transcript', 'Helvetica-Bold', 11, 18),
+                ],
+            )
+
+            details_left = [
+                ('Student', f'{student.first_name} {student.last_name}'),
+                ('ID', student.student_id),
+                ('Period', abbreviation_summary['period_label']),
+            ]
+            details_right = [
+                ('Generated', generated_at),
+                ('CGPA', f"{abbreviation_summary['cgpa']:.2f}"),
+                ('CCR', str(abbreviation_summary['ccr'])),
+            ]
+
+            draw_two_column_metadata(
+                pdf,
+                page_height,
+                margin_left,
+                details_left,
+                details_right,
+                colors,
+                mm,
+            )
+        else:
+            pdf.setFillColor(colors.HexColor('#7a0016'))
+            pdf.setFont('Helvetica-Bold', 11)
+            pdf.drawString(margin_left, page_height - (14 * mm), 'USTED Official Transcript')
 
         pdf.setFillColor(colors.HexColor('#4a000d'))
         pdf.setFont('Helvetica-Bold', 10)
@@ -713,7 +745,7 @@ def results_transcript_pdf():
         pdf.drawString(margin_left + (154 * mm), y_pos, 'Grade')
         pdf.line(margin_left, y_pos - 2, page_width - margin_right, y_pos - 2)
 
-    draw_header(line_y)
+    draw_header(line_y, first_page=True)
     line_y -= row_height
 
     if not records:
@@ -725,8 +757,8 @@ def results_transcript_pdf():
         for enrollment in records:
             if line_y < (20 * mm):
                 pdf.showPage()
-                line_y = page_height - (35 * mm)
-                draw_header(line_y)
+                line_y = page_height - (24 * mm)
+                draw_header(line_y, first_page=False)
                 line_y -= row_height
                 pdf.setFont('Helvetica', 9)
 

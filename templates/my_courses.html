@@ -181,32 +181,62 @@
         <div class="col-12">
             <article class="border rounded-4 p-4 h-100">
                 <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 4: Past Enrollment Records</h2>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Year</th>
-                                <th>Sem</th>
-                                <th>Course</th>
-                                <th class="text-center">Grade</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for enrollment in past_enrollments %}
-                                <tr>
-                                    <td>{{ enrollment.academic_year }}</td>
-                                    <td>{{ enrollment.semester }}</td>
-                                    <td>{{ enrollment.course.course_code }}</td>
-                                    <td class="text-center">{{ enrollment.grade.grade_letter if enrollment.grade else 'Pending' }}</td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted py-4">No past records available.</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                {% if past_periods %}
+                    <form method="get" id="pastPeriodForm" class="row g-2 align-items-end mb-3">
+                        <div class="col-12 col-md-8 col-lg-6">
+                            <label for="pastPeriodPicker" class="form-label small fw-semibold mb-1">Choose a semester to view courses</label>
+                            <select id="pastPeriodPicker" name="past_period" class="form-select form-select-sm">
+                                {% for period in past_periods %}
+                                    {% set period_key = period.academic_year ~ '|' ~ period.semester %}
+                                    <option value="{{ period_key }}" {% if selected_past_period_key == period_key %}selected{% endif %}>
+                                        Semester {{ period.semester_number }} - {{ period.academic_year }} {{ period.semester }} ({{ period.count }} courses)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">View Semester</button>
+                        </div>
+                    </form>
+
+                    {% if selected_past_period %}
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                            <p class="small text-muted mb-0">
+                                Showing: <strong>Semester {{ selected_past_period.semester_number }} ({{ selected_past_period.academic_year }} {{ selected_past_period.semester }})</strong>
+                                ({{ selected_past_period.count }} courses, {{ selected_past_period.credits }} credits)
+                            </p>
+                            <a
+                                href="{{ url_for('student.my_courses_registration_download_by_period', academic_year=selected_past_period.academic_year, semester=selected_past_period.semester) }}"
+                                class="btn btn-sm btn-outline-success"
+                            >
+                                Download This Semester Slip
+                            </a>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th class="text-center">Credits</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for enrollment in selected_past_period.enrollments %}
+                                        <tr>
+                                            <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
+                                            <td>{{ enrollment.course.course_name }}</td>
+                                            <td class="text-center">{{ enrollment.course.credit_hours }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted py-4">No past records available.</div>
+                {% endif %}
             </article>
         </div>
     </div>
@@ -252,6 +282,19 @@
         });
 
         syncSelectionState();
+    })();
+
+    (function () {
+        const pastPeriodForm = document.getElementById('pastPeriodForm');
+        const pastPeriodPicker = document.getElementById('pastPeriodPicker');
+
+        if (!pastPeriodForm || !pastPeriodPicker) {
+            return;
+        }
+
+        pastPeriodPicker.addEventListener('change', function () {
+            pastPeriodForm.submit();
+        });
     })();
 </script>
 {% endblock %}

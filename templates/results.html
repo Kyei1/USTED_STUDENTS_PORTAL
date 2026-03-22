@@ -47,99 +47,87 @@
 
     <section class="mb-4">
         <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 2: Detailed Results Records</h2>
-        <div class="d-grid gap-3 d-lg-none">
-            {% for enrollment in records %}
-                <article class="result-record-card">
-                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                        <div>
-                            <p class="record-course-code mb-1">{{ enrollment.course.course_code }}</p>
-                            <p class="record-course-name mb-0">{{ enrollment.course.course_name }}</p>
+        {% if grouped_records %}
+            <div class="d-grid gap-3 d-lg-none">
+                {% for period in grouped_records %}
+                    <article class="border rounded-4 p-3">
+                        <p class="small fw-bold mb-2" style="color: var(--usted-maroon);">
+                            Semester {{ period.semester_number }} - {{ period.academic_year }} {{ period.semester }}
+                        </p>
+                        <div class="d-grid gap-3">
+                            {% for enrollment in period.records %}
+                                <article class="result-record-card">
+                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                        <div>
+                                            <p class="record-course-code mb-1">{{ enrollment.course.course_code }}</p>
+                                            <p class="record-course-name mb-0">{{ enrollment.course.course_name }}</p>
+                                        </div>
+                                        <span class="record-status-badge {{ 'record-status-published' if enrollment.grade and enrollment.grade.approval_status == 'Published' else 'record-status-pending' }}">
+                                            {{ enrollment.grade.approval_status if enrollment.grade else 'Pending' }}
+                                        </span>
+                                    </div>
+                                    <div class="record-grid">
+                                        <div class="record-item"><span class="record-label">Credits</span><span class="record-value">{{ enrollment.course.credit_hours }}</span></div>
+                                        <div class="record-item"><span class="record-label">CA</span><span class="record-value">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">Exam</span><span class="record-value">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">Total</span><span class="record-value">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">Grade</span><span class="record-value record-grade-value">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</span></div>
+                                    </div>
+                                </article>
+                            {% endfor %}
                         </div>
-                        <span class="record-status-badge {{ 'record-status-published' if enrollment.grade else 'record-status-pending' }}">
-                            {{ enrollment.grade.approval_status if enrollment.grade else 'Pending' }}
-                        </span>
-                    </div>
+                    </article>
+                {% endfor %}
+            </div>
 
-                    <div class="record-grid">
-                        <div class="record-item">
-                            <span class="record-label">Academic Year</span>
-                            <span class="record-value">{{ enrollment.academic_year }}</span>
-                        </div>
-                        <div class="record-item">
-                            <span class="record-label">Semester</span>
-                            <span class="record-value">{{ enrollment.semester }}</span>
-                        </div>
-                        <div class="record-item">
-                            <span class="record-label">Credits</span>
-                            <span class="record-value">{{ enrollment.course.credit_hours }}</span>
-                        </div>
-                        <div class="record-item">
-                            <span class="record-label">CA</span>
-                            <span class="record-value">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</span>
-                        </div>
-                        <div class="record-item">
-                            <span class="record-label">Exam</span>
-                            <span class="record-value">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</span>
-                        </div>
-                        <div class="record-item">
-                            <span class="record-label">Total</span>
-                            <span class="record-value">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</span>
-                        </div>
-                        <div class="record-item">
-                            <span class="record-label">Grade</span>
-                            <span class="record-value record-grade-value">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</span>
-                        </div>
+            <div class="d-none d-lg-block">
+                {% for period in grouped_records %}
+                    <div class="table-responsive mb-3">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="8" style="color: var(--usted-maroon);">
+                                        Semester {{ period.semester_number }} - {{ period.academic_year }} {{ period.semester }}
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>Course Code</th>
+                                    <th>Course Title</th>
+                                    <th class="text-center">Credits</th>
+                                    <th class="text-center">CA</th>
+                                    <th class="text-center">Exam</th>
+                                    <th class="text-center">Total</th>
+                                    <th class="text-center">Grade</th>
+                                    <th class="text-end">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in period.records %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
+                                        <td>{{ enrollment.course.course_name }}</td>
+                                        <td class="text-center">{{ enrollment.course.credit_hours }}</td>
+                                        <td class="text-center">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</td>
+                                        <td class="text-center">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</td>
+                                        <td class="text-center">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</td>
+                                        <td class="text-center">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</td>
+                                        <td class="text-end">
+                                            {% if enrollment.grade and enrollment.grade.approval_status == 'Published' %}
+                                                <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ enrollment.grade.approval_status }}</span>
+                                            {% else %}
+                                                <span class="badge text-bg-secondary">{{ enrollment.grade.approval_status if enrollment.grade else 'Pending' }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                </article>
-            {% else %}
-                <div class="text-center text-muted py-4 border rounded-3">No result records available yet.</div>
-            {% endfor %}
-        </div>
-
-        <div class="table-responsive d-none d-lg-block">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Academic Year</th>
-                        <th>Semester</th>
-                        <th>Course Code</th>
-                        <th>Course Title</th>
-                        <th class="text-center">Credits</th>
-                        <th class="text-center">CA</th>
-                        <th class="text-center">Exam</th>
-                        <th class="text-center">Total</th>
-                        <th class="text-center">Grade</th>
-                        <th class="text-end">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for enrollment in records %}
-                        <tr>
-                            <td>{{ enrollment.academic_year }}</td>
-                            <td>{{ enrollment.semester }}</td>
-                            <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
-                            <td>{{ enrollment.course.course_name }}</td>
-                            <td class="text-center">{{ enrollment.course.credit_hours }}</td>
-                            <td class="text-center">{{ enrollment.grade.ca_score if enrollment.grade else 'N/A' }}</td>
-                            <td class="text-center">{{ enrollment.grade.exam_score if enrollment.grade else 'N/A' }}</td>
-                            <td class="text-center">{{ enrollment.grade.total_score if enrollment.grade else 'N/A' }}</td>
-                            <td class="text-center">{{ enrollment.grade.grade_letter if enrollment.grade else 'N/A' }}</td>
-                            <td class="text-end">
-                                {% if enrollment.grade %}
-                                    <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ enrollment.grade.approval_status }}</span>
-                                {% else %}
-                                    <span class="badge text-bg-secondary">Pending</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="10" class="text-center text-muted py-4">No result records available yet.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-4 border rounded-3">No result records available yet.</div>
+        {% endif %}
     </section>
 
     <section class="mb-4">
@@ -187,7 +175,7 @@
                             <tbody>
                                 {% for row in period_rows %}
                                     <tr>
-                                        <td>{{ row.academic_year }} {{ row.semester }}</td>
+                                        <td>Semester {{ row.semester_number }} - {{ row.academic_year }} {{ row.semester }}</td>
                                         <td class="text-center">{{ row.courses }}</td>
                                         <td class="text-center">{{ row.credits }}</td>
                                         <td class="text-end fw-semibold">{{ '%.2f'|format(row.sgpa) }}</td>
