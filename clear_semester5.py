@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Clear Semester 5 (2024/2025 Second semester) results records from the database.
+Clear Semester 5 (2026/2027 First semester) records from the database.
 Used to prepare for admin/lecturer upload workflow.
 """
 
@@ -16,8 +16,8 @@ def clear_semester5(student_id=None):
         try:
             # Query for all enrollments in Semester 5
             query = Enrollment.query.filter(
-                Enrollment.academic_year == "2024/2025",
-                Enrollment.semester == "Second"
+                Enrollment.academic_year == "2026/2027",
+                Enrollment.semester == "First"
             )
             
             if student_id:

@@ -742,42 +742,48 @@ def results():
     for row in results_payload['period_rows_desc']:
         row['semester_number'] = semester_lookup.get((row['academic_year'], row['semester']))
 
+    # Enrich grouped_records with semester metrics for template display.
+    metrics_by_period = {
+        (row['academic_year'], row['semester']): row
+        for row in results_payload['period_rows_desc']
+    }
+    for group in grouped_records:
+        key = (group['academic_year'], group['semester'])
+        if key in metrics_by_period:
+            metrics = metrics_by_period[key]
+            group['metrics'] = {
+                'scr': metrics['credits'],
+                'sgp': metrics['points'],
+                'sgpa': metrics['sgpa'],
+                'completed_courses': metrics['completed_courses'],
+                'incomplete_courses': metrics['incomplete_courses'],
+            }
+        else:
+            group['metrics'] = {}
+
+    # Prepare semester-vs-cumulative-CGPA trend data (chronological).
+    trend_data = {
+        'labels': [0],
+        'cgpa': [0.0],
+    }
+    running_credits = 0
+    running_points = 0.0
+    ordered_rows = sorted(
+        results_payload['period_rows_desc'],
+        key=lambda r: academic_period_rank(
+            type('PeriodObj', (), {'academic_year': r['academic_year'], 'semester': r['semester']})
+        ),
+    )
+    for semester_index, row in enumerate(ordered_rows, start=1):
+        running_credits += row['credits']
+        running_points += row['points']
+        cgpa_to_date = round((running_points / running_credits), 2) if running_credits else 0.0
+        trend_data['labels'].append(semester_index)
+        trend_data['cgpa'].append(cgpa_to_date)
+
     if selected_period and selected_period not in period_options:
         selected_scope = 'all'
         selected_period = None
-
-        # Enrich grouped_records with semester metrics for template display
-        metrics_by_period = {
-            (row['academic_year'], row['semester']): row
-            for row in results_payload['period_rows_desc']
-        }
-        for group in grouped_records:
-            key = (group['academic_year'], group['semester'])
-            if key in metrics_by_period:
-                metrics = metrics_by_period[key]
-                group['metrics'] = {
-                    'scr': metrics['credits'],
-                    'sgp': metrics['points'],
-                    'sgpa': metrics['sgpa'],
-                    'completed_courses': metrics['completed_courses'],
-                    'incomplete_courses': metrics['incomplete_courses'],
-                }
-            else:
-                group['metrics'] = {}
-
-        # Prepare trend data for chart visualization
-        trend_data = {
-            'labels': [],
-            'sgpa': [],
-            'scr': [],
-        }
-        for row in sorted(results_payload['period_rows_desc'], key=lambda r: academic_period_rank(
-            type('PeriodObj', (), {'academic_year': r['academic_year'], 'semester': r['semester']})
-        )):
-            label = f"S{row.get('semester_number', '?')} {row['academic_year']}"
-            trend_data['labels'].append(label)
-            trend_data['sgpa'].append(row['sgpa'])
-            trend_data['scr'].append(row['credits'])
 
     if selected_scope == 'all':
         download_url = url_for('student.results_transcript_pdf', result_scope='all')
@@ -801,7 +807,7 @@ def results():
         semester_lookup=semester_lookup,
         selected_scope=selected_scope,
         download_url=download_url,
-            trend_data=trend_data,
+        trend_data=trend_data,
     )
 
 
