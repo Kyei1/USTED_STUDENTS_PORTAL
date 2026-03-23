@@ -298,10 +298,7 @@ def my_courses():
         ).all()
     }
 
-    offered_current_courses = build_semester_course_offering(
-        student.department_id,
-        current_period_enrolled_codes,
-    )
+    offered_current_courses = build_semester_course_offering(student.department_id)
     offered_current_codes = {course.course_code for course in offered_current_courses}
 
     past_periods = build_past_period_catalog(all_enrollments, current_period)
@@ -383,6 +380,7 @@ def my_courses():
                 current_period=current_period,
                 next_period=next_period,
                 current_enrollments=preview_current_enrollments,
+                current_period_enrolled_codes=current_period_enrolled_codes,
                 available_current_courses=offered_current_courses,
                 available_next_courses=build_semester_course_offering(student.department_id),
                 total_current_credits=sum(
@@ -391,7 +389,7 @@ def my_courses():
                 ),
                 pending_selected_courses=selected_courses,
                 pending_selected_codes=selected_course_codes,
-                pending_missing_count=len(offered_current_codes) - len(selected_course_codes),
+                pending_missing_count=max(0, len(offered_current_codes) - len(current_period_enrolled_codes) - len(selected_course_codes)),
                 has_registration_download=False,
                 past_periods=past_periods,
                 selected_past_period=selected_past_period,
@@ -462,12 +460,13 @@ def my_courses():
         current_period=current_period,
         next_period=next_period,
         current_enrollments=current_enrollments,
+        current_period_enrolled_codes=current_period_enrolled_codes,
         available_current_courses=available_current_courses,
         available_next_courses=available_next_courses,
         total_current_credits=total_current_credits,
         pending_selected_courses=None,
         pending_selected_codes=[],
-        pending_missing_count=0,
+        pending_missing_count=max(0, len(offered_current_codes) - len(current_period_enrolled_codes)),
         has_registration_download=has_registration_download,
         past_periods=past_periods,
         selected_past_period=selected_past_period,

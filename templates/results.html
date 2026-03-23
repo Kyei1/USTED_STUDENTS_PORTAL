@@ -95,10 +95,9 @@
                                         </span>
                                     </div>
                                     <div class="record-grid">
-                                        <div class="record-item"><span class="record-label">Credits</span><span class="record-value">{{ enrollment.course.credit_hours }}</span></div>
                                         <div class="record-item"><span class="record-label">CA</span><span class="record-value">{{ '%.2f'|format(snap.get('ca_score')) if snap.get('ca_score') is not none else 'N/A' }}</span></div>
                                         <div class="record-item"><span class="record-label">Exam</span><span class="record-value">{{ '%.2f'|format(snap.get('raw_exam_score')) if snap.get('raw_exam_score') is not none else 'N/A' }}</span></div>
-                                        <div class="record-item"><span class="record-label">Total</span><span class="record-value">{{ '%.2f'|format(snap.get('total_score')) if snap.get('total_score') is not none else 'N/A' }}</span></div>
+                                        <div class="record-item"><span class="record-label">Credits</span><span class="record-value">{{ enrollment.course.credit_hours }}</span></div>
                                         <div class="record-item"><span class="record-label">Grade</span><span class="record-value record-grade-value">{{ snap.get('grade_letter', 'N/A') }}</span></div>
                                     </div>
                                 </article>
@@ -114,7 +113,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th colspan="8" style="color: var(--usted-maroon);">
+                                    <th colspan="7" style="color: var(--usted-maroon);">
                                         Semester {{ period.semester_number }} - {{ period.academic_year }} {{ period.semester }}
                                     </th>
                                 </tr>
@@ -124,7 +123,6 @@
                                     <th class="text-center">Credits</th>
                                     <th class="text-center">CA</th>
                                     <th class="text-center">Exam</th>
-                                    <th class="text-center">Total</th>
                                     <th class="text-center">Grade</th>
                                     <th class="text-end">Status</th>
                                 </tr>
@@ -138,7 +136,6 @@
                                         <td class="text-center">{{ enrollment.course.credit_hours }}</td>
                                         <td class="text-center">{{ '%.2f'|format(snap.get('ca_score')) if snap.get('ca_score') is not none else 'N/A' }}</td>
                                         <td class="text-center">{{ '%.2f'|format(snap.get('raw_exam_score')) if snap.get('raw_exam_score') is not none else 'N/A' }}</td>
-                                        <td class="text-center">{{ '%.2f'|format(snap.get('total_score')) if snap.get('total_score') is not none else 'N/A' }}</td>
                                         <td class="text-center">{{ snap.get('grade_letter', 'N/A') }}</td>
                                         <td class="text-end">
                                             {% if enrollment.grade and enrollment.grade.approval_status == 'Published' %}

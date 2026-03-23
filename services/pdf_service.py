@@ -11,7 +11,7 @@ def get_default_logo_path(app_root_path):
     return os.path.join(app_root_path, 'static', 'images', 'usted-logo.png')
 
 
-def draw_logo_and_titles(pdf, page_height, margin_left, colors, mm, logo_path, title_lines):
+def draw_logo_and_titles(pdf, page_height, margin_left, colors, mm, logo_path, title_lines, page_width=210):
     """Draw logo and title lines, returning computed title-left x coordinate."""
     title_left = margin_left
     if os.path.exists(logo_path):
@@ -19,10 +19,11 @@ def draw_logo_and_titles(pdf, page_height, margin_left, colors, mm, logo_path, t
             from reportlab.lib.utils import ImageReader
 
             logo_img = ImageReader(logo_path)
-            logo_w = 12 * mm
-            logo_h = 12 * mm
-            logo_x = margin_left
-            logo_y = page_height - (18 * mm)
+            logo_w = 28 * mm  # Increased from 12mm to 28mm
+            logo_h = 28 * mm  # Increased from 12mm to 28mm
+            # Center the logo horizontally
+            logo_x = (page_width * mm - logo_w) / 2
+            logo_y = page_height - (20 * mm)  # Top-centered positioning
             pdf.drawImage(
                 logo_img,
                 logo_x,
@@ -32,14 +33,18 @@ def draw_logo_and_titles(pdf, page_height, margin_left, colors, mm, logo_path, t
                 preserveAspectRatio=True,
                 mask='auto',
             )
-            title_left = logo_x + logo_w + (3 * mm)
+            title_left = margin_left
         except Exception:
             title_left = margin_left
 
     pdf.setFillColor(colors.HexColor('#7a0016'))
+    # Position title lines below the centered logo
     for text, font_name, font_size, y_mm in title_lines:
         pdf.setFont(font_name, font_size)
-        pdf.drawString(title_left, page_height - (y_mm * mm), text)
+        # Center titles horizontally
+        text_width = pdf.stringWidth(text, font_name, font_size)
+        center_x = (page_width * mm - text_width) / 2
+        pdf.drawString(center_x, page_height - (y_mm * mm), text)
 
     return title_left
 

@@ -39,13 +39,15 @@
                                             <th style="width: 56px;">Pick</th>
                                             <th>Course</th>
                                             <th class="text-center">Credits</th>
+                                            <th class="text-end">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for course in available_current_courses %}
+                                            {% set is_registered = course.course_code in current_period_enrolled_codes %}
                                             <tr>
                                                 <td>
-                                                    <input class="form-check-input course-check" type="checkbox" name="course_codes" value="{{ course.course_code }}" id="pick_{{ course.course_code }}">
+                                                    <input class="form-check-input course-check" type="checkbox" name="course_codes" value="{{ course.course_code }}" id="pick_{{ course.course_code }}" {% if is_registered %}checked disabled{% endif %}>
                                                 </td>
                                                 <td>
                                                     <label for="pick_{{ course.course_code }}" class="fw-semibold mb-0" style="cursor: pointer;">
@@ -53,12 +55,19 @@
                                                     </label>
                                                 </td>
                                                 <td class="text-center">{{ course.credit_hours }}</td>
+                                                <td class="text-end">
+                                                    {% if is_registered %}
+                                                        <span class="badge bg-success-subtle text-success-emphasis">Registered</span>
+                                                    {% else %}
+                                                        <span class="badge text-bg-light">Pending</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
-                            <p class="small text-muted mt-2 mb-0">Warning will be shown if you submit without selecting all offered courses.</p>
+                            <p class="small text-muted mt-2 mb-0">Registered courses are locked. Select pending courses and continue.</p>
                         </div>
                         <button type="submit" id="registerCoursesBtn" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700; width: fit-content;" disabled>
                             Register Courses
@@ -125,43 +134,9 @@
     </div>
 
     <div class="row g-4 mb-4">
-        <div class="col-12 col-xl-6">
+        <div class="col-12">
             <article class="border rounded-4 p-4 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Step 2: Current Semester Courses</h2>
-                    <span class="badge rounded-pill" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">{{ total_current_credits }} credits</span>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Course Code</th>
-                                <th>Course Name</th>
-                                <th class="text-center">Credits</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for enrollment in current_enrollments %}
-                                <tr>
-                                    <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
-                                    <td>{{ enrollment.course.course_name }}</td>
-                                    <td class="text-center">{{ enrollment.course.credit_hours }}</td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted py-4">No registered courses in current semester yet.</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </article>
-        </div>
-
-        <div class="col-12 col-lg-6">
-            <article class="border rounded-4 p-4 h-100">
-                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 3: Next Semester Preview</h2>
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 2: Next Semester Preview</h2>
                 <p class="small text-muted mb-2">Upcoming Period: {{ next_period[0] }} - {{ next_period[1] }}</p>
                 {% if available_next_courses %}
                     <p class="small mb-3">Available if opened for registration:</p>
@@ -180,7 +155,7 @@
     <div class="row g-4">
         <div class="col-12">
             <article class="border rounded-4 p-4 h-100">
-                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 4: Past Enrollment Records</h2>
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Step 3: Past Enrollment Records</h2>
                 {% if past_periods %}
                     <form method="get" id="pastPeriodForm" class="row g-2 align-items-end mb-3">
                         <div class="col-12 col-md-8 col-lg-6">

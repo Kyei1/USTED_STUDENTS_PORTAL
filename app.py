@@ -1,7 +1,31 @@
 import os
 from flask import Flask, session
+from sqlalchemy import inspect
 from models import db, Announcement, StudentAnnouncementRead
 from routes import public_bp, student_bp
+
+
+def _warn_if_legacy_grade_schema(app):
+    """Log a warning when Grade score columns are still NOT NULL in an existing DB."""
+    try:
+        inspector = inspect(db.engine)
+        if 'grade' not in set(inspector.get_table_names()):
+            return
+
+        target_columns = {'CA_score', 'Exam_Score', 'Total_Score', 'Grade_Letter'}
+        non_nullable_columns = []
+        for column in inspector.get_columns('grade'):
+            if column['name'] in target_columns and not column.get('nullable', True):
+                non_nullable_columns.append(column['name'])
+
+        if non_nullable_columns:
+            app.logger.warning(
+                "Legacy Grade schema detected (non-null columns: %s). "
+                "Run 'python migrate_grade_nullable.py' to enable IC support.",
+                ', '.join(sorted(non_nullable_columns)),
+            )
+    except Exception as exc:  # pragma: no cover - defensive startup check
+        app.logger.warning("Grade schema compatibility check skipped: %s", exc)
 
 
 def create_app():
@@ -17,6 +41,7 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()
+        _warn_if_legacy_grade_schema(app)
     
     # Register blueprints
     app.register_blueprint(public_bp)
