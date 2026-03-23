@@ -11,7 +11,7 @@ from sqlalchemy import inspect
 
 from app import app, db
 from models import Grade
-
+ 
 
 TARGET_COLUMNS = {
     "CA_score",

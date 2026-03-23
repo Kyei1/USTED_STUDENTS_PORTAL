@@ -66,6 +66,47 @@ SEMESTER_MAPPING = {
     "Semester 5": ("2026/2027", "First"),
 }
 
+# Exact CA and raw exam scores provided for results-page alignment.
+# Values are: (ca_score_out_of_40, raw_exam_out_of_100, total_score).
+EXACT_SCORE_OVERRIDES = {
+    "Semester 1": {
+        "ACC111": (35.0, 80.0, 83.0),
+        "ICT111": (37.0, 80.0, 85.0),
+        "MAT119": (33.0, 80.0, 81.0),
+        "GPD111": (26.0, 60.0, 62.0),
+        "ICT112": (34.0, 90.0, 88.0),
+        "EDC111": (30.0, 70.0, 72.0),
+        "ICT113": (25.0, 70.0, 67.0),
+    },
+    "Semester 2": {
+        "ICT123": (36.0, 80.0, 84.0),
+        "ACC121": (34.0, 80.0, 82.0),
+        "ICT121": (38.0, 80.0, 86.0),
+        "ICT122": (35.0, 90.0, 89.0),
+        "MAT129": (32.0, 75.0, 77.0),
+        "EDC122": (31.0, 75.0, 76.0),
+        "GPD122BB": (33.0, 80.0, 81.0),
+    },
+    "Semester 3": {
+        "GPD231CA": (37.0, 80.0, 85.0),
+        "EDC232": (26.0, 70.0, 68.0),
+        "GPD233": (34.0, 80.0, 82.0),
+        "ICT231": (39.0, 80.0, 87.0),
+        "ICT233": (36.0, 80.0, 84.0),
+        "ICT232": (34.0, 90.0, 88.0),
+        "MAT239": (33.0, 75.0, 78.0),
+    },
+    "Semester 4": {
+        "EDC241": (29.0, 70.0, 71.0),
+        "ICT244": (35.0, 80.0, 83.0),
+        "ICT243": (38.0, 80.0, 86.0),
+        "ICT245": (32.0, 75.0, 77.0),
+        "ICT242": (33.0, 80.0, 81.0),
+        "ICT241": (37.0, 80.0, 85.0),
+        "EDC242": (27.0, 60.0, 63.0),
+    },
+}
+
 
 def assumed_scores_for_grade(grade_letter):
     """Generate assumed CA/Exam/Total that matches a target letter grade."""
@@ -117,7 +158,11 @@ def load_transcript(student_id, department_id=None, upsert_existing_grades=False
 
             for course_code, course_name, credit_hours, grade_letter in courses_list:
                 try:
-                    ca_score, exam_score, total_score = assumed_scores_for_grade(grade_letter)
+                    override_scores = EXACT_SCORE_OVERRIDES.get(semester_label, {}).get(course_code)
+                    if override_scores:
+                        ca_score, exam_score, total_score = override_scores
+                    else:
+                        ca_score, exam_score, total_score = assumed_scores_for_grade(grade_letter)
 
                     # Get or create course
                     course = Course.query.filter_by(course_code=course_code).first()

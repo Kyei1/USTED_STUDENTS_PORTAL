@@ -139,7 +139,18 @@ def dashboard():
         ).all()
     }
 
-    offered_current_courses = build_semester_course_offering(student.department_id)
+    if current_period_enrolled_codes:
+        offered_current_courses = [
+            row.course
+            for row in Enrollment.query.filter_by(
+                student_id=student.student_id,
+                academic_year=current_period[0],
+                semester=current_period[1],
+            ).all()
+            if row.course
+        ]
+    else:
+        offered_current_courses = build_semester_course_offering(student.department_id)
     offered_current_codes = {course.course_code for course in offered_current_courses}
 
     if not offered_current_codes:
@@ -298,7 +309,18 @@ def my_courses():
         ).all()
     }
 
-    offered_current_courses = build_semester_course_offering(student.department_id)
+    if current_period_enrolled_codes:
+        offered_current_courses = [
+            row.course
+            for row in Enrollment.query.filter_by(
+                student_id=student.student_id,
+                academic_year=current_period[0],
+                semester=current_period[1],
+            ).all()
+            if row.course
+        ]
+    else:
+        offered_current_courses = build_semester_course_offering(student.department_id)
     offered_current_codes = {course.course_code for course in offered_current_courses}
 
     past_periods = build_past_period_catalog(all_enrollments, current_period)
@@ -724,6 +746,39 @@ def results():
         selected_scope = 'all'
         selected_period = None
 
+        # Enrich grouped_records with semester metrics for template display
+        metrics_by_period = {
+            (row['academic_year'], row['semester']): row
+            for row in results_payload['period_rows_desc']
+        }
+        for group in grouped_records:
+            key = (group['academic_year'], group['semester'])
+            if key in metrics_by_period:
+                metrics = metrics_by_period[key]
+                group['metrics'] = {
+                    'scr': metrics['credits'],
+                    'sgp': metrics['points'],
+                    'sgpa': metrics['sgpa'],
+                    'completed_courses': metrics['completed_courses'],
+                    'incomplete_courses': metrics['incomplete_courses'],
+                }
+            else:
+                group['metrics'] = {}
+
+        # Prepare trend data for chart visualization
+        trend_data = {
+            'labels': [],
+            'sgpa': [],
+            'scr': [],
+        }
+        for row in sorted(results_payload['period_rows_desc'], key=lambda r: academic_period_rank(
+            type('PeriodObj', (), {'academic_year': r['academic_year'], 'semester': r['semester']})
+        )):
+            label = f"S{row.get('semester_number', '?')} {row['academic_year']}"
+            trend_data['labels'].append(label)
+            trend_data['sgpa'].append(row['sgpa'])
+            trend_data['scr'].append(row['credits'])
+
     if selected_scope == 'all':
         download_url = url_for('student.results_transcript_pdf', result_scope='all')
     elif selected_period:
@@ -746,6 +801,7 @@ def results():
         semester_lookup=semester_lookup,
         selected_scope=selected_scope,
         download_url=download_url,
+            trend_data=trend_data,
     )
 
 
