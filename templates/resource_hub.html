@@ -31,6 +31,47 @@
     <div class="tab-content" id="resourceHubTabContent">
         <section class="tab-pane fade show active" id="general-pane" role="tabpanel" aria-labelledby="general-tab" tabindex="0">
             <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">General Resources (Curated by Department)</h2>
+
+            <div class="resource-filter-panel mb-3">
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-lg-5">
+                        <label for="resourceSearchInput" class="form-label small fw-semibold mb-1">Search</label>
+                        <input id="resourceSearchInput" type="search" class="form-control form-control-sm" placeholder="Search by keyword, platform, or topic...">
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label for="resourceKindFilter" class="form-label small fw-semibold mb-1">Type</label>
+                        <select id="resourceKindFilter" class="form-select form-select-sm">
+                            <option value="all">All</option>
+                            <option value="docs">Documentation</option>
+                            <option value="course">Course / Learning Path</option>
+                            <option value="practice">Hands-on / Labs</option>
+                            <option value="certification">Certification</option>
+                            <option value="community">Community</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <label for="resourceProviderFilter" class="form-label small fw-semibold mb-1">Provider</label>
+                        <select id="resourceProviderFilter" class="form-select form-select-sm">
+                            <option value="all">All</option>
+                            <option value="official">Official Docs</option>
+                            <option value="platform">Learning Platform</option>
+                            <option value="community">Community</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-lg-2 d-flex align-items-center justify-content-lg-end gap-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="resourceFeaturedOnly">
+                            <label class="form-check-label small fw-semibold" for="resourceFeaturedOnly">Featured</label>
+                        </div>
+                        <button id="resourceFilterReset" type="button" class="btn btn-sm btn-outline-secondary">Reset</button>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <p class="small text-muted mb-0">Use filters to narrow resources in the selected field.</p>
+                    <span id="resourceFilterCount" class="small fw-semibold text-muted">Showing 0 resources</span>
+                </div>
+            </div>
+
             <ul class="nav nav-pills resource-subtabs mb-3" id="generalResourceCategoryTabs" role="tablist">
                 {% for category, links in curated_categories.items() %}
                     <li class="nav-item" role="presentation">
@@ -44,6 +85,7 @@
                             aria-controls="category-pane-{{ loop.index }}"
                             aria-selected="{{ 'true' if loop.first else 'false' }}"
                         >
+                            <i class="bi {{ category_icons.get(category, 'bi-link-45deg') }} me-1" aria-hidden="true"></i>
                             {{ category }}
                         </button>
                     </li>
@@ -60,11 +102,29 @@
                         tabindex="0"
                     >
                         <article class="curated-card">
-                            <h3 class="curated-title">{{ category }}</h3>
+                            <h3 class="curated-title d-flex align-items-center gap-2">
+                                <span class="category-icon" aria-hidden="true">
+                                    <i class="bi {{ category_icons.get(category, 'bi-link-45deg') }}"></i>
+                                </span>
+                                <span>{{ category }}</span>
+                            </h3>
                             <div class="d-grid gap-2">
                                 {% for item in links %}
-                                    <a href="{{ item.url }}" target="_blank" rel="noopener" class="curated-link">
-                                        <span class="curated-link-name">{{ item.name }}</span>
+                                    <a
+                                        href="{{ item.url }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="curated-link {{ 'is-featured' if loop.index <= 2 else '' }}"
+                                        data-resource-card="1"
+                                        data-featured="{{ 1 if loop.index <= 2 else 0 }}"
+                                        data-search="{{ (category ~ ' ' ~ item.name ~ ' ' ~ item.note)|lower }}"
+                                    >
+                                        <span class="curated-link-headline">
+                                            <span class="curated-link-name">{{ item.name }}</span>
+                                            {% if loop.index <= 2 %}
+                                                <span class="featured-pill">Featured</span>
+                                            {% endif %}
+                                        </span>
                                         <span class="curated-link-note">{{ item.note }}</span>
                                     </a>
                                 {% endfor %}
@@ -73,6 +133,8 @@
                     </section>
                 {% endfor %}
             </div>
+
+            <p id="resourceFilterEmpty" class="small text-muted mt-3 mb-0 d-none">No resources match the selected filters for this tab.</p>
         </section>
 
         <section class="tab-pane fade" id="course-pane" role="tabpanel" aria-labelledby="course-tab" tabindex="0">
@@ -145,4 +207,8 @@
         <a href="{{ url_for('student.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
     </div>
 </section>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/resource_hub.js') }}"></script>
 {% endblock %}

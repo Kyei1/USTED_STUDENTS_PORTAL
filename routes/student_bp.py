@@ -1257,6 +1257,138 @@ def resource_hub():
                 'note': 'Practical system engineering and operations articles.',
             },
         ],
+        'Data Engineering': [
+            {
+                'name': 'Data Engineering Zoomcamp',
+                'url': 'https://github.com/DataTalksClub/data-engineering-zoomcamp',
+                'note': 'Hands-on modern data engineering curriculum and projects.',
+            },
+            {
+                'name': 'Apache Airflow Documentation',
+                'url': 'https://airflow.apache.org/docs/',
+                'note': 'Workflow orchestration for data pipelines at scale.',
+            },
+            {
+                'name': 'dbt Learn',
+                'url': 'https://docs.getdbt.com/docs/introduction',
+                'note': 'Transform analytics workflows using modular SQL models.',
+            },
+            {
+                'name': 'Kafka Quickstart',
+                'url': 'https://kafka.apache.org/quickstart',
+                'note': 'Streaming data pipelines and event-driven architecture basics.',
+            },
+        ],
+        'QA and Test Automation': [
+            {
+                'name': 'Selenium Documentation',
+                'url': 'https://www.selenium.dev/documentation/',
+                'note': 'Browser automation for UI testing workflows.',
+            },
+            {
+                'name': 'Playwright Docs',
+                'url': 'https://playwright.dev/docs/intro',
+                'note': 'Fast and reliable end-to-end testing across browsers.',
+            },
+            {
+                'name': 'Postman API Testing Learning Center',
+                'url': 'https://learning.postman.com/',
+                'note': 'API testing, automation, and collaboration practices.',
+            },
+            {
+                'name': 'Ministry of Testing',
+                'url': 'https://www.ministryoftesting.com/',
+                'note': 'Community-driven QA skills, guides, and career content.',
+            },
+        ],
+        'Blockchain and Web3': [
+            {
+                'name': 'Ethereum Developer Docs',
+                'url': 'https://ethereum.org/developers/docs/',
+                'note': 'Smart contracts, wallets, and dApp architecture fundamentals.',
+            },
+            {
+                'name': 'Solidity Documentation',
+                'url': 'https://docs.soliditylang.org/',
+                'note': 'Core language reference for EVM smart contracts.',
+            },
+            {
+                'name': 'Chainlink Learn',
+                'url': 'https://chain.link/education',
+                'note': 'Oracle networks and hybrid smart contract design.',
+            },
+            {
+                'name': 'Alchemy Web3 University',
+                'url': 'https://www.alchemy.com/university',
+                'note': 'Structured web3 development tutorials and projects.',
+            },
+        ],
+        'Game Development': [
+            {
+                'name': 'Unity Learn',
+                'url': 'https://learn.unity.com/',
+                'note': '2D/3D game creation with production-ready workflows.',
+            },
+            {
+                'name': 'Unreal Engine Tutorials',
+                'url': 'https://dev.epicgames.com/community/unreal-engine/learning',
+                'note': 'Blueprints, rendering, and C++ game systems.',
+            },
+            {
+                'name': 'Godot Docs',
+                'url': 'https://docs.godotengine.org/en/stable/getting_started/introduction/index.html',
+                'note': 'Open-source game engine for rapid prototyping.',
+            },
+            {
+                'name': 'Game Programming Patterns',
+                'url': 'https://gameprogrammingpatterns.com/',
+                'note': 'Engineering patterns commonly used in game systems.',
+            },
+        ],
+        'IT Project Management': [
+            {
+                'name': 'PMI Project Management Basics',
+                'url': 'https://www.pmi.org/learning/library',
+                'note': 'Project planning, execution, and stakeholder communication.',
+            },
+            {
+                'name': 'Atlassian Agile Coach',
+                'url': 'https://www.atlassian.com/agile',
+                'note': 'Agile delivery methods and team workflow playbooks.',
+            },
+            {
+                'name': 'Scrum Guides',
+                'url': 'https://scrumguides.org/',
+                'note': 'Official Scrum framework for iterative delivery.',
+            },
+            {
+                'name': 'Google Project Management Certificate',
+                'url': 'https://www.coursera.org/professional-certificates/google-project-management',
+                'note': 'Foundations of project operations and leadership skills.',
+            },
+        ],
+        'AR/VR and Spatial Computing': [
+            {
+                'name': 'Unity XR Interaction Toolkit',
+                'url': 'https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@latest',
+                'note': 'Build immersive XR interactions in Unity.',
+            },
+            {
+                'name': 'WebXR Device API',
+                'url': 'https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API',
+                'note': 'Browser-native augmented and virtual reality experiences.',
+            },
+            {
+                'name': 'Meta Quest Developer Docs',
+                'url': 'https://developer.oculus.com/documentation/',
+                'note': 'VR development guidance for Quest devices.',
+            },
+            {
+                'name': 'Apple visionOS Pathway',
+                'url': 'https://developer.apple.com/visionos/',
+                'note': 'Spatial computing app development for Apple Vision Pro.',
+            },
+        ],
     }
 
     education_categories = {
@@ -1286,6 +1418,27 @@ def resource_hub():
         ],
     }
 
+    category_icons = {
+        'Cybersecurity': 'bi-shield-lock-fill',
+        'Cloud Engineering': 'bi-cloud-fill',
+        'DevOps and SRE': 'bi-gear-wide-connected',
+        'Data Science and Analytics': 'bi-bar-chart-fill',
+        'Artificial Intelligence and ML': 'bi-cpu-fill',
+        'Backend Engineering': 'bi-hdd-network-fill',
+        'Frontend Engineering': 'bi-window-stack',
+        'Mobile App Development': 'bi-phone-fill',
+        'UI/UX Product Design': 'bi-palette-fill',
+        'Networking and Systems': 'bi-diagram-3-fill',
+        'Data Engineering': 'bi-diagram-2-fill',
+        'QA and Test Automation': 'bi-bug-fill',
+        'Blockchain and Web3': 'bi-currency-bitcoin',
+        'Game Development': 'bi-controller',
+        'IT Project Management': 'bi-kanban-fill',
+        'AR/VR and Spatial Computing': 'bi-badge-vr-fill',
+        'Teaching Practice': 'bi-easel2-fill',
+        'Educational Technology': 'bi-mortarboard-fill',
+    }
+
     is_it_department = any(keyword in department_name for keyword in ['information technology', 'computer', 'ict', 'software'])
     is_education_department = any(keyword in department_name for keyword in ['education', 'teacher', 'pedagogy'])
 
@@ -1294,6 +1447,76 @@ def resource_hub():
         curated_categories = it_categories
     elif is_education_department:
         curated_categories = education_categories
+
+    common_it_boosters = [
+        {
+            'name': 'roadmap.sh Career Roadmaps',
+            'url': 'https://roadmap.sh/',
+            'note': 'Visual guides for role-based skills and progression.',
+        },
+        {
+            'name': 'GitHub Skills',
+            'url': 'https://skills.github.com/',
+            'note': 'Hands-on labs for Git, collaboration, and developer workflows.',
+        },
+        {
+            'name': 'Stack Overflow',
+            'url': 'https://stackoverflow.com/',
+            'note': 'Community Q&A for debugging and practical implementation issues.',
+        },
+        {
+            'name': 'MIT OpenCourseWare - Electrical Engineering and Computer Science',
+            'url': 'https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/',
+            'note': 'University-grade foundations across core computing topics.',
+        },
+        {
+            'name': 'Coursera IT Catalog',
+            'url': 'https://www.coursera.org/browse/information-technology',
+            'note': 'Professional certificate pathways across top IT domains.',
+        },
+        {
+            'name': 'edX Computer Science Programs',
+            'url': 'https://www.edx.org/learn/computer-science',
+            'note': 'Academic and industry-aligned CS and IT coursework.',
+        },
+        {
+            'name': 'freeCodeCamp',
+            'url': 'https://www.freecodecamp.org/',
+            'note': 'Project-based practice for web, APIs, and scripting skills.',
+        },
+        {
+            'name': 'GeeksforGeeks',
+            'url': 'https://www.geeksforgeeks.org/',
+            'note': 'Reference articles for algorithms, systems, and interview prep.',
+        },
+    ]
+
+    def ensure_minimum_resources(categories, minimum=10):
+        """Ensure each category has at least `minimum` direct links."""
+        normalized = {}
+        for category, links in categories.items():
+            prepared_links = list(links)
+            seen_urls = {item.get('url') for item in prepared_links}
+
+            for booster in common_it_boosters:
+                if len(prepared_links) >= minimum:
+                    break
+                if booster['url'] in seen_urls:
+                    continue
+                prepared_links.append(
+                    {
+                        'name': booster['name'],
+                        'url': booster['url'],
+                        'note': f"{booster['note']} Also useful for {category}.",
+                    }
+                )
+                seen_urls.add(booster['url'])
+
+            normalized[category] = prepared_links[:minimum]
+        return normalized
+
+    if is_it_department or not is_education_department:
+        curated_categories = ensure_minimum_resources(curated_categories, minimum=10)
 
     try:
         course_resources = (
@@ -1316,6 +1539,7 @@ def resource_hub():
         'student/resource_hub.html',
         student=student,
         curated_categories=curated_categories,
+        category_icons=category_icons,
         course_resources=course_resources,
         lecturer_course_count=lecturer_course_count,
     )

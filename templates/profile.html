@@ -2,14 +2,51 @@
 
 {% block title %}Profile - USTED Portal{% endblock %}
 
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
 {% block content %}
 <section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    {% set completion_total = 6 %}
+    {% set completion_done = 0 %}
+    {% if student.first_name %}{% set completion_done = completion_done + 1 %}{% endif %}
+    {% if student.last_name %}{% set completion_done = completion_done + 1 %}{% endif %}
+    {% if student.middle_name %}{% set completion_done = completion_done + 1 %}{% endif %}
+    {% if student.email_address %}{% set completion_done = completion_done + 1 %}{% endif %}
+    {% if student.reference_number %}{% set completion_done = completion_done + 1 %}{% endif %}
+    {% if student.department %}{% set completion_done = completion_done + 1 %}{% endif %}
+    {% set completion_percent = ((completion_done / completion_total) * 100)|round|int %}
+
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Student Profile</h1>
             <p class="text-muted mb-0">Personal and academic account details.</p>
         </div>
         <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ student.student_id }}</span>
+    </div>
+
+    <div class="profile-top-grid mb-4">
+        <article class="profile-completion-card">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Profile Completion</h2>
+                <span class="completion-percent">{{ completion_percent }}%</span>
+            </div>
+            <div class="completion-track mb-2" aria-label="Profile completion progress {{ completion_percent }} percent">
+                <span class="completion-fill" style="width: {{ completion_percent }}%;"></span>
+            </div>
+            <p class="small text-muted mb-0">{{ completion_done }} of {{ completion_total }} profile essentials completed.</p>
+        </article>
+
+        <article class="profile-actions-card">
+            <h2 class="h6 fw-bold mb-2" style="color: var(--usted-maroon);">Quick Actions</h2>
+            <div class="quick-actions-grid">
+                <a href="{{ url_for('student.account_settings') }}" class="quick-action-link">Update Profile</a>
+                <a href="{{ url_for('student.gpa_simulator') }}" class="quick-action-link">Open GPA Simulator</a>
+                <a href="{{ url_for('student.results') }}" class="quick-action-link">View Results</a>
+                <a href="{{ url_for('student.helpdesk') }}" class="quick-action-link">Raise Ticket</a>
+            </div>
+        </article>
     </div>
 
     <div class="row g-4">
@@ -51,6 +88,19 @@
             </article>
         </div>
     </div>
+
+    <article class="coming-soon-card mt-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+            <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Coming Soon (Next Upgrade)</h2>
+            <span class="badge rounded-pill text-bg-warning">Demo Roadmap</span>
+        </div>
+        <ul class="coming-soon-list mb-0">
+            <li>Profile photo upload with fallback avatar initials.</li>
+            <li>Emergency contact and guardian information section.</li>
+            <li>Academic health snapshot with CGPA trend and credit load advice.</li>
+            <li>Notification preferences (email and SMS toggles).</li>
+        </ul>
+    </article>
 
     <div class="d-flex flex-wrap gap-2 mt-4">
         <a href="{{ url_for('student.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>

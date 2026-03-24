@@ -34,6 +34,7 @@
     overflow-x: auto;
     flex-wrap: nowrap;
     padding-bottom: 0.25rem;
+    scroll-behavior: smooth;
 }
 
 .resource-subtabs .nav-link {
@@ -57,6 +58,28 @@
     border-color: var(--usted-maroon);
     background: rgba(122, 0, 22, 0.08);
     color: var(--usted-maroon);
+}
+
+.resource-filter-panel {
+    border: 1px solid #eceff3;
+    border-radius: 0.85rem;
+    background: linear-gradient(165deg, #fff, #fffaf0);
+    padding: 0.75rem;
+}
+
+.resource-filter-panel .form-label {
+    color: #4b5563;
+}
+
+.resource-filter-panel .form-control,
+.resource-filter-panel .form-select {
+    border-color: #dbe1e8;
+}
+
+.resource-filter-panel .form-control:focus,
+.resource-filter-panel .form-select:focus {
+    border-color: rgba(122, 0, 22, 0.35);
+    box-shadow: 0 0 0 0.15rem rgba(122, 0, 22, 0.1);
 }
 
 .tab-content > .tab-pane {
@@ -88,6 +111,18 @@
     font-weight: 800;
 }
 
+.category-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(122, 0, 22, 0.1);
+    color: var(--usted-maroon);
+    font-size: 0.82rem;
+}
+
 .curated-link {
     border: 1px solid #eceff3;
     border-radius: 0.7rem;
@@ -98,15 +133,41 @@
     gap: 0.12rem;
 }
 
+.curated-link-headline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+}
+
 .curated-link:hover {
     border-color: var(--usted-gold);
     background: #fffdf6;
+}
+
+.curated-link.is-featured {
+    border-color: rgba(219, 161, 17, 0.38);
+    background: linear-gradient(135deg, #fffdf7, #fff);
 }
 
 .curated-link-name {
     color: var(--usted-maroon);
     font-size: 0.86rem;
     font-weight: 800;
+}
+
+.featured-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(122, 0, 22, 0.09);
+    color: var(--usted-maroon);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    padding: 0.1rem 0.42rem;
+    text-transform: uppercase;
 }
 
 .curated-link-note {

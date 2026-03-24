@@ -52,3 +52,12 @@ The database schema (`models.py`) consists of 12 interconnected tables using SQL
 1. **Never Hallucinate Inline Styles:** Always use Bootstrap 5 utility classes first. Only use inline styles if referencing the custom CSS variables (e.g., `var(--usted-maroon)`).
 2. **Always Use ORM:** When writing backend queries, strictly use SQLAlchemy syntax (e.g., `Student.query.filter_by()`), never raw SQL.
 3. **Respect the Base Layout:** All new HTML templates must start with `{% extends 'base.html' %}` and place content inside `{% block content %}`.
+
+---
+
+## Implementation Status Addendum (March 24, 2026)
+
+- Student phase has been fully implemented and smoke-tested.
+- Resource Hub has advanced UX behavior (tabbed categories, search/filter controls, highlighted resources).
+- Profile and Account Settings now include visible "Coming Soon" roadmap cards for phased delivery storytelling.
+- Lecturer phase is the active next build target; refer to [LECTURER_MODULE_MOSCOW.md](LECTURER_MODULE_MOSCOW.md) for priority ordering.
