@@ -20,6 +20,52 @@ def score_to_point(score):
     return 0.0
 
 
+def classify_cgpa(cgpa):
+    """Return degree classification metadata for a CGPA value."""
+    try:
+        value = float(cgpa)
+    except (TypeError, ValueError):
+        value = 0.0
+
+    value = max(0.0, min(4.0, value))
+
+    if value >= 3.5:
+        return {
+            'label': 'First Class Honours',
+            'badge_class': '',
+            'badge_style': 'background: var(--usted-gold); color: var(--usted-ink);',
+        }
+    if value >= 3.0:
+        return {
+            'label': 'Second Class Honours (Upper Division)',
+            'badge_class': 'bg-success',
+            'badge_style': '',
+        }
+    if value >= 2.5:
+        return {
+            'label': 'Second Class Honours (Lower Division)',
+            'badge_class': 'bg-primary',
+            'badge_style': '',
+        }
+    if value >= 2.0:
+        return {
+            'label': 'Third Class Honours',
+            'badge_class': 'bg-warning text-dark',
+            'badge_style': '',
+        }
+    if value >= 1.0:
+        return {
+            'label': 'Pass',
+            'badge_class': 'bg-secondary',
+            'badge_style': '',
+        }
+    return {
+        'label': 'Fail / Complete Withdrawal',
+        'badge_class': 'bg-danger',
+        'badge_style': '',
+    }
+
+
 def score_to_letter(score):
     """Convert numeric score to letter grade."""
     if score >= 80:

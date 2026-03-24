@@ -9,6 +9,7 @@ from services.student_service import (
 from services.gpa_service import (
     score_to_point,
     score_to_letter,
+    classify_cgpa,
     point_to_min_total_score,
     scaled_exam_score,
     course_difficulty_weight,
@@ -35,6 +36,7 @@ __all__ = [
     'build_past_period_catalog',
     'score_to_point',
     'score_to_letter',
+    'classify_cgpa',
     'point_to_min_total_score',
     'scaled_exam_score',
     'course_difficulty_weight',

@@ -14,6 +14,7 @@ from services import (
     build_past_period_catalog,
     score_to_point,
     score_to_letter,
+    classify_cgpa,
     point_to_min_total_score,
     scaled_exam_score,
     difficulty_label,
@@ -180,6 +181,29 @@ def dashboard():
         'is_complete': registration_complete,
     }
 
+    dashboard_records = (
+        Enrollment.query.filter_by(student_id=student.student_id)
+        .join(Course, Enrollment.course_code == Course.course_code)
+        .outerjoin(Grade, Grade.enrollment_id == Enrollment.enrollment_id)
+        .order_by(Enrollment.academic_year.desc(), Enrollment.semester.desc(), Course.course_code.asc())
+        .all()
+    )
+    dashboard_results_payload = compute_results_analytics(
+        dashboard_records,
+        score_to_point,
+        score_to_letter,
+        scaled_exam_score,
+    )
+    dashboard_cgpa = dashboard_results_payload['analytics']['cgpa']
+    dashboard_ccr = dashboard_results_payload['abbreviation_summary']['ccr']
+    dashboard_classification = classify_cgpa(dashboard_cgpa)
+
+    dashboard_academic = {
+        'cgpa': dashboard_cgpa,
+        'ccr': dashboard_ccr,
+        'classification': dashboard_classification,
+    }
+
     return render_template(
         'student/dashboard.html',
         student=student,
@@ -188,6 +212,7 @@ def dashboard():
         greeting_phrase=greeting_phrase,
         greeting_emoji=greeting_emoji,
         dashboard_registration=dashboard_registration,
+        dashboard_academic=dashboard_academic,
     )
 
 
@@ -763,8 +788,13 @@ def results():
 
     # Prepare semester-vs-cumulative-CGPA trend data (chronological).
     trend_data = {
-        'labels': [0],
-        'cgpa': [0.0],
+        'points': [
+            {
+                'x': 0,
+                'y': 0.0,
+                'label': 'Baseline (Before Semester 1)',
+            }
+        ],
     }
     running_credits = 0
     running_points = 0.0
@@ -778,8 +808,13 @@ def results():
         running_credits += row['credits']
         running_points += row['points']
         cgpa_to_date = round((running_points / running_credits), 2) if running_credits else 0.0
-        trend_data['labels'].append(semester_index)
-        trend_data['cgpa'].append(cgpa_to_date)
+        trend_data['points'].append(
+            {
+                'x': semester_index,
+                'y': cgpa_to_date,
+                'label': f"Semester {semester_index} ({row['academic_year']} {row['semester']})",
+            }
+        )
 
     if selected_period and selected_period not in period_options:
         selected_scope = 'all'
@@ -808,6 +843,7 @@ def results():
         selected_scope=selected_scope,
         download_url=download_url,
         trend_data=trend_data,
+        cgpa_classification=classify_cgpa(results_payload['analytics']['cgpa']),
     )
 
 
@@ -991,39 +1027,135 @@ def results_transcript_pdf():
 @student_bp.route('/resource-hub')
 @login_required
 def resource_hub():
-    """List department and course resources available to the student."""
+    """Show curated global resources and lecturer-provided course resources."""
     student = get_current_student()
     if not student:
         session.clear()
         flash('Student record not found. Please log in again.', 'danger')
         return redirect(url_for('public.login'))
 
-    type_filter = request.args.get('type', 'All').strip()
-    if type_filter not in {'All', 'Department', 'Course'}:
-        type_filter = 'All'
+    department_name = (student.department.department_name if student.department else '').strip().lower()
 
-    resources_query = (
-        Resource.query.outerjoin(Course, Resource.course_code == Course.course_code)
-        .filter(Resource.department_id == student.department_id)
-    )
-    if type_filter != 'All':
-        resources_query = resources_query.filter(Resource.resource_type == type_filter)
-
-    resources = resources_query.order_by(Resource.upload_date.desc()).all()
-
-    counts_query = Resource.query.filter(Resource.department_id == student.department_id)
-    resource_counts = {
-        'All': counts_query.count(),
-        'Department': counts_query.filter(Resource.resource_type == 'Department').count(),
-        'Course': counts_query.filter(Resource.resource_type == 'Course').count(),
+    tech_categories = {
+        'Cybersecurity': [
+            {
+                'name': 'TryHackMe',
+                'url': 'https://tryhackme.com/',
+                'note': 'Hands-on cyber labs and learning paths.',
+            },
+            {
+                'name': 'OWASP Top 10',
+                'url': 'https://owasp.org/www-project-top-ten/',
+                'note': 'Core web security risks and guidance.',
+            },
+            {
+                'name': 'Hack The Box Academy',
+                'url': 'https://academy.hackthebox.com/',
+                'note': 'Structured offensive and defensive security courses.',
+            },
+        ],
+        'Computer Science': [
+            {
+                'name': 'CS50 OpenCourseWare',
+                'url': 'https://cs50.harvard.edu/',
+                'note': 'Foundational and advanced computer science content.',
+            },
+            {
+                'name': 'GeeksforGeeks',
+                'url': 'https://www.geeksforgeeks.org/',
+                'note': 'Data structures, algorithms, and interview prep.',
+            },
+            {
+                'name': 'Khan Academy - Computing',
+                'url': 'https://www.khanacademy.org/computing',
+                'note': 'Core computing concepts and practical tutorials.',
+            },
+        ],
+        'Software Development': [
+            {
+                'name': 'freeCodeCamp',
+                'url': 'https://www.freecodecamp.org/',
+                'note': 'Project-based full-stack development tracks.',
+            },
+            {
+                'name': 'W3Schools',
+                'url': 'https://www.w3schools.com/',
+                'note': 'Quick references and beginner-friendly tutorials.',
+            },
+            {
+                'name': 'MDN Web Docs',
+                'url': 'https://developer.mozilla.org/',
+                'note': 'Authoritative documentation for web technologies.',
+            },
+        ],
+        'Data and AI': [
+            {
+                'name': 'Kaggle Learn',
+                'url': 'https://www.kaggle.com/learn',
+                'note': 'Practical ML, data science, and notebook workflows.',
+            },
+            {
+                'name': 'Google Machine Learning Crash Course',
+                'url': 'https://developers.google.com/machine-learning/crash-course',
+                'note': 'Fast introduction to machine learning fundamentals.',
+            },
+            {
+                'name': 'edX Data Science Programs',
+                'url': 'https://www.edx.org/learn/data-science',
+                'note': 'University-backed data science pathways.',
+            },
+        ],
     }
+
+    education_categories = {
+        'Teaching Practice': [
+            {
+                'name': 'TES Connect',
+                'url': 'https://www.tes.com/teaching-resources',
+                'note': 'Ready-to-use lesson plans and classroom activities.',
+            },
+            {
+                'name': 'TeachThought',
+                'url': 'https://www.teachthought.com/',
+                'note': 'Modern classroom strategy and pedagogy resources.',
+            },
+        ],
+        'Educational Technology': [
+            {
+                'name': 'edX Education Courses',
+                'url': 'https://www.edx.org/learn/education',
+                'note': 'Instructional design and learning science content.',
+            },
+            {
+                'name': 'Coursera Teaching and Learning',
+                'url': 'https://www.coursera.org/browse/social-sciences/education',
+                'note': 'Professional certificates and specialization tracks.',
+            },
+        ],
+    }
+
+    curated_categories = tech_categories
+    if any(keyword in department_name for keyword in ['education', 'teacher', 'pedagogy']):
+        curated_categories = education_categories
+
+    course_resources = (
+        Resource.query.outerjoin(Course, Resource.course_code == Course.course_code)
+        .filter(
+            Resource.department_id == student.department_id,
+            Resource.resource_type == 'Course',
+        )
+        .order_by(Resource.upload_date.desc(), Course.course_code.asc())
+        .all()
+    )
+
+    lecturer_course_count = len({res.course_code for res in course_resources if res.course_code})
 
     return render_template(
         'student/resource_hub.html',
         student=student,
-        resources=resources,
-        type_filter=type_filter,
-        resource_counts=resource_counts,
+        curated_categories=curated_categories,
+        course_resources=course_resources,
+        lecturer_course_count=lecturer_course_count,
     )
 
 
@@ -1084,7 +1216,12 @@ def gpa_simulator():
         )
         past_cgpa = (total_past_grade_points / total_past_credits) if total_past_credits else 0.0
 
-    mode = request.form.get('mode', 'single') if request.method == 'POST' else 'single'
+    if request.method == 'POST':
+        mode = (request.form.get('mode') or 'single').strip().lower()
+    else:
+        mode = (request.args.get('mode') or 'single').strip().lower()
+    if mode not in {'single', 'target'}:
+        mode = 'single'
     single_result = None
     target_result = None
 
@@ -1172,6 +1309,8 @@ def gpa_simulator():
                         'baseline_cgpa': baseline_cgpa,
                         'projected_cgpa': projected_cgpa,
                         'cgpa_delta': projected_cgpa - baseline_cgpa,
+                        'baseline_cgpa_classification': classify_cgpa(baseline_cgpa),
+                        'projected_cgpa_classification': classify_cgpa(projected_cgpa),
                     }
 
     if request.method == 'POST' and mode == 'target':
@@ -1196,8 +1335,15 @@ def gpa_simulator():
                     'target_sgpa': target_sgpa,
                     'active_credit_hours': active_credit_hours,
                     'required_total_grade_points': target_sgpa * active_credit_hours,
+                    'projected_cgpa': (
+                        ((past_cgpa * total_past_credits) + (target_sgpa * active_credit_hours))
+                        / (total_past_credits + active_credit_hours)
+                        if (total_past_credits + active_credit_hours)
+                        else 0.0
+                    ),
                     'required_rows': required_rows,
                 }
+                target_result['projected_cgpa_classification'] = classify_cgpa(target_result['projected_cgpa'])
 
     return render_template(
         'student/gpa_simulator.html',
@@ -1206,6 +1352,7 @@ def gpa_simulator():
         active_period=active_period,
         past_cgpa=past_cgpa,
         total_past_credits=total_past_credits,
+        past_cgpa_classification=classify_cgpa(past_cgpa),
         mode=mode,
         single_result=single_result,
         target_result=target_result,

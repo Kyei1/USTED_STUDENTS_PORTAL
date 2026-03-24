@@ -72,13 +72,16 @@
                         <div class="col-12 col-sm-5">
                             <div class="border rounded-3 p-3">
                                 <div class="small text-muted text-uppercase fw-bold">Current CGPA</div>
-                                <div class="display-6 fw-bold" style="color: var(--usted-maroon);">3.85</div>
+                                <div class="display-6 fw-bold" style="color: var(--usted-maroon);">{{ '%.2f'|format(dashboard_academic.cgpa) }}</div>
+                                <span class="badge mt-2 {{ dashboard_academic.classification.badge_class }}" {% if dashboard_academic.classification.badge_style %}style="{{ dashboard_academic.classification.badge_style }}"{% endif %}>
+                                    {{ dashboard_academic.classification.label }}
+                                </span>
                             </div>
                         </div>
                         <div class="col-12 col-sm-5">
                             <div class="border rounded-3 p-3">
                                 <div class="small text-muted text-uppercase fw-bold">Total Credits</div>
-                                <div class="display-6 fw-bold" style="color: var(--usted-ink);">84</div>
+                                <div class="display-6 fw-bold" style="color: var(--usted-ink);">{{ dashboard_academic.ccr }}</div>
                             </div>
                         </div>
                     </div>

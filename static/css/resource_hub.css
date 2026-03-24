@@ -4,6 +4,46 @@
     gap: 0.5rem;
 }
 
+.curated-card {
+    border: 1px solid var(--usted-border);
+    border-radius: 0.9rem;
+    background: linear-gradient(155deg, #fff, #fff8e8);
+    padding: 0.9rem;
+}
+
+.curated-title {
+    margin: 0 0 0.65rem;
+    color: var(--usted-maroon);
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+.curated-link {
+    border: 1px solid #eceff3;
+    border-radius: 0.7rem;
+    background: #fff;
+    padding: 0.55rem 0.65rem;
+    text-decoration: none;
+    display: grid;
+    gap: 0.12rem;
+}
+
+.curated-link:hover {
+    border-color: var(--usted-gold);
+    background: #fffdf6;
+}
+
+.curated-link-name {
+    color: var(--usted-maroon);
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.curated-link-note {
+    color: #4b5563;
+    font-size: 0.78rem;
+}
+
 .resource-chip {
     display: inline-flex;
     align-items: center;
