@@ -4,6 +4,76 @@
     gap: 0.5rem;
 }
 
+.resource-tabs {
+    gap: 0.45rem;
+}
+
+.resource-tabs .nav-link {
+    border: 1px solid var(--usted-border);
+    border-radius: 999px;
+    color: var(--usted-maroon);
+    background: #fff;
+    font-weight: 700;
+    padding: 0.42rem 0.9rem;
+}
+
+.resource-tabs .nav-link:hover {
+    border-color: var(--usted-gold);
+    background: var(--usted-gold-soft);
+}
+
+.resource-tabs .nav-link.active {
+    border-color: var(--usted-maroon);
+    background: var(--usted-maroon);
+    color: #fff;
+}
+
+.resource-subtabs {
+    gap: 0.4rem;
+    align-items: center;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.25rem;
+}
+
+.resource-subtabs .nav-link {
+    border: 1px solid #e8ebf0;
+    border-radius: 0.65rem;
+    color: #475569;
+    background: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 0.35rem 0.65rem;
+    white-space: nowrap;
+}
+
+.resource-subtabs .nav-link:hover {
+    border-color: var(--usted-gold);
+    background: #fffdf5;
+    color: var(--usted-maroon);
+}
+
+.resource-subtabs .nav-link.active {
+    border-color: var(--usted-maroon);
+    background: rgba(122, 0, 22, 0.08);
+    color: var(--usted-maroon);
+}
+
+.tab-content > .tab-pane {
+    animation: fadeSlideIn 0.2s ease;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .curated-card {
     border: 1px solid var(--usted-border);
     border-radius: 0.9rem;

@@ -1036,73 +1036,225 @@ def resource_hub():
 
     department_name = (student.department.department_name if student.department else '').strip().lower()
 
-    tech_categories = {
+    it_categories = {
         'Cybersecurity': [
             {
-                'name': 'TryHackMe',
+                'name': 'TryHackMe Learning Paths',
                 'url': 'https://tryhackme.com/',
-                'note': 'Hands-on cyber labs and learning paths.',
+                'note': 'Hands-on security labs from beginner to advanced.',
             },
             {
                 'name': 'OWASP Top 10',
                 'url': 'https://owasp.org/www-project-top-ten/',
-                'note': 'Core web security risks and guidance.',
+                'note': 'Most critical web application security risks.',
             },
             {
                 'name': 'Hack The Box Academy',
                 'url': 'https://academy.hackthebox.com/',
-                'note': 'Structured offensive and defensive security courses.',
+                'note': 'Practical red-team and blue-team modules.',
+            },
+            {
+                'name': 'PortSwigger Web Security Academy',
+                'url': 'https://portswigger.net/web-security',
+                'note': 'Free labs for web penetration testing techniques.',
             },
         ],
-        'Computer Science': [
+        'Cloud Engineering': [
             {
-                'name': 'CS50 OpenCourseWare',
-                'url': 'https://cs50.harvard.edu/',
-                'note': 'Foundational and advanced computer science content.',
+                'name': 'AWS Skill Builder',
+                'url': 'https://explore.skillbuilder.aws/',
+                'note': 'Cloud fundamentals, architecture, and hands-on labs.',
             },
             {
-                'name': 'GeeksforGeeks',
-                'url': 'https://www.geeksforgeeks.org/',
-                'note': 'Data structures, algorithms, and interview prep.',
+                'name': 'Microsoft Learn - Azure',
+                'url': 'https://learn.microsoft.com/training/azure/',
+                'note': 'Role-based Azure learning and certification prep.',
             },
             {
-                'name': 'Khan Academy - Computing',
-                'url': 'https://www.khanacademy.org/computing',
-                'note': 'Core computing concepts and practical tutorials.',
-            },
-        ],
-        'Software Development': [
-            {
-                'name': 'freeCodeCamp',
-                'url': 'https://www.freecodecamp.org/',
-                'note': 'Project-based full-stack development tracks.',
+                'name': 'Google Cloud Skills Boost',
+                'url': 'https://www.cloudskillsboost.google/',
+                'note': 'Guided labs for GCP services and operations.',
             },
             {
-                'name': 'W3Schools',
-                'url': 'https://www.w3schools.com/',
-                'note': 'Quick references and beginner-friendly tutorials.',
-            },
-            {
-                'name': 'MDN Web Docs',
-                'url': 'https://developer.mozilla.org/',
-                'note': 'Authoritative documentation for web technologies.',
+                'name': 'Kubernetes Basics',
+                'url': 'https://kubernetes.io/docs/tutorials/kubernetes-basics/',
+                'note': 'Container orchestration essentials for cloud workloads.',
             },
         ],
-        'Data and AI': [
+        'DevOps and SRE': [
+            {
+                'name': 'Docker Docs',
+                'url': 'https://docs.docker.com/get-started/',
+                'note': 'Containerization workflow and best practices.',
+            },
+            {
+                'name': 'GitHub Actions Docs',
+                'url': 'https://docs.github.com/actions',
+                'note': 'Build CI/CD pipelines directly in GitHub.',
+            },
+            {
+                'name': 'Atlassian DevOps Tutorials',
+                'url': 'https://www.atlassian.com/devops',
+                'note': 'Modern DevOps lifecycle and delivery practices.',
+            },
+            {
+                'name': 'Prometheus Monitoring Guides',
+                'url': 'https://prometheus.io/docs/introduction/overview/',
+                'note': 'Metrics, alerting, and observability foundations.',
+            },
+        ],
+        'Data Science and Analytics': [
             {
                 'name': 'Kaggle Learn',
                 'url': 'https://www.kaggle.com/learn',
-                'note': 'Practical ML, data science, and notebook workflows.',
+                'note': 'Practical notebooks for analytics and modeling.',
             },
             {
-                'name': 'Google Machine Learning Crash Course',
+                'name': 'IBM Data Science Learning Path',
+                'url': 'https://www.ibm.com/training/data-science',
+                'note': 'Statistics, Python, and data workflow coverage.',
+            },
+            {
+                'name': 'Google Data Analytics Certificate',
+                'url': 'https://www.coursera.org/professional-certificates/google-data-analytics',
+                'note': 'Spreadsheet, SQL, and BI analytics practice.',
+            },
+            {
+                'name': 'DataCamp Free Courses',
+                'url': 'https://www.datacamp.com/courses',
+                'note': 'Interactive data analysis lessons and exercises.',
+            },
+        ],
+        'Artificial Intelligence and ML': [
+            {
+                'name': 'Google ML Crash Course',
                 'url': 'https://developers.google.com/machine-learning/crash-course',
-                'note': 'Fast introduction to machine learning fundamentals.',
+                'note': 'Fast practical introduction to machine learning.',
             },
             {
-                'name': 'edX Data Science Programs',
-                'url': 'https://www.edx.org/learn/data-science',
-                'note': 'University-backed data science pathways.',
+                'name': 'DeepLearning.AI Short Courses',
+                'url': 'https://www.deeplearning.ai/short-courses/',
+                'note': 'Applied AI topics including LLM engineering.',
+            },
+            {
+                'name': 'fast.ai Practical Deep Learning',
+                'url': 'https://course.fast.ai/',
+                'note': 'Hands-on deep learning with production focus.',
+            },
+            {
+                'name': 'Hugging Face Course',
+                'url': 'https://huggingface.co/learn',
+                'note': 'NLP, transformers, and open-source AI workflows.',
+            },
+        ],
+        'Backend Engineering': [
+            {
+                'name': 'FastAPI Tutorial',
+                'url': 'https://fastapi.tiangolo.com/tutorial/',
+                'note': 'Modern Python API development with type hints.',
+            },
+            {
+                'name': 'Django Official Tutorial',
+                'url': 'https://docs.djangoproject.com/en/stable/intro/tutorial01/',
+                'note': 'Full-stack web development with robust backend support.',
+            },
+            {
+                'name': 'Node.js Learn',
+                'url': 'https://nodejs.org/en/learn',
+                'note': 'Server-side JavaScript and runtime fundamentals.',
+            },
+            {
+                'name': 'REST API Design Guide',
+                'url': 'https://learn.microsoft.com/azure/architecture/best-practices/api-design',
+                'note': 'Best practices for scalable API architecture.',
+            },
+        ],
+        'Frontend Engineering': [
+            {
+                'name': 'MDN Frontend Learning Path',
+                'url': 'https://developer.mozilla.org/en-US/docs/Learn/Front-end_web_developer',
+                'note': 'Structured HTML, CSS, and JavaScript roadmap.',
+            },
+            {
+                'name': 'React Documentation',
+                'url': 'https://react.dev/learn',
+                'note': 'Component patterns and modern React architecture.',
+            },
+            {
+                'name': 'Vue.js Guide',
+                'url': 'https://vuejs.org/guide/introduction.html',
+                'note': 'Progressive framework tutorials and patterns.',
+            },
+            {
+                'name': 'Frontend Mentor',
+                'url': 'https://www.frontendmentor.io/challenges',
+                'note': 'Real-world UI challenges for portfolio building.',
+            },
+        ],
+        'Mobile App Development': [
+            {
+                'name': 'Android Developers Training',
+                'url': 'https://developer.android.com/courses',
+                'note': 'Kotlin-based Android app development pathways.',
+            },
+            {
+                'name': 'Apple SwiftUI Tutorials',
+                'url': 'https://developer.apple.com/tutorials/swiftui',
+                'note': 'Build iOS apps with modern SwiftUI practices.',
+            },
+            {
+                'name': 'Flutter Codelabs',
+                'url': 'https://docs.flutter.dev/get-started/codelab',
+                'note': 'Cross-platform app development from a single codebase.',
+            },
+            {
+                'name': 'React Native Documentation',
+                'url': 'https://reactnative.dev/docs/environment-setup',
+                'note': 'JavaScript-native mobile apps for Android and iOS.',
+            },
+        ],
+        'UI/UX Product Design': [
+            {
+                'name': 'Figma Learn',
+                'url': 'https://help.figma.com/hc/en-us/categories/360002051613-Learn-design',
+                'note': 'Interface design, prototyping, and collaboration workflows.',
+            },
+            {
+                'name': 'Nielsen Norman Group Articles',
+                'url': 'https://www.nngroup.com/articles/',
+                'note': 'Industry-standard UX research and usability guidance.',
+            },
+            {
+                'name': 'Material Design',
+                'url': 'https://m3.material.io/',
+                'note': 'Comprehensive design system for digital products.',
+            },
+            {
+                'name': 'Laws of UX',
+                'url': 'https://lawsofux.com/',
+                'note': 'Practical UX principles for interface decisions.',
+            },
+        ],
+        'Networking and Systems': [
+            {
+                'name': 'Cisco Skills for All - Networking',
+                'url': 'https://skillsforall.com/catalog?category=networking',
+                'note': 'Network fundamentals and routing/switching skills.',
+            },
+            {
+                'name': 'CompTIA Network+ Objectives',
+                'url': 'https://www.comptia.org/certifications/network',
+                'note': 'Structured roadmap for networking competencies.',
+            },
+            {
+                'name': 'Linux Journey',
+                'url': 'https://linuxjourney.com/',
+                'note': 'Linux systems administration learning path.',
+            },
+            {
+                'name': 'Red Hat Enable Sysadmin',
+                'url': 'https://www.redhat.com/sysadmin',
+                'note': 'Practical system engineering and operations articles.',
             },
         ],
     }
@@ -1134,19 +1286,29 @@ def resource_hub():
         ],
     }
 
-    curated_categories = tech_categories
-    if any(keyword in department_name for keyword in ['education', 'teacher', 'pedagogy']):
+    is_it_department = any(keyword in department_name for keyword in ['information technology', 'computer', 'ict', 'software'])
+    is_education_department = any(keyword in department_name for keyword in ['education', 'teacher', 'pedagogy'])
+
+    curated_categories = it_categories
+    if is_it_department:
+        curated_categories = it_categories
+    elif is_education_department:
         curated_categories = education_categories
 
-    course_resources = (
-        Resource.query.outerjoin(Course, Resource.course_code == Course.course_code)
-        .filter(
-            Resource.department_id == student.department_id,
-            Resource.resource_type == 'Course',
+    try:
+        course_resources = (
+            Resource.query.outerjoin(Course, Resource.course_code == Course.course_code)
+            .filter(
+                Resource.department_id == student.department_id,
+                Resource.resource_type == 'Course',
+            )
+            .order_by(Resource.upload_date.desc(), Course.course_code.asc())
+            .all()
         )
-        .order_by(Resource.upload_date.desc(), Course.course_code.asc())
-        .all()
-    )
+    except Exception as exc:  # pragma: no cover - defensive fallback for inconsistent legacy rows
+        current_app.logger.exception('Failed loading course resources for %s: %s', student.student_id, exc)
+        flash('Some resources could not be loaded due to legacy data. Showing available items only.', 'warning')
+        course_resources = []
 
     lecturer_course_count = len({res.course_code for res in course_resources if res.course_code})
 
