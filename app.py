@@ -2,7 +2,7 @@ import os
 from flask import Flask, session
 from sqlalchemy import inspect
 from models import db, Announcement, StudentAnnouncementRead
-from routes import public_bp, student_bp
+from routes import public_bp, student_bp, lecturer_bp, admin_bp
 
 
 def _warn_if_legacy_grade_schema(app):
@@ -46,6 +46,8 @@ def create_app():
     # Register blueprints
     app.register_blueprint(public_bp)
     app.register_blueprint(student_bp)
+    app.register_blueprint(lecturer_bp)
+    app.register_blueprint(admin_bp)
 
     @app.context_processor
     def inject_announcements():

@@ -16,10 +16,12 @@ from models import (
 	Admin,
 	Announcement,
 	Course,
+	CourseLecturer,
 	Department,
 	Enrollment,
 	FinancialStatus,
 	Grade,
+	Lecturer,
 	Student,
 	SupportTicket,
 )
@@ -154,6 +156,44 @@ def seed_initial_data(reset_schema=True):
 
 		# ===== STEP 3b: Create Admin and Announcements =====
 		print("\n[3b/4] Creating Admin & Announcements...")
+
+		lecturer = Lecturer.query.filter_by(staff_id="LIT0001").first()
+		if not lecturer:
+			lecturer = Lecturer(
+				staff_id="LIT0001",
+				department_id=it_dept.department_id,
+				title="Mr",
+				first_name="Kojo",
+				middle_name=None,
+				last_name="Mensah",
+				email_address="kojo.mensah@usted.edu.gh",
+				password_hash=generate_password_hash("lect1234"),
+				role="Lecturer",
+			)
+			db.session.add(lecturer)
+			db.session.flush()
+			print("  ✓ Created: Lecturer account (LIT0001)")
+		else:
+			print("  ✓ Exists: Lecturer account (LIT0001)")
+
+		for code in ["ITC356", "ITC357", "ITC352"]:
+			existing_alloc = CourseLecturer.query.filter_by(
+				course_code=code,
+				staff_id=lecturer.staff_id,
+				academic_year="2025/2026",
+			).first()
+			if not existing_alloc:
+				db.session.add(
+					CourseLecturer(
+						course_code=code,
+						staff_id=lecturer.staff_id,
+						class_group="L300-A",
+						academic_year="2025/2026",
+					)
+				)
+				print(f"  ✓ Created allocation: {code} -> {lecturer.staff_id}")
+			else:
+				print(f"  ✓ Exists:  allocation {code} -> {lecturer.staff_id}")
 
 		admin = Admin.query.filter_by(email_address="registrar@usted.edu.gh").first()
 		if not admin:

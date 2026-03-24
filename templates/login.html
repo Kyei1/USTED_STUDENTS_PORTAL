@@ -420,17 +420,27 @@
                     {% endwith %}
 
                     <form method="POST" action="{{ url_for('public.login') }}" class="mt-2">
+                        <div class="mb-3">
+                            <label for="account_type" class="form-label field-label">Sign In As</label>
+                            <select id="account_type" name="account_type" class="form-select themed-input" aria-label="Account type">
+                                <option value="student" selected>Student</option>
+                                <option value="lecturer">Lecturer</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
                         <div class="mb-4">
-                            <label for="student_id" class="form-label field-label">Student / Staff ID Number</label>
+                            <label for="identifier" class="form-label field-label" id="identifierLabel">Student ID / Email</label>
                             <input
                                 type="text"
-                                id="student_id"
-                                name="student_id"
+                                id="identifier"
+                                name="identifier"
                                 class="form-control themed-input"
-                                placeholder="Enter your ID number"
+                                placeholder="Enter your student ID or email"
                                 autocomplete="username"
                                 required
                             >
+                            <input type="hidden" id="student_id" name="student_id">
                         </div>
 
                         <div class="mb-3">
@@ -485,6 +495,10 @@
             var toggle = document.getElementById('togglePassword');
             var input = document.getElementById('password');
             var icon = document.getElementById('toggleIcon');
+            var accountType = document.getElementById('account_type');
+            var identifier = document.getElementById('identifier');
+            var identifierLabel = document.getElementById('identifierLabel');
+            var studentCompat = document.getElementById('student_id');
 
             if (!toggle || !input || !icon) {
                 return;
@@ -496,6 +510,34 @@
                 icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
                 toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
             });
+
+            function updateIdentifierUI() {
+                var role = accountType ? accountType.value : 'student';
+                if (!identifier || !identifierLabel) {
+                    return;
+                }
+
+                if (role === 'lecturer') {
+                    identifierLabel.textContent = 'Staff ID / Email';
+                    identifier.placeholder = 'Enter your staff ID or email';
+                } else if (role === 'admin') {
+                    identifierLabel.textContent = 'Admin Email';
+                    identifier.placeholder = 'Enter your admin email';
+                } else {
+                    identifierLabel.textContent = 'Student ID / Email';
+                    identifier.placeholder = 'Enter your student ID or email';
+                }
+            }
+
+            if (accountType) {
+                accountType.addEventListener('change', updateIdentifierUI);
+            }
+            if (identifier && studentCompat) {
+                identifier.addEventListener('input', function () {
+                    studentCompat.value = identifier.value;
+                });
+            }
+            updateIdentifierUI();
         })();
     </script>
 </body>
