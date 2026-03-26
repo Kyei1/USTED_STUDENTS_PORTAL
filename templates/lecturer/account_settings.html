@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Lecturer Account Settings - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Account Settings</h1>
+            <p class="text-muted mb-0">Update your contact email and login password.</p>
+        </div>
+        <a href="{{ url_for('lecturer.profile') }}" class="btn btn-sm btn-outline-secondary">Back to Profile</a>
+    </div>
+
+    <form method="post" class="row g-4">
+        <div class="col-12 col-lg-7">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Contact</h2>
+                <div class="mb-3">
+                    <label for="email_address" class="form-label fw-semibold">Email Address</label>
+                    <input type="email" class="form-control" id="email_address" name="email_address" value="{{ lecturer.email_address }}" required>
+                </div>
+                <p class="small text-muted mb-0">Use an institutional email for official communications.</p>
+            </article>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Change Password</h2>
+                <div class="mb-3">
+                    <label for="new_password" class="form-label fw-semibold">New Password</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password" minlength="6" autocomplete="new-password">
+                </div>
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label fw-semibold">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" minlength="6" autocomplete="new-password">
+                </div>
+                <p class="small text-muted mb-0">Leave password fields empty if you only want to update email.</p>
+            </article>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-sm" style="background: var(--usted-maroon); color: #fff; font-weight: 700;">Save Changes</button>
+            <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

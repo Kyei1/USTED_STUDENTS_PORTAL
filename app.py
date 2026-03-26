@@ -51,38 +51,54 @@ def create_app():
 
     @app.context_processor
     def inject_announcements():
-        """Provide latest student-facing announcements to templates."""
+        """Provide announcement data for student and lecturer topbars."""
         student_id = session.get('student_id')
-        if not student_id:
+        lecturer_id = session.get('lecturer_id')
+
+        if student_id:
+            announcements = (
+                Announcement.query
+                .filter(Announcement.target_audience.in_(['All', 'Students']))
+                .order_by(Announcement.date_posted.desc())
+                .limit(5)
+                .all()
+            )
+
+            announcement_ids = [item.announcement_id for item in announcements]
+            read_ids = []
+            if announcement_ids:
+                read_ids = [
+                    row.announcement_id
+                    for row in StudentAnnouncementRead.query.filter_by(student_id=student_id)
+                    .filter(StudentAnnouncementRead.announcement_id.in_(announcement_ids))
+                    .all()
+                ]
+
+            unread_count = sum(1 for item in announcements if item.announcement_id not in read_ids)
             return {
-                'top_announcements': [],
-                'top_read_announcement_ids': [],
-                'top_unread_count': 0,
+                'top_announcements': announcements,
+                'top_read_announcement_ids': read_ids,
+                'top_unread_count': unread_count,
             }
 
-        announcements = (
-            Announcement.query
-            .filter(Announcement.target_audience.in_(['All', 'Students']))
-            .order_by(Announcement.date_posted.desc())
-            .limit(5)
-            .all()
-        )
-
-        announcement_ids = [item.announcement_id for item in announcements]
-        read_ids = []
-        if announcement_ids:
-            read_ids = [
-                row.announcement_id
-                for row in StudentAnnouncementRead.query.filter_by(student_id=student_id)
-                .filter(StudentAnnouncementRead.announcement_id.in_(announcement_ids))
+        if lecturer_id:
+            announcements = (
+                Announcement.query
+                .filter(Announcement.target_audience.in_(['All', 'Lecturers']))
+                .order_by(Announcement.date_posted.desc())
+                .limit(5)
                 .all()
-            ]
+            )
+            return {
+                'top_announcements': announcements,
+                'top_read_announcement_ids': [],
+                'top_unread_count': len(announcements),
+            }
 
-        unread_count = sum(1 for item in announcements if item.announcement_id not in read_ids)
         return {
-            'top_announcements': announcements,
-            'top_read_announcement_ids': read_ids,
-            'top_unread_count': unread_count,
+            'top_announcements': [],
+            'top_read_announcement_ids': [],
+            'top_unread_count': 0,
         }
     
     return app

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Submission Queue - Lecturer Workspace{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1" style="color: var(--usted-maroon);">Submission Queue</h1>
+            <p class="text-muted mb-0">Track grades awaiting HOD and Board review.</p>
+        </div>
+        <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Pending HOD Review</p>
+                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ total_pending_hod }}</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Pending Board Review</p>
+                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ total_pending_board }}</p>
+            </article>
+        </div>
+    </div>
+
+    {% if submission_groups['Pending_HOD'] %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Awaiting HOD Approval</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th class="text-center">Total Score</th>
+                                <th class="text-center">Grade</th>
+                                <th class="text-end">Period</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in submission_groups['Pending_HOD'] %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ item.student.student_id }}</div>
+                                        <small class="text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ item.course.course_code }}</div>
+                                        <small class="text-muted">{{ item.course.course_name }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{ item.total_score|round(1) }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark border">{{ item.letter }}</span>
+                                    </td>
+                                    <td class="text-end text-muted small">
+                                        {{ item.enrollment.academic_year }} {{ item.enrollment.semester }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if submission_groups['Pending_Board'] %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Awaiting Board Approval</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th class="text-center">Total Score</th>
+                                <th class="text-center">Grade</th>
+                                <th class="text-end">Period</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in submission_groups['Pending_Board'] %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ item.student.student_id }}</div>
+                                        <small class="text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ item.course.course_code }}</div>
+                                        <small class="text-muted">{{ item.course.course_name }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{ item.total_score|round(1) }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge" style="background: var(--usted-gold); color: var(--usted-ink);">{{ item.letter }}</span>
+                                    </td>
+                                    <td class="text-end text-muted small">
+                                        {{ item.enrollment.academic_year }} {{ item.enrollment.semester }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not submission_groups['Pending_HOD'] and not submission_groups['Pending_Board'] %}
+    <div class="alert alert-success mb-4">
+        <strong>All clear!</strong> You have no grades awaiting approval. New submissions will appear here.
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

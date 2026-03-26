@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Lecturer Profile - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Lecturer Profile</h1>
+            <p class="text-muted mb-0">Your academic identity and role details.</p>
+        </div>
+        <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Personal Information</h2>
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-4 text-muted">Staff ID</dt>
+                    <dd class="col-sm-8 fw-semibold">{{ lecturer.staff_id }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Name</dt>
+                    <dd class="col-sm-8 fw-semibold">{{ lecturer.title }} {{ lecturer.first_name }} {{ lecturer.last_name }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Email Address</dt>
+                    <dd class="col-sm-8">{{ lecturer.email_address }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Department</dt>
+                    <dd class="col-sm-8">{{ lecturer.department.department_name if lecturer.department else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Faculty</dt>
+                    <dd class="col-sm-8">{{ lecturer.department.faculty_name if lecturer.department else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Role</dt>
+                    <dd class="col-sm-8"><span class="badge bg-light text-dark border">{{ lecturer.role }}</span></dd>
+                </dl>
+            </article>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Workload Snapshot</h2>
+                <p class="small text-muted text-uppercase fw-bold mb-1">Assigned Courses</p>
+                <p class="display-6 fw-bold mb-3" style="color: var(--usted-maroon);">{{ assigned_count }}</p>
+                <a href="{{ url_for('lecturer.account_settings') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Open Account Settings</a>
+            </article>
+        </div>
+    </div>
+</section>
+{% endblock %}
