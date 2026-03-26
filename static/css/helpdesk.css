@@ -4,6 +4,21 @@
     gap: 0.5rem;
 }
 
+.sort-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sort-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--usted-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
 .status-chip {
     display: inline-flex;
     align-items: center;
@@ -38,6 +53,30 @@
 
 .status-chip.active .chip-count {
     background: rgba(255, 255, 255, 0.2);
+}
+
+.sort-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--usted-border);
+    color: var(--usted-ink);
+    text-decoration: none;
+    background: #fff;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.sort-chip:hover {
+    border-color: var(--usted-maroon);
+    background: var(--usted-maroon-soft);
+}
+
+.sort-chip.active {
+    border-color: transparent;
+    background: var(--usted-maroon);
+    color: #fff;
 }
 
 .priority-badge {

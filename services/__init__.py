@@ -28,6 +28,11 @@ from services.pdf_service import (
     draw_logo_and_titles,
     draw_two_column_metadata,
 )
+from services.lecturer_service import (
+    build_lecturer_course_worklist,
+    build_lecturer_draft_workspace,
+    submit_lecturer_drafts_to_hod,
+)
 
 __all__ = [
     'get_current_student',
@@ -50,4 +55,7 @@ __all__ = [
     'get_default_logo_path',
     'draw_logo_and_titles',
     'draw_two_column_metadata',
+    'build_lecturer_course_worklist',
+    'build_lecturer_draft_workspace',
+    'submit_lecturer_drafts_to_hod',
 ]

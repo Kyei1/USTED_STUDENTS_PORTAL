@@ -11,6 +11,11 @@ from io import StringIO
 
 from models import Lecturer, CourseLecturer, Course, Enrollment, Student, Grade, SupportTicket, Announcement, db
 from services.gpa_service import score_to_letter, scaled_exam_score
+from services.lecturer_service import (
+    build_lecturer_course_worklist,
+    build_lecturer_draft_workspace,
+    submit_lecturer_drafts_to_hod,
+)
 
 
 lecturer_bp = Blueprint(
@@ -529,15 +534,137 @@ def logout():
 @lecturer_bp.route('/my-courses')
 @lecturer_login_required
 def my_courses():
-    return render_template('lecturer/my_courses.html')
+    """Display lecturer-scoped course worklist and grading workload counts."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        flash('Lecturer record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
 
-@lecturer_bp.route('/draft-grades')
+    course_payload = build_lecturer_course_worklist(
+        lecturer.staff_id,
+        academic_year=request.args.get('academic_year', 'All'),
+        class_group=request.args.get('class_group', 'All'),
+        semester=request.args.get('semester', 'All'),
+    )
+
+    return render_template(
+        'lecturer/my_courses.html',
+        lecturer=lecturer,
+        **course_payload,
+    )
+
+@lecturer_bp.route('/draft-grades', methods=['GET', 'POST'])
+@lecturer_bp.route('/grade-workspace', methods=['GET', 'POST'])
 @lecturer_login_required
-def draft_grades():
-    return render_template('lecturer/draft_grades.html')
+def grade_workspace():
+    """Cross-course workspace for Draft grade validation and bulk submission."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        flash('Lecturer record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
 
-@lecturer_bp.route('/academic-helpdesk')
+    if request.method == 'POST':
+        selected_year = request.form.get('academic_year', 'All')
+        selected_semester = request.form.get('semester', 'All')
+        selected_course_code = request.form.get('course_code', 'All')
+        action = (request.form.get('action') or '').strip()
+
+        draft_payload = build_lecturer_draft_workspace(
+            lecturer.staff_id,
+            academic_year=selected_year,
+            semester=selected_semester,
+            course_code=selected_course_code,
+        )
+
+        if action == 'submit_all_hod':
+            target_ids = [row['enrollment'].enrollment_id for row in draft_payload['draft_rows'] if row['is_valid']]
+        elif action == 'submit_selected_hod':
+            target_ids = request.form.getlist('selected_enrollment_ids')
+        else:
+            target_ids = []
+
+        if not target_ids:
+            flash('No Draft records selected for submission.', 'warning')
+        else:
+            result = submit_lecturer_drafts_to_hod(lecturer.staff_id, target_ids)
+            if result['submitted']:
+                flash(f"{result['submitted']} Draft record(s) submitted to HOD queue.", 'success')
+            if result['invalid']:
+                flash(f"{result['invalid']} record(s) were skipped due to incomplete or invalid grading data.", 'warning')
+            if result['unauthorized'] or result['missing']:
+                flash('Some selected records were outside your scope or no longer available.', 'danger')
+
+        return redirect(
+            url_for(
+                'lecturer.grade_workspace',
+                academic_year=selected_year,
+                semester=selected_semester,
+                course_code=selected_course_code,
+            )
+        )
+
+    draft_payload = build_lecturer_draft_workspace(
+        lecturer.staff_id,
+        academic_year=request.args.get('academic_year', 'All'),
+        semester=request.args.get('semester', 'All'),
+        course_code=request.args.get('course_code', 'All'),
+    )
+
+    return render_template(
+        'lecturer/draft_grades.html',
+        lecturer=lecturer,
+        **draft_payload,
+    )
+
+@lecturer_bp.route('/academic-helpdesk', methods=['GET', 'POST'])
 @lecturer_login_required
 def academic_helpdesk():
-    return render_template('lecturer/academic_helpdesk.html')
+    """Lecturer view for Academic helpdesk tickets tied to their assigned courses."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        return redirect(url_for('public.login'))
+
+    assigned_course_codes = [
+        row.course_code for row in 
+        CourseLecturer.query.filter_by(staff_id=lecturer.staff_id).all()
+    ]
+
+    # Handle status updates
+    if request.method == 'POST':
+        ticket_id = request.form.get('ticket_id')
+        new_status = request.form.get('status')
+        if ticket_id and new_status in ['Open', 'Pending', 'Resolved']:
+            ticket = SupportTicket.query.filter_by(ticket_id=ticket_id).first()
+            # Double check it belongs to this lecturer
+            if ticket and ticket.course_code in assigned_course_codes and ticket.ticket_type == 'Academic':
+                ticket.status = new_status
+                db.session.commit()
+                flash(f'Ticket #{ticket_id} updated to {new_status}.', 'success')
+            else:
+                flash('Unauthorized or invalid ticket.', 'danger')
+        return redirect(url_for('lecturer.academic_helpdesk'))
+
+    # Query academic tickets for this lecturer's courses
+    tickets = (
+        SupportTicket.query
+        .filter(
+            SupportTicket.course_code.in_(assigned_course_codes),
+            SupportTicket.ticket_type == 'Academic'
+        )
+        .order_by(
+            # Sort open/pending to top
+            db.case({
+                'Open': 1,
+                'Pending': 2,
+                'Resolved': 3
+            }, value=SupportTicket.status, else_=4),
+            SupportTicket.date_submitted.desc()
+        )
+        .all()
+    ) if assigned_course_codes else []
+
+    return render_template('lecturer/academic_helpdesk.html', tickets=tickets)
 

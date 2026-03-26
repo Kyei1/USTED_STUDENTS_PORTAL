@@ -1822,11 +1822,28 @@ def helpdesk():
     if status_filter not in {'All', 'Open', 'Pending', 'Resolved'}:
         status_filter = 'All'
 
+    sort_filter = request.args.get('sort', 'newest').strip()
+    if sort_filter not in {'newest', 'oldest', 'ticket_id'}:
+        sort_filter = 'newest'
+
     query = SupportTicket.query.filter_by(student_id=student.student_id)
     if status_filter != 'All':
         query = query.filter(SupportTicket.status == status_filter)
 
-    tickets = query.order_by(SupportTicket.date_submitted.desc()).all()
+    if sort_filter == 'oldest':
+        tickets = query.order_by(
+            SupportTicket.date_submitted.asc(),
+            SupportTicket.ticket_id.asc(),
+        ).all()
+    elif sort_filter == 'ticket_id':
+        tickets = query.order_by(
+            SupportTicket.ticket_id.asc(),
+        ).all()
+    else:
+        tickets = query.order_by(
+            SupportTicket.date_submitted.desc(),
+            SupportTicket.ticket_id.desc(),
+        ).all()
 
     counts_q = SupportTicket.query.filter_by(student_id=student.student_id)
     status_counts = {
@@ -1849,6 +1866,7 @@ def helpdesk():
         tickets=tickets,
         courses=courses,
         status_filter=status_filter,
+        sort_filter=sort_filter,
         status_counts=status_counts,
     )
 

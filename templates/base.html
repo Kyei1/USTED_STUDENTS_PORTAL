@@ -287,8 +287,6 @@
 					<div class="profile-menu" id="topProfileMenu">
 						<a href="{{ url_for('lecturer.profile') }}" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
 						<a href="{{ url_for('lecturer.account_settings') }}" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
-						<a href="{{ url_for('lecturer.draft_grades') }}" class="profile-item"><i class="bi bi-pencil-square"></i> Draft Grades</a>
-						<a href="{{ url_for('lecturer.submission_queue') }}" class="profile-item"><i class="bi bi-inbox-fill"></i> Submission Queue</a>
 						<hr class="my-2">
 						<a href="{{ url_for('lecturer.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
 					</div>
@@ -312,8 +310,8 @@
 					<a href="{{ url_for('lecturer.my_courses') }}" class="student-shell-link {% if request.endpoint == 'lecturer.my_courses' %}active{% endif %}">
 						<i class="bi bi-journal-bookmark-fill"></i> My Courses
 					</a>
-					<a href="{{ url_for('lecturer.draft_grades') }}" class="student-shell-link {% if request.endpoint == 'lecturer.draft_grades' %}active{% endif %}">
-						<i class="bi bi-pencil-square"></i> Draft Grades
+					<a href="{{ url_for('lecturer.grade_workspace') }}" class="student-shell-link {% if request.endpoint == 'lecturer.grade_workspace' %}active{% endif %}">
+						<i class="bi bi-pencil-square"></i> Grade Workspace
 					</a>
 					<a href="{{ url_for('lecturer.submission_queue') }}" class="student-shell-link {% if request.endpoint == 'lecturer.submission_queue' %}active{% endif %}">
 						<i class="bi bi-inbox-fill"></i> Submission Queue

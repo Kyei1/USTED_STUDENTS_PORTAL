@@ -8,22 +8,15 @@
 
 {% block content %}
 <!-- Top Header Area -->
-<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+<section class="dashboard-header-card rounded-4 p-4 p-lg-5 mb-4">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-4">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Welcome back, {{ lecturer.first_name }} <span class="greeting-emoji" aria-hidden="true">👋</span></h1>
-            <p class="text-muted mb-0">Manage your courses, draft grades, grading workload, and student helpdesk from this workspace.</p>
+            <p class="text-muted mb-0">Manage your courses, grading workload, and student helpdesk from this workspace.</p>
         </div>
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-            <span class="badge border bg-white px-3 py-2 text-dark rounded-pill fw-medium shadow-sm"><i class="bi bi-shield-lock-fill text-muted me-1"></i> {{ lecturer.staff_id }}</span>
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('lecturer.submission_queue') }}" class="btn btn-sm text-white fw-bold d-inline-flex align-items-center gap-1 shadow-sm px-3" style="background: var(--usted-maroon); border: none;">
-                    <i class="bi bi-inbox-fill"></i> Submission Queue
-                </a>
-                <button type="button" class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex border">
-                    <i class="bi bi-printer"></i> Print Report
-                </button>
-            </div>
+        <div class="d-flex gap-2">
+            <span class="badge rounded-pill text-bg-light">ID: {{ lecturer.staff_id }}</span>
+            <span class="badge rounded-pill" style="background: rgba(122,0,22,0.12); color: var(--usted-maroon);">{{ lecturer.role }}</span>
         </div>
     </div>
 </section>
@@ -32,75 +25,51 @@
 <div class="row g-3 mb-4">
     <!-- Stat 1 -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
-            <div class="card-body p-4 d-flex align-items-center">
-                <div class="flex-shrink-0 me-3">
-                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:rgba(128,0,0,0.1);color:var(--usted-maroon);">
-                        <i class="bi bi-journal-bookmark-fill fs-4"></i>
-                    </div>
-                </div>
-                <div>
-                    <h6 class="text-muted text-uppercase fw-bold mb-1 small" style="letter-spacing:0.05em;">Assigned Courses</h6>
-                    <h2 class="mb-0 fw-bold text-dark">{{ total_courses }}</h2>
-                </div>
+        <article class="quick-card kpi-card p-4 h-100 hover-lift">
+            <div class="kpi-icon kpi-icon-maroon mb-3">
+                <i class="bi bi-journal-bookmark-fill fs-5"></i>
             </div>
-        </div>
+            <h3 class="kpi-label mb-1">Assigned Courses</h3>
+            <div class="kpi-value">{{ total_courses }}</div>
+        </article>
     </div>
 
     <!-- Stat 2 -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
-            <div class="card-body p-4 d-flex align-items-center">
-                <div class="flex-shrink-0 me-3">
-                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:rgba(30,58,138,0.1);color:#1e3a8a;">
-                        <i class="bi bi-people-fill fs-4"></i>
-                    </div>
-                </div>
-                <div>
-                    <h6 class="text-muted text-uppercase fw-bold mb-1 small" style="letter-spacing:0.05em;">Total Students</h6>
-                    <h2 class="mb-0 fw-bold text-dark">{{ total_students }}</h2>
-                </div>
+        <article class="quick-card kpi-card p-4 h-100 hover-lift">
+            <div class="kpi-icon kpi-icon-gold mb-3">
+                <i class="bi bi-people-fill fs-5"></i>
             </div>
-        </div>
+            <h3 class="kpi-label mb-1">Total Students</h3>
+            <div class="kpi-value">{{ total_students }}</div>
+        </article>
     </div>
 
-    <!-- Stat 3 (New: Draft Grades) -->
+    <!-- Stat 3 -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
-            <div class="card-body p-4 d-flex align-items-center">
-                <div class="flex-shrink-0 me-3">
-                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:var(--usted-gold-soft);color:var(--usted-ink);">
-                        <i class="bi bi-pencil-square fs-4"></i>
-                    </div>
-                </div>
-                <div>
-                    <h6 class="text-muted text-uppercase fw-bold mb-1 small" style="letter-spacing:0.05em;">Draft Grades</h6>
-                    <h2 class="mb-0 fw-bold text-dark">0</h2> <!-- Hardcoded for now -->
-                </div>
+        <article class="quick-card kpi-card p-4 h-100 hover-lift">
+            <div class="kpi-icon kpi-icon-ink mb-3">
+                <i class="bi bi-pencil-square fs-5"></i>
             </div>
-        </div>
+            <h3 class="kpi-label mb-1">Grade Workspace</h3>
+            <div class="kpi-value">0</div> <!-- Hardcoded for now -->
+        </article>
     </div>
 
     <!-- Stat 4 -->
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift position-relative overflow-hidden">
+        <article class="quick-card kpi-card p-4 h-100 hover-lift position-relative overflow-hidden">
             {% if pending_academic_tickets > 0 %}
-            <span class="position-absolute top-0 end-0 p-2 text-danger">
-                <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i>
+            <span class="position-absolute top-0 end-0 p-3 kpi-live-dot">
+                <i class="bi bi-circle-fill"></i>
             </span>
             {% endif %}
-            <div class="card-body p-4 d-flex align-items-center">
-                <div class="flex-shrink-0 me-3">
-                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:rgba(220,38,38,0.1);color:#dc2626;">
-                        <i class="bi bi-ticket-detailed-fill fs-4"></i>
-                    </div>
-                </div>
-                <div>
-                    <h6 class="text-muted text-uppercase fw-bold mb-1 small" style="letter-spacing:0.05em;">Pending Tickets</h6>
-                    <h2 class="mb-0 fw-bold text-dark">{{ pending_academic_tickets }}</h2>
-                </div>
+            <div class="kpi-icon kpi-icon-ticket mb-3">
+                <i class="bi bi-ticket-detailed-fill fs-5"></i>
             </div>
-        </div>
+            <h3 class="kpi-label mb-1">Pending Tickets</h3>
+            <div class="kpi-value">{{ pending_academic_tickets }}</div>
+        </article>
     </div>
 </div>
 
@@ -108,10 +77,10 @@
 <div class="row g-4">
     <!-- Area 7/12: Course List -->
     <div class="col-12 col-lg-7">
-        <div class="card border border-light shadow-sm rounded-4 h-100">
+        <div class="card dashboard-panel rounded-4 h-100">
             <div class="card-header bg-white border-bottom-0 py-3 px-4 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold" style="color: var(--usted-ink);">My Assigned Courses</h5>
-                <a href="{{ url_for('lecturer.my_courses') }}" class="btn btn-sm btn-light text-muted">View All</a>
+                <a href="{{ url_for('lecturer.my_courses') }}" class="btn btn-sm dashboard-ghost-btn">View All</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -129,8 +98,8 @@
                                 <tr>
                                     <td class="px-4 py-3">
                                         <div class="d-flex align-items-center gap-3">
-                                            <div class="bg-light rounded p-2 text-center" style="width:48px;">
-                                                <i class="bi bi-book text-muted"></i>
+                                            <div class="course-glyph">
+                                                <i class="bi bi-book"></i>
                                             </div>
                                             <div>
                                                 <div class="fw-bold text-dark mb-1">{{ item.course.course_code }}</div>
@@ -144,7 +113,7 @@
                                     </td>
                                     <td class="py-3 px-4 text-end">
                                         <div class="btn-group">
-                                            <a href="{{ url_for('lecturer.course_roster', course_code=item.course.course_code) }}" class="btn btn-sm btn-outline-primary" title="Grade Entry">
+                                            <a href="{{ url_for('lecturer.course_roster', course_code=item.course.course_code) }}" class="btn btn-sm dashboard-outline-btn" title="Grade Entry">
                                                 <i class="bi bi-pencil-square"></i> Grade
                                             </a>
                                             <button class="btn btn-sm btn-outline-secondary" title="Resources (Coming Soon)" disabled>
@@ -174,22 +143,22 @@
     <!-- Area 5/12: Quick Actions & Alerts -->
     <div class="col-12 col-lg-5 d-flex flex-column gap-4">
         <!-- Quick Actions Panel -->
-        <div class="card border border-light shadow-sm rounded-4">
+        <div class="card dashboard-panel rounded-4">
             <div class="card-header bg-white border-bottom-0 py-3 px-4">
                 <h6 class="mb-0 fw-bold text-uppercase text-muted" style="letter-spacing: 0.05em; font-size: 0.8rem;">Quick Links</h6>
             </div>
             <div class="card-body p-3 pt-0">
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('lecturer.my_courses') }}" class="btn btn-light text-start p-3 border hover-lift rounded-3 d-flex align-items-center">
-                        <div class="bg-white shadow-sm p-2 rounded me-3 text-primary"><i class="bi bi-journals fs-5"></i></div>
+                    <a href="{{ url_for('lecturer.my_courses') }}" class="quick-link-item hover-lift">
+                        <div class="quick-link-icon"><i class="bi bi-journals fs-5"></i></div>
                         <div>
                             <div class="fw-bold text-dark" style="font-size: 0.95rem;">Manage Assigned Resources</div>
                             <div class="small text-muted">Upload reading materials or syllabus docs.</div>
                         </div>
                     </a>
                     
-                    <a href="{{ url_for('lecturer.academic_helpdesk') }}" class="btn btn-light text-start p-3 border hover-lift rounded-3 d-flex align-items-center">
-                        <div class="bg-white shadow-sm p-2 rounded me-3 text-danger"><i class="bi bi-headset fs-5"></i></div>
+                    <a href="{{ url_for('lecturer.academic_helpdesk') }}" class="quick-link-item hover-lift">
+                        <div class="quick-link-icon quick-link-icon-gold"><i class="bi bi-headset fs-5"></i></div>
                         <div>
                             <div class="fw-bold text-dark" style="font-size: 0.95rem;">Resolve Academic Tickets</div>
                             <div class="small text-muted">Acknowledge missing grade complaints from students.</div>
@@ -200,7 +169,7 @@
         </div>
 
         <!-- System Announcements Panel -->
-        <div class="card border border-light shadow-sm rounded-4 flex-grow-1">
+        <div class="card dashboard-panel rounded-4 flex-grow-1">
             <div class="card-header bg-white border-bottom-0 py-3 px-4 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 fw-bold text-uppercase text-muted" style="letter-spacing: 0.05em; font-size: 0.8rem;">Admin Alerts & Notices</h6>
                 <i class="bi bi-bell text-muted"></i>
@@ -221,7 +190,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="p-4 text-center py-5">
-                            <i class="bi bi-check2-circle fs-3 text-success opacity-50 mb-2"></i>
+                            <i class="bi bi-check2-circle fs-3 alerts-empty-icon mb-2"></i>
                             <p class="text-muted small mb-0">System updates will appear here.</p>
                         </div>
                     {% endif %}
@@ -230,14 +199,4 @@
         </div>
     </div>
 </div>
-<!-- Custom Styles Hook specifically for the dashboard -->
-<style>
-.hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.hover-lift:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important;
-}
-</style>
 {% endblock %}
