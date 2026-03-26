@@ -9,11 +9,12 @@ from sqlalchemy import func
 import csv
 from io import StringIO
 
-from models import Lecturer, CourseLecturer, Course, Enrollment, Student, Grade, SupportTicket, Announcement, db
+from models import Lecturer, CourseLecturer, Course, Enrollment, Student, Grade, SupportTicket, Announcement, Resource, db
 from services.gpa_service import score_to_letter, scaled_exam_score
 from services.lecturer_service import (
     build_lecturer_course_worklist,
     build_lecturer_draft_workspace,
+    build_lecturer_resource_hub,
     submit_lecturer_drafts_to_hod,
 )
 
@@ -616,6 +617,67 @@ def grade_workspace():
         'lecturer/draft_grades.html',
         lecturer=lecturer,
         **draft_payload,
+    )
+
+
+@lecturer_bp.route('/course/<course_code>/resources', methods=['GET'])
+@lecturer_login_required
+def course_resources(course_code):
+    """View course resources for a lecturer-owned course."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        flash('Lecturer record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    allocation = (
+        CourseLecturer.query
+        .join(Course, Course.course_code == CourseLecturer.course_code)
+        .filter(
+            CourseLecturer.staff_id == lecturer.staff_id,
+            CourseLecturer.course_code == course_code,
+        )
+        .order_by(CourseLecturer.academic_year.desc())
+        .first()
+    )
+    if not allocation:
+        flash('You are not assigned to this course.', 'danger')
+        return redirect(url_for('lecturer.my_courses'))
+
+    resources = (
+        db.session.query(Resource)
+        .filter(
+            Resource.course_code == course_code,
+            Resource.resource_type == 'Course',
+        )
+        .order_by(Resource.upload_date.desc())
+        .all()
+    )
+
+    return render_template(
+        'lecturer/course_resources.html',
+        lecturer=lecturer,
+        allocation=allocation,
+        resources=resources,
+    )
+
+
+@lecturer_bp.route('/resource-management')
+@lecturer_login_required
+def resource_management():
+    """Display a lecturer resource hub for assigned courses."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        flash('Lecturer record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    resource_payload = build_lecturer_resource_hub(lecturer.staff_id)
+
+    return render_template(
+        'lecturer/resource_management.html',
+        lecturer=lecturer,
+        **resource_payload,
     )
 
 @lecturer_bp.route('/academic-helpdesk', methods=['GET', 'POST'])

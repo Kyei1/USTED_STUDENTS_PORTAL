@@ -11,7 +11,6 @@
         </div>
         <div class="d-flex gap-2">
             <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
-            <a href="{{ url_for('lecturer.logout') }}" class="btn btn-sm btn-outline-secondary">Log Out</a>
         </div>
     </div>
 
@@ -70,7 +69,39 @@
 
     {% if roster_rows %}
     <form id="gradeForm" method="post" class="mb-4">
-        <div class="table-responsive">
+        <div class="d-grid gap-3 d-md-none mb-4">
+            {% for row in roster_rows %}
+                {% set enrollment = row.enrollment %}
+                <article class="mobile-data-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <div class="fw-bold text-dark">{{ enrollment.student.student_id }}</div>
+                            <div class="small text-muted">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</div>
+                        </div>
+                        <span class="badge bg-light text-dark border">{{ enrollment.grade.approval_status if enrollment.grade else 'New' }}</span>
+                    </div>
+                    <input type="hidden" name="academic_year" value="{{ selected_year }}">
+                    <input type="hidden" name="semester" value="{{ selected_semester }}">
+                    <input type="hidden" name="enrollment_id" value="{{ enrollment.enrollment_id }}">
+                    <div class="mobile-data-grid mb-3">
+                        <div class="mobile-data-item">
+                            <label class="mobile-data-label" for="ca_mobile_{{ enrollment.enrollment_id }}">CA (0-40)</label>
+                            <input id="ca_mobile_{{ enrollment.enrollment_id }}" name="ca_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="40" step="0.01" class="form-control form-control-sm score-input ca-input" data-enrollment-id="{{ enrollment.enrollment_id }}" value="{{ row.ca_prefill }}" required>
+                        </div>
+                        <div class="mobile-data-item">
+                            <label class="mobile-data-label" for="exam_mobile_{{ enrollment.enrollment_id }}">Raw Exam (0-100)</label>
+                            <input id="exam_mobile_{{ enrollment.enrollment_id }}" name="raw_exam_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="100" step="0.01" class="form-control form-control-sm score-input exam-input" data-enrollment-id="{{ enrollment.enrollment_id }}" value="{{ row.raw_exam_prefill }}" required>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button type="submit" name="submit_action" value="save_draft" class="btn btn-sm btn-outline-secondary flex-fill">Save Draft</button>
+                        <button type="submit" name="submit_action" value="submit_hod" class="btn btn-sm flex-fill" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Submit to HOD</button>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <div class="table-responsive d-none d-md-block">
             <table class="table align-middle mb-0">
                 <thead class="table-light">
                     <tr>
@@ -131,7 +162,6 @@
             </table>
         </div>
 
-        {% if roster_rows %}
         <div class="row g-2 mt-4 pt-4 border-top">
             <div class="col-12">
                 <p class="small text-muted fw-semibold mb-3">Bulk Actions</p>
@@ -149,7 +179,6 @@
                 <small class="text-muted d-block mt-1">Submits all entered grades for HOD approval</small>
             </div>
         </div>
-        {% endif %}
     </form>
     {% else %}
     <div class="alert alert-info mb-4">

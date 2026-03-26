@@ -310,6 +310,9 @@
 					<a href="{{ url_for('lecturer.my_courses') }}" class="student-shell-link {% if request.endpoint == 'lecturer.my_courses' %}active{% endif %}">
 						<i class="bi bi-journal-bookmark-fill"></i> My Courses
 					</a>
+					<a href="{{ url_for('lecturer.resource_management') }}" class="student-shell-link {% if request.endpoint == 'lecturer.resource_management' %}active{% endif %}">
+						<i class="bi bi-folder-fill"></i> Resource Management
+					</a>
 					<a href="{{ url_for('lecturer.grade_workspace') }}" class="student-shell-link {% if request.endpoint == 'lecturer.grade_workspace' %}active{% endif %}">
 						<i class="bi bi-pencil-square"></i> Grade Workspace
 					</a>

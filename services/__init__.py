@@ -31,6 +31,7 @@ from services.pdf_service import (
 from services.lecturer_service import (
     build_lecturer_course_worklist,
     build_lecturer_draft_workspace,
+    build_lecturer_resource_hub,
     submit_lecturer_drafts_to_hod,
 )
 
@@ -57,5 +58,6 @@ __all__ = [
     'draw_two_column_metadata',
     'build_lecturer_course_worklist',
     'build_lecturer_draft_workspace',
+    'build_lecturer_resource_hub',
     'submit_lecturer_drafts_to_hod',
 ]

@@ -57,53 +57,48 @@
         </form>
 
         {% if course_rows %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-muted small text-uppercase" style="letter-spacing: 0.05em;">
-                        <tr>
-                            <th class="py-3">Course</th>
-                            <th class="py-3">Class / Year</th>
-                            <th class="py-3 text-center">Enrolled</th>
-                            <th class="py-3 text-center">Draft</th>
-                            <th class="py-3 text-center">Pending HOD</th>
-                            <th class="py-3 text-center">Pending Board</th>
-                            <th class="py-3 text-center">Published</th>
-                            <th class="py-3 text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in course_rows %}
-                            <tr>
-                                <td>
-                                    <div class="fw-bold text-dark">{{ row.course.course_code }}</div>
-                                    <div class="small text-muted">{{ row.course.course_name }}</div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">{{ row.allocation.class_group }}</span>
-                                    <div class="small text-muted mt-1">{{ row.allocation.academic_year }}</div>
-                                </td>
-                                <td class="text-center fw-semibold">{{ row.enrolled_count }}</td>
-                                <td class="text-center"><span class="badge bg-light text-dark border">{{ row.draft_count }}</span></td>
-                                <td class="text-center"><span class="badge" style="background: rgba(219,161,17,0.24); color: var(--usted-ink);">{{ row.pending_hod_count }}</span></td>
-                                <td class="text-center"><span class="badge bg-secondary-subtle text-dark border">{{ row.pending_board_count }}</span></td>
-                                <td class="text-center"><span class="badge" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">{{ row.published_count }}</span></td>
-                                <td class="text-end">
-                                    <div class="btn-group">
-                                        <a href="{{ url_for('lecturer.course_roster', course_code=row.course.course_code, academic_year=row.roster_year, semester=row.roster_semester) }}" class="btn btn-sm dashboard-outline-btn" title="Open Grade Workspace">
-                                            Grade Workspace
-                                        </a>
-                                        <a href="{{ url_for('lecturer.grades_export', course_code=row.course.course_code) }}" class="btn btn-sm dashboard-ghost-btn" title="Export Grades CSV">
-                                            Export
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-light border" title="Resource manager will be implemented next" disabled>
-                                            Resources Soon
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="course-workload-grid">
+                {% for row in course_rows %}
+                    <article class="course-workload-card h-100">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                            <div>
+                                <div class="fw-bold text-dark fs-5">{{ row.course.course_code }}</div>
+                                <div class="small text-muted">{{ row.course.course_name }}</div>
+                            </div>
+                            <span class="badge rounded-pill theme-badge theme-badge-soft">{{ row.allocation.class_group }}</span>
+                        </div>
+
+                        <div class="course-workload-summary mb-3">
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Enrolled</span>
+                                <span class="course-workload-stat-value">{{ row.enrolled_count }}</span>
+                            </div>
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Draft</span>
+                                <span class="course-workload-stat-value">{{ row.draft_count }}</span>
+                            </div>
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Pending HOD</span>
+                                <span class="course-workload-stat-value">{{ row.pending_hod_count }}</span>
+                            </div>
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Published</span>
+                                <span class="course-workload-stat-value">{{ row.published_count }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="badge rounded-pill theme-badge theme-badge-gold">{{ row.allocation.academic_year }}</span>
+                            <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ row.pending_board_count }} Board</span>
+                        </div>
+
+                        <div class="course-workload-actions">
+                            <a href="{{ url_for('lecturer.course_roster', course_code=row.course.course_code, academic_year=row.roster_year, semester=row.roster_semester) }}" class="btn btn-sm dashboard-outline-btn">Grade Workspace</a>
+                            <a href="{{ url_for('lecturer.course_resources', course_code=row.course.course_code) }}" class="btn btn-sm dashboard-ghost-btn">Provide Resources</a>
+                            <a href="{{ url_for('lecturer.grades_export', course_code=row.course.course_code) }}" class="btn btn-sm btn-light border">Export</a>
+                        </div>
+                    </article>
+                {% endfor %}
             </div>
         {% else %}
             <div class="text-center py-5 border rounded-4 bg-light-subtle">

@@ -116,9 +116,9 @@
                                             <a href="{{ url_for('lecturer.course_roster', course_code=item.course.course_code) }}" class="btn btn-sm dashboard-outline-btn" title="Grade Entry">
                                                 <i class="bi bi-pencil-square"></i> Grade
                                             </a>
-                                            <button class="btn btn-sm btn-outline-secondary" title="Resources (Coming Soon)" disabled>
-                                                <i class="bi bi-folder-symlink"></i>
-                                            </button>
+                                            <a href="{{ url_for('lecturer.course_resources', course_code=item.course.course_code) }}" class="btn btn-sm dashboard-ghost-btn" title="Manage course resources">
+                                                <i class="bi bi-folder-symlink"></i> Resources
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -149,7 +149,7 @@
             </div>
             <div class="card-body p-3 pt-0">
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('lecturer.my_courses') }}" class="quick-link-item hover-lift">
+                    <a href="{{ url_for('lecturer.resource_management') }}" class="quick-link-item hover-lift">
                         <div class="quick-link-icon"><i class="bi bi-journals fs-5"></i></div>
                         <div>
                             <div class="fw-bold text-dark" style="font-size: 0.95rem;">Manage Assigned Resources</div>

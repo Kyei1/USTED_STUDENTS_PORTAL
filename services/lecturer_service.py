@@ -2,7 +2,7 @@
 
 from sqlalchemy import func
 
-from models import Course, CourseLecturer, Enrollment, Grade, db
+from models import Course, CourseLecturer, Enrollment, Grade, Resource, db
 
 
 def _valid_value(raw_value, valid_options, fallback='All'):
@@ -145,6 +145,79 @@ def build_lecturer_course_worklist(staff_id, academic_year='All', class_group='A
     }
 
 
+def build_lecturer_resource_hub(staff_id):
+    """Build lecturer-scoped resource management cards."""
+    allocations = (
+        CourseLecturer.query
+        .join(Course, Course.course_code == CourseLecturer.course_code)
+        .filter(CourseLecturer.staff_id == staff_id)
+        .order_by(CourseLecturer.academic_year.desc(), Course.course_code.asc())
+        .all()
+    )
+
+    if not allocations:
+        return {
+            'resource_cards': [],
+            'totals': {
+                'course_count': 0,
+                'resource_count': 0,
+                'courses_with_resources': 0,
+            },
+        }
+
+    resource_rows = (
+        Resource.query
+        .with_entities(
+            Resource.course_code,
+            func.count(Resource.resource_id),
+            func.max(Resource.upload_date),
+        )
+        .filter(
+            Resource.course_code.in_([allocation.course_code for allocation in allocations]),
+            Resource.resource_type == 'Course',
+        )
+        .group_by(Resource.course_code)
+        .all()
+    )
+
+    resource_map = {
+        course_code: {
+            'resource_count': count,
+            'latest_upload': latest_upload,
+        }
+        for course_code, count, latest_upload in resource_rows
+    }
+
+    resource_cards = []
+    for allocation in allocations:
+        resource_metrics = resource_map.get(
+            allocation.course_code,
+            {
+                'resource_count': 0,
+                'latest_upload': None,
+            },
+        )
+        resource_cards.append(
+            {
+                'allocation': allocation,
+                'course': allocation.course,
+                'resource_count': resource_metrics['resource_count'],
+                'latest_upload': resource_metrics['latest_upload'],
+            }
+        )
+
+    totals = {
+        'course_count': len(resource_cards),
+        'resource_count': sum(card['resource_count'] for card in resource_cards),
+        'courses_with_resources': len([card for card in resource_cards if card['resource_count']]),
+    }
+
+    return {
+        'resource_cards': resource_cards,
+        'totals': totals,
+    }
+
+
 def _lecturer_scope_maps(staff_id):
     """Build quick-lookup maps for lecturer authorization scope."""
     allocations = CourseLecturer.query.filter_by(staff_id=staff_id).all()
@@ -255,6 +328,29 @@ def build_lecturer_draft_workspace(staff_id, academic_year='All', semester='All'
             }
         )
 
+    draft_counts_by_course = {}
+    for row in draft_rows:
+        course_code_key = row['course'].course_code
+        if course_code_key not in draft_counts_by_course:
+            draft_counts_by_course[course_code_key] = {'draft_count': 0, 'valid_count': 0}
+        draft_counts_by_course[course_code_key]['draft_count'] += 1
+        if row['is_valid']:
+            draft_counts_by_course[course_code_key]['valid_count'] += 1
+
+    course_cards = []
+    for allocation in allocations:
+        counts = draft_counts_by_course.get(allocation.course_code, {'draft_count': 0, 'valid_count': 0})
+        course_cards.append(
+            {
+                'course_code': allocation.course_code,
+                'course_name': allocation.course.course_name,
+                'class_group': allocation.class_group,
+                'academic_year': allocation.academic_year,
+                'draft_count': counts['draft_count'],
+                'valid_count': counts['valid_count'],
+            }
+        )
+
     totals = {
         'draft_count': len(draft_rows),
         'valid_count': len([row for row in draft_rows if row['is_valid']]),
@@ -263,6 +359,7 @@ def build_lecturer_draft_workspace(staff_id, academic_year='All', semester='All'
 
     return {
         'draft_rows': draft_rows,
+        'course_cards': course_cards,
         'year_options': year_options,
         'course_options': assigned_course_codes,
         'selected_year': selected_year,

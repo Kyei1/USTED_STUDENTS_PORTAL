@@ -15,6 +15,45 @@
             <span class="badge" style="background: rgba(122,0,22,0.12); color: var(--usted-maroon);">{{ tickets|length }} Total</span>
         </div>
         <div class="card-body p-0">
+                <div class="d-grid gap-3 d-md-none p-3">
+                    {% if tickets %}
+                        {% for ticket in tickets %}
+                            <article class="mobile-data-card">
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                    <div>
+                                        <div class="fw-bold text-dark">#{{ ticket.ticket_id }} - {{ ticket.course_code }}</div>
+                                        <div class="small text-muted">{{ ticket.student_id }}</div>
+                                    </div>
+                                    {% if ticket.status == 'Resolved' %}
+                                        <span class="badge bg-success">Resolved</span>
+                                    {% elif ticket.status == 'Pending' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Open</span>
+                                    {% endif %}
+                                </div>
+                                <p class="small text-muted mb-2">{{ ticket.description }}</p>
+                                <div class="mobile-data-grid mb-2">
+                                    <div class="mobile-data-item"><span class="mobile-data-label">Priority</span><span class="mobile-data-value">{{ ticket.priority }}</span></div>
+                                    <div class="mobile-data-item"><span class="mobile-data-label">Submitted</span><span class="mobile-data-value">{{ ticket.date_submitted.strftime('%b %d, %Y') if ticket.date_submitted else '' }}</span></div>
+                                </div>
+                                <form action="{{ url_for('lecturer.academic_helpdesk') }}" method="POST" class="d-flex flex-wrap gap-2">
+                                    <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
+                                    <select name="status" class="form-select form-select-sm flex-fill" {% if ticket.status == 'Resolved' %}disabled{% endif %}>
+                                        <option value="Open" {% if ticket.status == 'Open' %}selected{% endif %}>Open</option>
+                                        <option value="Pending" {% if ticket.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                        <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                    </select>
+                                    {% if ticket.status != 'Resolved' %}
+                                        <button type="submit" class="btn btn-sm dashboard-outline-btn">Update</button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-light disabled">Done</button>
+                                    {% endif %}
+                                </form>
+                            </article>
+                        {% endfor %}
+                    {% endif %}
+                </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-muted small text-uppercase" style="letter-spacing: 0.05em;">

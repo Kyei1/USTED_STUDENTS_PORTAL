@@ -32,6 +32,24 @@
         <div class="col-12">
             <article class="border rounded-4 p-4 h-100">
                 <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Awaiting HOD Approval</h2>
+                <div class="d-grid gap-3 d-md-none mb-3">
+                    {% for item in submission_groups['Pending_HOD'] %}
+                        <article class="mobile-data-card">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div>
+                                    <div class="fw-bold text-dark">{{ item.student.student_id }}</div>
+                                    <div class="small text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</div>
+                                </div>
+                                <span class="badge bg-light text-dark border">{{ item.letter }}</span>
+                            </div>
+                            <div class="mobile-data-grid">
+                                <div class="mobile-data-item"><span class="mobile-data-label">Course</span><span class="mobile-data-value">{{ item.course.course_code }}</span></div>
+                                <div class="mobile-data-item"><span class="mobile-data-label">Total</span><span class="mobile-data-value">{{ item.total_score|round(1) }}</span></div>
+                                <div class="mobile-data-item"><span class="mobile-data-label">Period</span><span class="mobile-data-value">{{ item.enrollment.academic_year }} {{ item.enrollment.semester }}</span></div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
                         <thead class="table-light">
@@ -78,6 +96,24 @@
         <div class="col-12">
             <article class="border rounded-4 p-4 h-100">
                 <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Awaiting Board Approval</h2>
+                <div class="d-grid gap-3 d-md-none mb-3">
+                    {% for item in submission_groups['Pending_Board'] %}
+                        <article class="mobile-data-card">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div>
+                                    <div class="fw-bold text-dark">{{ item.student.student_id }}</div>
+                                    <div class="small text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</div>
+                                </div>
+                                <span class="badge" style="background: var(--usted-gold); color: var(--usted-ink);">{{ item.letter }}</span>
+                            </div>
+                            <div class="mobile-data-grid">
+                                <div class="mobile-data-item"><span class="mobile-data-label">Course</span><span class="mobile-data-value">{{ item.course.course_code }}</span></div>
+                                <div class="mobile-data-item"><span class="mobile-data-label">Total</span><span class="mobile-data-value">{{ item.total_score|round(1) }}</span></div>
+                                <div class="mobile-data-item"><span class="mobile-data-label">Period</span><span class="mobile-data-value">{{ item.enrollment.academic_year }} {{ item.enrollment.semester }}</span></div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
                         <thead class="table-light">

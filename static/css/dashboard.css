@@ -218,6 +218,15 @@
     box-shadow: 0 10px 24px rgba(122, 0, 22, 0.08);
 }
 
+.dashboard-header-card .badge,
+.dashboard-panel .badge,
+.panel-card .badge,
+.course-workload-card .badge,
+.resource-hub-card .badge {
+    border: 1px solid rgba(122, 0, 22, 0.12);
+    box-shadow: 0 0.35rem 0.85rem rgba(122, 0, 22, 0.08);
+}
+
 .dashboard-ghost-btn {
     border: 1px solid var(--usted-border);
     color: var(--usted-ink);
@@ -251,6 +260,72 @@
 .dashboard-outline-btn:hover {
     background: var(--usted-maroon);
     color: #fff;
+}
+
+.course-workload-grid,
+.resource-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.course-workload-card,
+.resource-hub-card {
+    border: 1px solid var(--usted-border);
+    border-radius: 1.15rem;
+    background: linear-gradient(180deg, #ffffff 0%, #fffaf4 100%);
+    padding: 1.15rem;
+    box-shadow: 0 12px 26px rgba(122, 0, 22, 0.08);
+}
+
+.course-workload-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.course-workload-stat {
+    padding: 0.85rem 0.9rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(122, 0, 22, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.course-workload-stat-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--usted-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.25rem;
+}
+
+.course-workload-stat-value {
+    display: block;
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: var(--usted-ink);
+}
+
+.course-workload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+@media (max-width: 1399.98px) {
+    .course-workload-grid,
+    .resource-hub-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .course-workload-grid,
+    .resource-hub-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .quick-link-item {
@@ -291,6 +366,130 @@
 .alerts-empty-icon {
     color: var(--usted-maroon);
     opacity: 0.5;
+}
+
+.panel-card {
+    border: 1px solid var(--usted-border);
+    border-radius: 1rem;
+    padding: 1.15rem;
+    background: #fff;
+}
+
+.panel-title {
+    color: var(--usted-maroon);
+    font-weight: 800;
+    font-size: 1.03rem;
+    margin-bottom: 0.9rem;
+}
+
+.theme-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.theme-badge-soft {
+    background: var(--usted-maroon-soft);
+    color: var(--usted-maroon);
+}
+
+.theme-badge-gold {
+    background: var(--usted-gold-soft);
+    color: var(--usted-ink);
+}
+
+.theme-badge-maroon {
+    background: rgba(122, 0, 22, 0.12);
+    color: var(--usted-maroon);
+}
+
+.theme-badge-neutral {
+    background: rgba(75, 85, 99, 0.12);
+    color: #374151;
+}
+
+.mode-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.mode-option {
+    border: 1px solid rgba(122, 0, 22, 0.2);
+    border-radius: 0.9rem;
+    padding: 0.75rem 0.85rem;
+    background: #fff;
+    text-decoration: none;
+    color: inherit;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.mode-option:hover {
+    border-color: rgba(122, 0, 22, 0.45);
+    background: rgba(122, 0, 22, 0.03);
+}
+
+.mode-option-title {
+    font-weight: 800;
+    color: var(--usted-maroon);
+    font-size: 0.94rem;
+}
+
+.mode-option-note {
+    color: #4b5563;
+    font-size: 0.8rem;
+}
+
+.mobile-data-card {
+    border: 1px solid var(--usted-border);
+    border-radius: 1rem;
+    background: #fff;
+    padding: 1rem;
+    box-shadow: 0 10px 22px rgba(122, 0, 22, 0.06);
+}
+
+.mobile-data-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.mobile-data-item {
+    min-width: 0;
+}
+
+.mobile-data-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--usted-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.25rem;
+}
+
+.mobile-data-value {
+    display: block;
+    color: var(--usted-ink);
+    font-weight: 700;
+    word-break: break-word;
+}
+
+.mobile-split {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+@media (max-width: 767.98px) {
+    .mode-selector-grid,
+    .mobile-data-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @keyframes wavePulse {
