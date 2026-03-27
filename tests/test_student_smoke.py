@@ -6,7 +6,8 @@ Run with:
 
 import unittest
 
-from app import app, db
+from app import create_app
+from models import db
 from seed_db import seed_initial_data
 
 
@@ -15,13 +16,14 @@ class StudentPortalSmokeTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        with app.app_context():
+        cls.app = create_app('sqlite:///student_smoke.db')
+        with cls.app.app_context():
             db.drop_all()
             db.create_all()
-        seed_initial_data(reset_schema=False)
+        seed_initial_data(reset_schema=False, target_app=cls.app)
 
     def setUp(self):
-        self.client = app.test_client()
+        self.client = self.app.test_client()
 
     def _login(self):
         response = self.client.post(

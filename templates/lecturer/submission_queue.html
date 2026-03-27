@@ -9,20 +9,20 @@
             <h1 class="h4 fw-bold mb-1" style="color: var(--usted-maroon);">Submission Queue</h1>
             <p class="text-muted mb-0">Track grades awaiting HOD and Board review.</p>
         </div>
-        <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+        <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm dashboard-ghost-btn">Back to Dashboard</a>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-6">
             <article class="border rounded-3 p-3 h-100">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Pending HOD Review</p>
-                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ total_pending_hod }}</p>
+                <span class="badge rounded-pill theme-badge theme-badge-gold">{{ total_pending_hod }}</span>
             </article>
         </div>
         <div class="col-12 col-md-6">
             <article class="border rounded-3 p-3 h-100">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Pending Board Review</p>
-                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ total_pending_board }}</p>
+                <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ total_pending_board }}</span>
             </article>
         </div>
     </div>
@@ -40,7 +40,7 @@
                                     <div class="fw-bold text-dark">{{ item.student.student_id }}</div>
                                     <div class="small text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</div>
                                 </div>
-                                <span class="badge bg-light text-dark border">{{ item.letter }}</span>
+                                <span class="badge rounded-pill theme-badge theme-badge-soft">{{ item.letter }}</span>
                             </div>
                             <div class="mobile-data-grid">
                                 <div class="mobile-data-item"><span class="mobile-data-label">Course</span><span class="mobile-data-value">{{ item.course.course_code }}</span></div>
@@ -76,7 +76,7 @@
                                         <strong>{{ item.total_score|round(1) }}</strong>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-light text-dark border">{{ item.letter }}</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-soft">{{ item.letter }}</span>
                                     </td>
                                     <td class="text-end text-muted small">
                                         {{ item.enrollment.academic_year }} {{ item.enrollment.semester }}
@@ -104,7 +104,7 @@
                                     <div class="fw-bold text-dark">{{ item.student.student_id }}</div>
                                     <div class="small text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</div>
                                 </div>
-                                <span class="badge" style="background: var(--usted-gold); color: var(--usted-ink);">{{ item.letter }}</span>
+                                <span class="badge rounded-pill theme-badge theme-badge-gold">{{ item.letter }}</span>
                             </div>
                             <div class="mobile-data-grid">
                                 <div class="mobile-data-item"><span class="mobile-data-label">Course</span><span class="mobile-data-value">{{ item.course.course_code }}</span></div>
@@ -140,7 +140,7 @@
                                         <strong>{{ item.total_score|round(1) }}</strong>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge" style="background: var(--usted-gold); color: var(--usted-ink);">{{ item.letter }}</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-gold">{{ item.letter }}</span>
                                     </td>
                                     <td class="text-end text-muted small">
                                         {{ item.enrollment.academic_year }} {{ item.enrollment.semester }}

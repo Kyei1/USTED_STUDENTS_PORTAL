@@ -1,31 +1,18 @@
-from database import get_db_connection
-from werkzeug.security import generate_password_hash
+"""Initialize the current portal schema and seed baseline data.
+
+This script is kept for convenience and now targets the same database
+used by the Flask app (instance/usted_portal.db).
+"""
+
+from app import app, db
+from seed_db import seed_initial_data
 
 
 def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS STUDENT (
-            student_id   TEXT PRIMARY KEY,
-            first_name   TEXT NOT NULL,
-            last_name    TEXT NOT NULL,
-            Email_address TEXT NOT NULL,
-            password_hash TEXT NOT NULL
-        )
-    ''')
-
-    dummy_password_hash = generate_password_hash('password123')
-    cursor.execute('''
-        INSERT OR IGNORE INTO STUDENT
-            (student_id, first_name, last_name, Email_address, password_hash)
-        VALUES (?, ?, ?, ?, ?)
-    ''', ('STU001', 'John', 'Doe', 'john.doe@usted.edu', dummy_password_hash))
-
-    conn.commit()
-    conn.close()
-    print('Database initialised successfully.')
+    with app.app_context():
+        db.create_all()
+    seed_initial_data(reset_schema=False)
+    print('Database initialized successfully using current schema.')
 
 
 if __name__ == '__main__':

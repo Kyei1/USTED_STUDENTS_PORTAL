@@ -5,9 +5,11 @@ Run with:
 """
 
 import unittest
+from io import BytesIO
 
-from app import app, db
-from models import Grade
+from app import create_app
+from models import db
+from models import Grade, Resource
 from seed_db import seed_initial_data
 
 
@@ -16,13 +18,14 @@ class LecturerPortalSmokeTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        with app.app_context():
+        cls.app = create_app('sqlite:///lecturer_smoke.db')
+        with cls.app.app_context():
             db.drop_all()
             db.create_all()
-        seed_initial_data(reset_schema=False)
+        seed_initial_data(reset_schema=False, target_app=cls.app)
 
     def setUp(self):
-        self.client = app.test_client()
+        self.client = self.app.test_client()
 
     def _login(self):
         response = self.client.post(
@@ -75,7 +78,7 @@ class LecturerPortalSmokeTest(unittest.TestCase):
     def test_grade_workspace_bulk_submit_selected(self):
         self._login()
 
-        with app.app_context():
+        with self.app.app_context():
             draft_grade = Grade.query.filter_by(approval_status='Draft').first()
             self.assertIsNotNone(draft_grade)
             enrollment_id = draft_grade.enrollment_id
@@ -95,10 +98,57 @@ class LecturerPortalSmokeTest(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/lecturer/grade-workspace", response.headers.get("Location", ""))
 
-        with app.app_context():
+        with self.app.app_context():
             refreshed_grade = Grade.query.filter_by(enrollment_id=enrollment_id).first()
             self.assertIsNotNone(refreshed_grade)
             self.assertEqual(refreshed_grade.approval_status, "Pending_HOD")
+
+    def test_course_resource_crud(self):
+        self._login()
+
+        upload_response = self.client.post(
+            "/lecturer/course/ITC356/resources/upload",
+            data={
+                "resource_label": "Week 1 Slides",
+                "resource_file": (BytesIO(b"slides content"), "week1.pdf"),
+            },
+            content_type="multipart/form-data",
+            follow_redirects=False,
+        )
+        self.assertEqual(upload_response.status_code, 302)
+        self.assertIn("/lecturer/course/ITC356/resources", upload_response.headers.get("Location", ""))
+
+        with self.app.app_context():
+            created_resource = (
+                Resource.query
+                .filter_by(course_code="ITC356", resource_type="Course", file_name="Week 1 Slides")
+                .order_by(Resource.resource_id.desc())
+                .first()
+            )
+            self.assertIsNotNone(created_resource)
+            resource_id = created_resource.resource_id
+
+        update_response = self.client.post(
+            f"/lecturer/course/ITC356/resources/{resource_id}/update",
+            data={"resource_label": "Week 1 Lecture Slides"},
+            follow_redirects=False,
+        )
+        self.assertEqual(update_response.status_code, 302)
+
+        with self.app.app_context():
+            updated_resource = Resource.query.filter_by(resource_id=resource_id).first()
+            self.assertIsNotNone(updated_resource)
+            self.assertEqual(updated_resource.file_name, "Week 1 Lecture Slides")
+
+        delete_response = self.client.post(
+            f"/lecturer/course/ITC356/resources/{resource_id}/delete",
+            follow_redirects=False,
+        )
+        self.assertEqual(delete_response.status_code, 302)
+
+        with self.app.app_context():
+            deleted_resource = Resource.query.filter_by(resource_id=resource_id).first()
+            self.assertIsNone(deleted_resource)
 
 
 if __name__ == "__main__":

@@ -28,13 +28,13 @@ def _warn_if_legacy_grade_schema(app):
         app.logger.warning("Grade schema compatibility check skipped: %s", exc)
 
 
-def create_app():
+def create_app(database_uri=None):
     """Application factory for the USTED Students Portal."""
     app = Flask(__name__)
     
     # Configuration
     app.secret_key = os.environ.get('SECRET_KEY', 'change-this-secret-key-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///usted_portal.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_uri or 'sqlite:///usted_portal.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Initialize database with app

@@ -11,7 +11,8 @@ import random
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
 
-from app import app, db
+from app import app as default_app
+from models import db
 from models import (
 	Admin,
 	Announcement,
@@ -27,12 +28,13 @@ from models import (
 )
 
 
-def seed_initial_data(reset_schema=True):
+def seed_initial_data(reset_schema=True, target_app=None):
 	"""Populate initial comprehensive test data for all USTED modules.
 
 	When reset_schema is True, tables are dropped and recreated before seeding.
 	"""
-	with app.app_context():
+	active_app = target_app or default_app
+	with active_app.app_context():
 		print("\n" + "="*70)
 		print("USTED STUDENTS PORTAL - DATABASE SEED")
 		print("="*70)

@@ -1,6 +1,8 @@
 import sqlite3
+from pathlib import Path
 
-DATABASE = 'students_portal.db'
+# Keep legacy sqlite helper aligned with the Flask app database location.
+DATABASE = str(Path('instance') / 'usted_portal.db')
 
 
 def get_db_connection():

@@ -10,7 +10,7 @@
             <p class="text-muted mb-0">{{ allocation.course.course_name }} • {{ selected_year }} • {{ selected_semester }} Semester</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+            <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm dashboard-ghost-btn">Back to Dashboard</a>
         </div>
     </div>
 
@@ -18,25 +18,25 @@
         <div class="col-12 col-md-3">
             <article class="border rounded-3 p-3 h-100">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Draft</p>
-                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ status_counts.get('Draft', 0) }}</p>
+                <span class="badge rounded-pill theme-badge theme-badge-soft">{{ status_counts.get('Draft', 0) }}</span>
             </article>
         </div>
         <div class="col-12 col-md-3">
             <article class="border rounded-3 p-3 h-100">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Pending HOD</p>
-                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ status_counts.get('Pending_HOD', 0) }}</p>
+                <span class="badge rounded-pill theme-badge theme-badge-gold">{{ status_counts.get('Pending_HOD', 0) }}</span>
             </article>
         </div>
         <div class="col-12 col-md-3">
             <article class="border rounded-3 p-3 h-100">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Pending Board</p>
-                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ status_counts.get('Pending_Board', 0) }}</p>
+                <span class="badge rounded-pill theme-badge theme-badge-neutral">{{ status_counts.get('Pending_Board', 0) }}</span>
             </article>
         </div>
         <div class="col-12 col-md-3">
             <article class="border rounded-3 p-3 h-100">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Published</p>
-                <p class="h5 mb-0" style="color: var(--usted-maroon);">{{ status_counts.get('Published', 0) }}</p>
+                <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ status_counts.get('Published', 0) }}</span>
             </article>
         </div>
     </div>
@@ -63,7 +63,7 @@
             </select>
         </div>
         <div class="col-12 col-md-4 d-grid">
-            <button type="submit" class="btn btn-outline-secondary">Load Period</button>
+            <button type="submit" class="btn dashboard-ghost-btn">Load Period</button>
         </div>
     </form>
 
@@ -94,8 +94,8 @@
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2 mb-2">
-                        <button type="submit" name="submit_action" value="save_draft" class="btn btn-sm btn-outline-secondary flex-fill">Save Draft</button>
-                        <button type="submit" name="submit_action" value="submit_hod" class="btn btn-sm flex-fill" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Submit to HOD</button>
+                        <button type="submit" name="submit_action" value="save_draft" class="btn btn-sm dashboard-ghost-btn flex-fill">Save Draft</button>
+                        <button type="submit" name="submit_action" value="submit_hod" class="btn btn-sm dashboard-accent-btn flex-fill">Submit to HOD</button>
                     </div>
                 </article>
             {% endfor %}
@@ -143,16 +143,16 @@
                                     </div>
                                     <div class="col-12 col-md-2 text-md-center">
                                         {% if enrollment.grade %}
-                                            <span class="badge bg-light text-dark border">{{ enrollment.grade.approval_status }}</span>
+                                            <span class="badge rounded-pill theme-badge theme-badge-soft">{{ enrollment.grade.approval_status }}</span>
                                         {% else %}
-                                            <span class="badge bg-light text-dark border">New</span>
+                                            <span class="badge rounded-pill theme-badge theme-badge-neutral">New</span>
                                         {% endif %}
                                     </div>
                                     <div class="col-12 col-md-3 d-grid d-md-flex justify-content-md-end">
-                                        <button type="submit" name="submit_action" value="save_draft" class="btn btn-sm btn-outline-secondary">Save Draft</button>
+                                        <button type="submit" name="submit_action" value="save_draft" class="btn btn-sm dashboard-ghost-btn">Save Draft</button>
                                     </div>
                                     <div class="col-12 col-md-3 d-grid d-md-flex justify-content-md-end">
-                                        <button type="submit" name="submit_action" value="submit_hod" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Submit to HOD</button>
+                                        <button type="submit" name="submit_action" value="submit_hod" class="btn btn-sm dashboard-accent-btn">Submit to HOD</button>
                                     </div>
                                 </div>
                             </td>
@@ -167,13 +167,13 @@
                 <p class="small text-muted fw-semibold mb-3">Bulk Actions</p>
             </div>
             <div class="col-12 col-md-6">
-                <button type="submit" name="bulk_action" value="save_all_drafts" class="btn btn-sm btn-outline-secondary w-100">
+                <button type="submit" name="bulk_action" value="save_all_drafts" class="btn btn-sm dashboard-ghost-btn w-100">
                     Save All as Drafts
                 </button>
                 <small class="text-muted d-block mt-1">Saves all entered grades without submission</small>
             </div>
             <div class="col-12 col-md-6">
-                <button type="submit" name="bulk_action" value="submit_all_hod" class="btn btn-sm w-100" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">
+                <button type="submit" name="bulk_action" value="submit_all_hod" class="btn btn-sm dashboard-accent-btn w-100">
                     Submit All to HOD
                 </button>
                 <small class="text-muted d-block mt-1">Submits all entered grades for HOD approval</small>

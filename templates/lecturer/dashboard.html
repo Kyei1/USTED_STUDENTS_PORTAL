@@ -8,15 +8,15 @@
 
 {% block content %}
 <!-- Top Header Area -->
-<section class="dashboard-header-card rounded-4 p-4 p-lg-5 mb-4">
+<section class="dashboard-greeting-strip mb-4 px-1 py-2">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-4">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Welcome back, {{ lecturer.first_name }} <span class="greeting-emoji" aria-hidden="true">👋</span></h1>
             <p class="text-muted mb-0">Manage your courses, grading workload, and student helpdesk from this workspace.</p>
         </div>
         <div class="d-flex gap-2">
-            <span class="badge rounded-pill text-bg-light">ID: {{ lecturer.staff_id }}</span>
-            <span class="badge rounded-pill" style="background: rgba(122,0,22,0.12); color: var(--usted-maroon);">{{ lecturer.role }}</span>
+            <span class="badge rounded-pill theme-badge theme-badge-soft">ID: {{ lecturer.staff_id }}</span>
+            <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ lecturer.role }}</span>
         </div>
     </div>
 </section>

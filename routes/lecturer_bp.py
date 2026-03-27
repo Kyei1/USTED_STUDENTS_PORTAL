@@ -3,11 +3,14 @@
 from functools import wraps
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 
-from flask import Blueprint, render_template, session, redirect, url_for, flash, request, Response
+from flask import Blueprint, render_template, session, redirect, url_for, flash, request, Response, current_app
 from sqlalchemy import func
 import csv
+import os
 from io import StringIO
+from uuid import uuid4
 
 from models import Lecturer, CourseLecturer, Course, Enrollment, Student, Grade, SupportTicket, Announcement, Resource, db
 from services.gpa_service import score_to_letter, scaled_exam_score
@@ -24,6 +27,10 @@ lecturer_bp = Blueprint(
     __name__,
     url_prefix='/lecturer',
 )
+
+ALLOWED_RESOURCE_EXTENSIONS = {
+    'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'csv', 'zip'
+}
 
 
 def lecturer_login_required(view_func):
@@ -43,6 +50,59 @@ def get_current_lecturer():
     if not lecturer_id:
         return None
     return Lecturer.query.filter_by(staff_id=lecturer_id).first()
+
+
+def _lecturer_course_allocation(staff_id, course_code):
+    """Resolve a lecturer's latest allocation row for a course."""
+    return (
+        CourseLecturer.query
+        .join(Course, Course.course_code == CourseLecturer.course_code)
+        .filter(
+            CourseLecturer.staff_id == staff_id,
+            CourseLecturer.course_code == course_code,
+        )
+        .order_by(CourseLecturer.academic_year.desc())
+        .first()
+    )
+
+
+def _save_course_resource_file(file_storage, course_code):
+    """Persist an uploaded resource file and return web path and original filename."""
+    original_name = secure_filename((file_storage.filename or '').strip())
+    if not original_name:
+        raise ValueError('Select a file to upload.')
+
+    extension = original_name.rsplit('.', 1)[-1].lower() if '.' in original_name else ''
+    if extension not in ALLOWED_RESOURCE_EXTENSIONS:
+        raise ValueError('Unsupported file type. Upload PDF, DOCX, PPTX, XLSX, TXT, CSV, or ZIP.')
+
+    course_segment = secure_filename(course_code.lower()) or 'course'
+    relative_dir = os.path.join('uploads', 'course_resources', course_segment)
+    absolute_dir = os.path.join(current_app.static_folder, relative_dir)
+    os.makedirs(absolute_dir, exist_ok=True)
+
+    stored_name = f"{uuid4().hex}_{original_name}"
+    absolute_file_path = os.path.join(absolute_dir, stored_name)
+    file_storage.save(absolute_file_path)
+
+    web_path = f"/static/{relative_dir.replace(os.sep, '/')}/{stored_name}"
+    return web_path, original_name
+
+
+def _delete_local_resource_file(file_path):
+    """Delete a locally stored resource file if it belongs to static uploads."""
+    if not file_path or not file_path.startswith('/static/uploads/course_resources/'):
+        return
+
+    relative_path = file_path.replace('/static/', '', 1)
+    absolute_path = os.path.abspath(os.path.join(current_app.root_path, 'static', relative_path))
+    static_root = os.path.abspath(current_app.static_folder)
+
+    if not absolute_path.startswith(static_root):
+        return
+
+    if os.path.isfile(absolute_path):
+        os.remove(absolute_path)
 
 
 @lecturer_bp.route('/dashboard')
@@ -630,16 +690,7 @@ def course_resources(course_code):
         flash('Lecturer record not found. Please log in again.', 'danger')
         return redirect(url_for('public.login'))
 
-    allocation = (
-        CourseLecturer.query
-        .join(Course, Course.course_code == CourseLecturer.course_code)
-        .filter(
-            CourseLecturer.staff_id == lecturer.staff_id,
-            CourseLecturer.course_code == course_code,
-        )
-        .order_by(CourseLecturer.academic_year.desc())
-        .first()
-    )
+    allocation = _lecturer_course_allocation(lecturer.staff_id, course_code)
     if not allocation:
         flash('You are not assigned to this course.', 'danger')
         return redirect(url_for('lecturer.my_courses'))
@@ -660,6 +711,130 @@ def course_resources(course_code):
         allocation=allocation,
         resources=resources,
     )
+
+
+@lecturer_bp.route('/course/<course_code>/resources/upload', methods=['POST'])
+@lecturer_login_required
+def upload_course_resource(course_code):
+    """Upload a course resource for a lecturer-owned course."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        flash('Lecturer record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    allocation = _lecturer_course_allocation(lecturer.staff_id, course_code)
+    if not allocation:
+        flash('You are not assigned to this course.', 'danger')
+        return redirect(url_for('lecturer.my_courses'))
+
+    upload = request.files.get('resource_file')
+    resource_label = (request.form.get('resource_label') or '').strip()
+
+    if not upload or not upload.filename:
+        flash('Select a file before uploading.', 'warning')
+        return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+    try:
+        file_path, original_name = _save_course_resource_file(upload, course_code)
+    except ValueError as exc:
+        flash(str(exc), 'danger')
+        return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+    resource = Resource(
+        course_code=course_code,
+        department_id=allocation.course.department_id,
+        file_name=resource_label or original_name,
+        resource_type='Course',
+        file_path=file_path,
+    )
+    db.session.add(resource)
+    db.session.commit()
+    flash('Course resource uploaded successfully.', 'success')
+    return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+
+@lecturer_bp.route('/course/<course_code>/resources/<int:resource_id>/update', methods=['POST'])
+@lecturer_login_required
+def update_course_resource(course_code, resource_id):
+    """Update a resource label and optionally replace the uploaded file."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        flash('Lecturer record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    allocation = _lecturer_course_allocation(lecturer.staff_id, course_code)
+    if not allocation:
+        flash('You are not assigned to this course.', 'danger')
+        return redirect(url_for('lecturer.my_courses'))
+
+    resource = (
+        Resource.query
+        .filter_by(resource_id=resource_id, course_code=course_code, resource_type='Course')
+        .first()
+    )
+    if not resource:
+        flash('Resource record not found for this course.', 'danger')
+        return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+    resource_label = (request.form.get('resource_label') or '').strip()
+    replacement = request.files.get('resource_file')
+
+    if not resource_label and (not replacement or not replacement.filename):
+        flash('No changes detected for this resource.', 'warning')
+        return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+    if resource_label:
+        resource.file_name = resource_label
+
+    if replacement and replacement.filename:
+        try:
+            file_path, _ = _save_course_resource_file(replacement, course_code)
+        except ValueError as exc:
+            flash(str(exc), 'danger')
+            return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+        old_path = resource.file_path
+        resource.file_path = file_path
+        _delete_local_resource_file(old_path)
+
+    db.session.commit()
+    flash('Course resource updated successfully.', 'success')
+    return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+
+@lecturer_bp.route('/course/<course_code>/resources/<int:resource_id>/delete', methods=['POST'])
+@lecturer_login_required
+def delete_course_resource(course_code, resource_id):
+    """Delete a course resource from lecturer scope."""
+    lecturer = get_current_lecturer()
+    if not lecturer:
+        session.clear()
+        flash('Lecturer record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    allocation = _lecturer_course_allocation(lecturer.staff_id, course_code)
+    if not allocation:
+        flash('You are not assigned to this course.', 'danger')
+        return redirect(url_for('lecturer.my_courses'))
+
+    resource = (
+        Resource.query
+        .filter_by(resource_id=resource_id, course_code=course_code, resource_type='Course')
+        .first()
+    )
+    if not resource:
+        flash('Resource record not found for this course.', 'danger')
+        return redirect(url_for('lecturer.course_resources', course_code=course_code))
+
+    old_path = resource.file_path
+    db.session.delete(resource)
+    db.session.commit()
+    _delete_local_resource_file(old_path)
+
+    flash('Course resource deleted successfully.', 'success')
+    return redirect(url_for('lecturer.course_resources', course_code=course_code))
 
 
 @lecturer_bp.route('/resource-management')

@@ -159,6 +159,11 @@
     box-shadow: 0 10px 24px rgba(122, 0, 22, 0.08);
 }
 
+.dashboard-greeting-strip {
+    border-bottom: 1px solid rgba(122, 0, 22, 0.14);
+    background: transparent;
+}
+
 .kpi-card {
     border-color: #e9edf3;
 }
@@ -260,6 +265,30 @@
 .dashboard-outline-btn:hover {
     background: var(--usted-maroon);
     color: #fff;
+}
+
+.dashboard-accent-btn {
+    background: var(--usted-gold);
+    color: var(--usted-ink);
+    border: 1px solid rgba(176, 126, 0, 0.35);
+    font-weight: 700;
+}
+
+.dashboard-accent-btn:hover {
+    background: #c8910e;
+    color: var(--usted-ink);
+}
+
+.dashboard-danger-btn {
+    background: #fff;
+    color: #b42318;
+    border: 1px solid rgba(180, 35, 24, 0.35);
+    font-weight: 700;
+}
+
+.dashboard-danger-btn:hover {
+    background: rgba(180, 35, 24, 0.08);
+    color: #8c1a12;
 }
 
 .course-workload-grid,

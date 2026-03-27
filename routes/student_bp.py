@@ -46,6 +46,23 @@ def login_required(view_func):
     return wrapped_view
 
 
+def _resolve_current_period(all_enrollments):
+    """Resolve active period, preferring latest period with unfinished grades."""
+    if not all_enrollments:
+        start_year = datetime.now().year
+        return (f'{start_year}/{start_year + 1}', 'First')
+
+    unfinished = [
+        enrollment
+        for enrollment in all_enrollments
+        if not enrollment.grade or enrollment.grade.approval_status != 'Published'
+    ]
+
+    source = unfinished if unfinished else all_enrollments
+    active_enrollment = max(source, key=academic_period_rank)
+    return (active_enrollment.academic_year, active_enrollment.semester)
+
+
 @student_bp.route('/announcements/mark-read', methods=['POST'])
 @login_required
 def mark_announcements_read():
@@ -96,13 +113,6 @@ def dashboard():
         flash('Student record not found. Please log in again.', 'danger')
         return redirect(url_for('public.login'))
 
-    enrollments = (
-        Enrollment.query.filter_by(student_id=student.student_id)
-        .order_by(Enrollment.academic_year.desc())
-        .limit(6)
-        .all()
-    )
-
     all_enrollments = Enrollment.query.filter_by(student_id=student.student_id).all()
     latest_financial = (
         FinancialStatus.query.filter_by(student_id=student.student_id)
@@ -124,12 +134,18 @@ def dashboard():
         greeting_phrase = 'Good Night'
         greeting_emoji = '✨'
 
-    if all_enrollments:
-        active_enrollment = max(all_enrollments, key=academic_period_rank)
-        current_period = (active_enrollment.academic_year, active_enrollment.semester)
-    else:
-        start_year = datetime.now().year
-        current_period = (f'{start_year}/{start_year + 1}', 'First')
+    current_period = _resolve_current_period(all_enrollments)
+
+    enrollments = (
+        Enrollment.query.filter_by(
+            student_id=student.student_id,
+            academic_year=current_period[0],
+            semester=current_period[1],
+        )
+        .join(Course, Enrollment.course_code == Course.course_code)
+        .order_by(Course.course_code.asc())
+        .all()
+    )
 
     current_period_enrolled_codes = {
         row.course_code
@@ -316,12 +332,7 @@ def my_courses():
         .all()
     )
 
-    if all_enrollments:
-        active_enrollment = max(all_enrollments, key=academic_period_rank)
-        current_period = (active_enrollment.academic_year, active_enrollment.semester)
-    else:
-        start_year = datetime.now().year
-        current_period = (f'{start_year}/{start_year + 1}', 'First')
+    current_period = _resolve_current_period(all_enrollments)
 
     next_period = build_next_period(current_period)
 

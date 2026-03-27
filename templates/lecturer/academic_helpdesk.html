@@ -12,7 +12,7 @@
     <div class="card border border-light shadow-sm rounded-4">
         <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold" style="color: var(--usted-ink);">Student Tickets</h5>
-            <span class="badge" style="background: rgba(122,0,22,0.12); color: var(--usted-maroon);">{{ tickets|length }} Total</span>
+            <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ tickets|length }} Total</span>
         </div>
         <div class="card-body p-0">
                 <div class="d-grid gap-3 d-md-none p-3">
@@ -25,11 +25,11 @@
                                         <div class="small text-muted">{{ ticket.student_id }}</div>
                                     </div>
                                     {% if ticket.status == 'Resolved' %}
-                                        <span class="badge bg-success">Resolved</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-soft">Resolved</span>
                                     {% elif ticket.status == 'Pending' %}
-                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-gold">Pending</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Open</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-neutral">Open</span>
                                     {% endif %}
                                 </div>
                                 <p class="small text-muted mb-2">{{ ticket.description }}</p>
@@ -76,11 +76,11 @@
                                 </td>
                                 <td class="py-3">
                                     {% if ticket.priority == 'High' %}
-                                        <span class="badge border border-danger text-danger bg-light">High</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-maroon">High</span>
                                     {% elif ticket.priority == 'Medium' %}
-                                        <span class="badge border border-warning text-warning bg-light">Medium</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-gold">Medium</span>
                                     {% else %}
-                                        <span class="badge border border-info text-info bg-light">Low</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-soft">Low</span>
                                     {% endif %}
                                 </td>
                                 <td class="py-3 text-muted small">
@@ -88,11 +88,11 @@
                                 </td>
                                 <td class="py-3">
                                     {% if ticket.status == 'Resolved' %}
-                                        <span class="badge bg-success shadow-sm"><i class="bi bi-check-circle me-1"></i> Resolved</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-soft"><i class="bi bi-check-circle me-1"></i> Resolved</span>
                                     {% elif ticket.status == 'Pending' %}
-                                        <span class="badge bg-warning text-dark shadow-sm"><i class="bi bi-hourglass-split me-1"></i> Pending</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-gold"><i class="bi bi-hourglass-split me-1"></i> Pending</span>
                                     {% else %}
-                                        <span class="badge bg-secondary shadow-sm"><i class="bi bi-envelope me-1"></i> Open</span>
+                                        <span class="badge rounded-pill theme-badge theme-badge-neutral"><i class="bi bi-envelope me-1"></i> Open</span>
                                     {% endif %}
                                 </td>
                                 <td class="px-4 py-3 text-end">
@@ -107,7 +107,7 @@
                                         </select>
                                         
                                         {% if ticket.status != 'Resolved' %}
-                                            <button type="submit" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Update</button>
+                                            <button type="submit" class="btn btn-sm dashboard-outline-btn">Update</button>
                                         {% else %}
                                             <button type="button" class="btn btn-sm btn-light disabled">Done</button>
                                         {% endif %}

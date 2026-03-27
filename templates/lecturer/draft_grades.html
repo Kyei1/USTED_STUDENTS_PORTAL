@@ -14,10 +14,10 @@
             <p class="text-muted mb-0">Cross-course Draft review and bulk handoff to HOD approval.</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <span class="badge rounded-pill text-bg-light">{{ totals.draft_count }} Draft Records</span>
-            <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ totals.valid_count }} Valid</span>
+            <span class="badge rounded-pill theme-badge theme-badge-soft">{{ totals.draft_count }} Draft Records</span>
+            <span class="badge rounded-pill theme-badge theme-badge-gold">{{ totals.valid_count }} Valid</span>
             {% if totals.invalid_count %}
-            <span class="badge rounded-pill text-bg-secondary">{{ totals.invalid_count }} Needs Fix</span>
+            <span class="badge rounded-pill theme-badge theme-badge-neutral">{{ totals.invalid_count }} Needs Fix</span>
             {% endif %}
         </div>
     </div>
@@ -82,7 +82,7 @@
 
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <button type="submit" name="action" value="submit_selected_hod" class="btn btn-sm dashboard-outline-btn">Submit Selected to HOD</button>
-                    <button type="submit" name="action" value="submit_all_hod" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Submit All Valid Drafts</button>
+                    <button type="submit" name="action" value="submit_all_hod" class="btn btn-sm dashboard-accent-btn">Submit All Valid Drafts</button>
                 </div>
 
                 <div class="d-grid gap-3 d-md-none mb-4">
@@ -148,9 +148,9 @@
                                     <td class="text-center">{{ row.grade.grade_letter or 'N/A' }}</td>
                                     <td class="text-center">
                                         {% if row.is_valid %}
-                                            <span class="badge" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">Ready</span>
+                                            <span class="badge rounded-pill theme-badge theme-badge-soft">Ready</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">Needs Fix</span>
+                                            <span class="badge rounded-pill theme-badge theme-badge-neutral">Needs Fix</span>
                                         {% endif %}
                                     </td>
                                     <td class="text-end">

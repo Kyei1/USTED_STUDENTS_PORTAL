@@ -49,9 +49,9 @@ def reset_database():
 		seed_initial_data(reset_schema=False)
 		
 		print("\n" + "="*70)
-		print("✅ DATABASE RESET AND SEED COMPLETE")
+		print(" DATABASE RESET AND SEED COMPLETE")
 		print("="*70)
-		print("\n📝 Next Steps:")
+		print("\n Next Steps:")
 		print("  1. Run 'python app.py' to start the portal")
 		print("  2. Login credentials:")
 		print("     - Student ID: USD260012")
