@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{% block title %}USTED Portal{% endblock %}</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<link
+		href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+		rel="stylesheet"
+		integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+		crossorigin="anonymous"
+	>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+	{% block page_css %}{% endblock %}
+</head>
+<body>
+	{% set is_public_landing = request.endpoint == 'public.index' %}
+	{% set is_student_route = request.blueprint == 'student' and session.get('student_id') %}
+	{% set is_lecturer_route = request.blueprint == 'lecturer' and session.get('lecturer_id') %}
+	{% set is_admin_route = request.blueprint == 'admin' and session.get('admin_id') %}
+	{% set public_footer_endpoints = ['public.index', 'public.login', 'public.forgot_password', 'public.it_helpdesk'] %}
+	{% set uses_public_footer = request.endpoint in public_footer_endpoints %}
+	{% if not is_student_route and not is_lecturer_route and not is_admin_route and is_public_landing %}
+	<header class="main-nav">
+		<div class="container-xxl py-3">
+			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+				<a href="{{ url_for('public.index') }}" class="brand-link">
+					<img
+						src="{{ url_for('static', filename='images/usted-logo.png') }}"
+						alt="USTED Logo"
+						class="brand-logo"
+						onerror="this.outerHTML='<span class=&quot;brand-mark&quot;>U</span>'"
+					>
+					<span>
+						<span class="brand-title">USTED</span>
+						<span class="brand-subtitle">Student Portal</span>
+					</span>
+				</a>
+
+				<button
+					class="btn btn-outline-dark d-lg-none"
+					type="button"
+					id="menuToggle"
+					aria-controls="navMenu"
+					aria-expanded="false"
+					aria-label="Toggle navigation"
+				>
+					Menu
+				</button>
+
+				<div id="navMenu" class="nav-menu d-lg-flex align-items-lg-center gap-lg-2 ms-lg-auto">
+					<a href="#modules" class="nav-link-themed">Modules</a>
+					<a href="#how-it-works" class="nav-link-themed">How It Works</a>
+					<a href="#ready-to-start" class="nav-link-themed">Get Started</a>
+					<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Portal Login</a>
+				</div>
+			</div>
+		</div>
+	</header>
+	{% elif is_lecturer_route %}
+	<!-- Lecturer Shell Layout -->
+	<!-- No separate navbar header needed - using shell layout below -->
+	{% elif is_admin_route %}
+	<header class="main-nav">
+		<div class="container-xxl py-3">
+			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+				<a href="{{ url_for('admin.dashboard') }}" class="brand-link">
+					<img
+						src="{{ url_for('static', filename='images/usted-logo.png') }}"
+						alt="USTED Logo"
+						class="brand-logo"
+						onerror="this.outerHTML='<span class=&quot;brand-mark&quot;>U</span>'"
+					>
+					<span>
+						<span class="brand-title">USTED</span>
+						<span class="brand-subtitle">Admin Portal</span>
+					</span>
+				</a>
+
+				<button
+					class="btn btn-outline-dark d-lg-none"
+					type="button"
+					id="menuToggle"
+					aria-controls="navMenu"
+					aria-expanded="false"
+					aria-label="Toggle navigation"
+				>
+					Menu
+				</button>
+
+				<div id="navMenu" class="nav-menu d-lg-flex align-items-lg-center gap-lg-2 ms-lg-auto">
+					<a href="{{ url_for('admin.dashboard') }}" class="nav-link-themed">Dashboard</a>
+					<a href="{{ url_for('admin.logout') }}" class="btn btn-sm btn-outline-secondary">Log Out</a>
+				</div>
+			</div>
+		</div>
+	</header>
+	{% elif not is_student_route %}
+	<header class="main-nav">
+		<div class="container-xxl py-3">
+			<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+				<a href="{{ url_for('public.index') }}" class="brand-link">
+					<img
+						src="{{ url_for('static', filename='images/usted-logo.png') }}"
+						alt="USTED Logo"
+						class="brand-logo"
+						onerror="this.outerHTML='<span class=&quot;brand-mark&quot;>U</span>'"
+					>
+					<span>
+						<span class="brand-title">USTED</span>
+						<span class="brand-subtitle">Student Portal</span>
+					</span>
+				</a>
+
+				<button
+					class="btn btn-outline-dark d-lg-none"
+					type="button"
+					id="menuToggle"
+					aria-controls="navMenu"
+					aria-expanded="false"
+					aria-label="Toggle navigation"
+				>
+					Menu
+				</button>
+
+				<div id="navMenu" class="nav-menu d-lg-flex align-items-lg-center gap-lg-2 ms-lg-auto">
+					<a href="{{ url_for('public.index') }}" class="nav-link-themed">Portal Features</a>
+					<a href="{{ url_for('public.login') }}" class="nav-link-themed">Login</a>
+					<a href="{{ url_for('public.login') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Portal Login</a>
+				</div>
+			</div>
+		</div>
+	</header>
+	{% endif %}
+
+	{% set page_content %}{% block content %}{% endblock %}{% endset %}
+
+	{% if is_student_route %}
+	<section class="student-shell-layout">
+		<header class="student-shell-topbar">
+			<div class="d-flex align-items-center gap-2">
+				<button class="topbar-icon-btn d-lg-none" id="studentSidebarOpenBtn" type="button" aria-label="Open sidebar">
+					<i class="bi bi-list fs-5"></i>
+				</button>
+				<a href="{{ url_for('student.dashboard') }}" class="student-shell-brand-link">
+					<img src="{{ url_for('static', filename='images/usted-logo.png') }}" alt="USTED Logo" style="width: 36px; height: 36px; object-fit: contain;">
+					<span class="student-shell-brand-text">
+						<strong class="student-shell-brand-title">USTED</strong>
+						<small class="student-shell-brand-subtitle">Student Portal</small>
+					</span>
+				</a>
+			</div>
+
+			<div class="d-flex align-items-center gap-2 ms-auto">
+					<div class="position-relative" id="topNotifyWrap">
+						<button type="button" class="btn btn-sm top-notify-btn position-relative" id="topNotifyBtn" aria-label="View announcements">
+							<i class="bi bi-bell-fill"></i>
+							{% if top_unread_count > 0 %}
+								<span class="top-notify-badge" id="topNotifyBadge">{{ top_unread_count }}</span>
+							{% endif %}
+						</button>
+						<div class="profile-menu notify-menu" id="topNotifyMenu">
+							<p class="notify-title mb-2">Announcements</p>
+							<ul class="notify-list mb-0">
+								{% for item in top_announcements %}
+									<li class="notify-item {% if item.announcement_id not in top_read_announcement_ids %}notify-unread{% endif %}">
+										<strong>{{ item.title }}</strong>
+										<span>{{ item.message }}</span>
+										<small class="text-muted">{{ item.date_posted.strftime('%Y-%m-%d') if item.date_posted else '' }}</small>
+									</li>
+								{% else %}
+									<li class="notify-item">
+										<strong>No announcements yet</strong>
+										<span>New student notices will appear here.</span>
+									</li>
+								{% endfor %}
+							</ul>
+						</div>
+					</div>
+
+					<div class="position-relative" id="topProfileWrap">
+						<button type="button" class="btn btn-sm top-profile-btn d-inline-flex align-items-center gap-2" id="topProfileBtn" aria-label="Open profile menu">
+							<i class="bi bi-person-circle profile-icon"></i>
+							<span class="profile-pill" aria-label="Profile">{{ session.get('first_name', 'U')[:1]|upper }}</span>
+						</button>
+						<div class="profile-menu" id="topProfileMenu">
+							<a href="{{ url_for('student.profile') }}" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
+							<a href="{{ url_for('student.financials') }}" class="profile-item"><i class="bi bi-credit-card-fill"></i> Financial Details</a>
+							<a href="{{ url_for('student.account_settings') }}" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
+							<hr class="my-2">
+							<a href="{{ url_for('student.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+						</div>
+					</div>
+			</div>
+		</header>
+
+		<div class="student-shell-body">
+			<div class="student-shell-overlay" id="studentSidebarOverlay"></div>
+			<aside class="student-shell-sidebar" id="studentSidebar">
+				<div class="student-sidebar-mobile-head d-flex align-items-center justify-content-between px-3 py-2 d-lg-none">
+					<strong class="text-white">Menu</strong>
+					<button class="btn btn-sm text-white" type="button" id="studentSidebarCloseBtn" aria-label="Close sidebar">
+						<i class="bi bi-x-lg"></i>
+					</button>
+				</div>
+				<nav class="flex-grow-1 p-3 d-flex flex-column gap-1">
+					<a href="{{ url_for('student.dashboard') }}" class="student-shell-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+					<a href="{{ url_for('student.my_courses') }}" class="student-shell-link {% if request.endpoint == 'student.my_courses' %}active{% endif %}"><i class="bi bi-book-fill"></i> My Courses</a>
+					<a href="{{ url_for('student.results') }}" class="student-shell-link {% if request.endpoint == 'student.results' %}active{% endif %}"><i class="bi bi-bar-chart-fill"></i> Results</a>
+					<a href="{{ url_for('student.gpa_simulator') }}" class="student-shell-link {% if request.endpoint == 'student.gpa_simulator' %}active{% endif %}"><i class="bi bi-calculator-fill"></i> GPA Simulator</a>
+					<a href="{{ url_for('student.resource_hub') }}" class="student-shell-link {% if request.endpoint == 'student.resource_hub' %}active{% endif %}"><i class="bi bi-folder-fill"></i> Resource Hub</a>
+					<a href="{{ url_for('student.helpdesk') }}" class="student-shell-link {% if request.endpoint == 'student.helpdesk' %}active{% endif %}"><i class="bi bi-life-preserver"></i> Helpdesk Tickets</a>
+				</nav>
+				<div class="p-3" style="border-top: 1px solid rgba(255,255,255,0.12);">
+					<a href="{{ url_for('student.logout') }}" class="student-shell-link"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+				</div>
+			</aside>
+
+			<main class="student-shell-content">
+				{% with messages = get_flashed_messages(with_categories=true) %}
+					{% if messages %}
+						<div class="mb-3">
+							{% for category, message in messages %}
+								<div class="alert alert-{{ 'danger' if category == 'error' else category }} mb-2" role="alert">
+									{{ message }}
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				{% endwith %}
+				{{ page_content | safe }}
+			</main>
+		</div>
+	</section>
+	{% elif is_lecturer_route %}
+	<section class="student-shell-layout">
+		<header class="student-shell-topbar">
+			<div class="d-flex align-items-center gap-2">
+				<button class="topbar-icon-btn d-lg-none" id="studentSidebarOpenBtn" type="button" aria-label="Open sidebar">
+					<i class="bi bi-list fs-5"></i>
+				</button>
+				<a href="{{ url_for('lecturer.dashboard') }}" class="student-shell-brand-link">
+					<img src="{{ url_for('static', filename='images/usted-logo.png') }}" alt="USTED Logo" style="width: 36px; height: 36px; object-fit: contain;">
+					<span class="student-shell-brand-text">
+						<strong class="student-shell-brand-title">USTED</strong>
+						<small class="student-shell-brand-subtitle">Lecturer Portal</small>
+					</span>
+				</a>
+			</div>
+
+			<div class="d-flex align-items-center gap-2 ms-auto">
+				<div class="position-relative" id="topNotifyWrap">
+					<button type="button" class="btn btn-sm top-notify-btn position-relative" id="topNotifyBtn" aria-label="View announcements">
+						<i class="bi bi-bell-fill"></i>
+						{% if top_unread_count > 0 %}
+							<span class="top-notify-badge" id="topNotifyBadge">{{ top_unread_count }}</span>
+						{% endif %}
+					</button>
+					<div class="profile-menu notify-menu" id="topNotifyMenu">
+						<p class="notify-title mb-2">Announcements</p>
+						<ul class="notify-list mb-0">
+							{% for item in top_announcements %}
+								<li class="notify-item {% if item.announcement_id not in top_read_announcement_ids %}notify-unread{% endif %}">
+									<strong>{{ item.title }}</strong>
+									<span>{{ item.message }}</span>
+									<small class="text-muted">{{ item.date_posted.strftime('%Y-%m-%d') if item.date_posted else '' }}</small>
+								</li>
+							{% else %}
+								<li class="notify-item">
+									<strong>No announcements yet</strong>
+									<span>New lecturer notices will appear here.</span>
+								</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+
+				<div class="position-relative" id="topProfileWrap">
+					<button type="button" class="btn btn-sm top-profile-btn d-inline-flex align-items-center gap-2" id="topProfileBtn" aria-label="Open profile menu">
+						<i class="bi bi-person-circle profile-icon"></i>
+						<span class="profile-pill" aria-label="Profile">{{ session.get('lecturer_id', 'L')[:1]|upper }}</span>
+					</button>
+					<div class="profile-menu" id="topProfileMenu">
+						<a href="{{ url_for('lecturer.profile') }}" class="profile-item"><i class="bi bi-person-fill"></i> View Profile</a>
+						<a href="{{ url_for('lecturer.account_settings') }}" class="profile-item"><i class="bi bi-gear-fill"></i> Account Settings</a>
+						<hr class="my-2">
+						<a href="{{ url_for('lecturer.logout') }}" class="profile-item" style="color: #b91c1c;"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<div class="student-shell-body">
+			<div class="student-shell-overlay" id="studentSidebarOverlay"></div>
+			<aside class="student-shell-sidebar" id="studentSidebar">
+				<div class="student-sidebar-mobile-head d-flex align-items-center justify-content-between px-3 py-2 d-lg-none">
+					<strong class="text-white">Menu</strong>
+					<button class="btn btn-sm text-white" type="button" id="studentSidebarCloseBtn" aria-label="Close sidebar">
+						<i class="bi bi-x-lg"></i>
+					</button>
+				</div>
+				<nav class="flex-grow-1 p-3 d-flex flex-column gap-1">
+					<a href="{{ url_for('lecturer.dashboard') }}" class="student-shell-link {% if request.endpoint == 'lecturer.dashboard' %}active{% endif %}">
+						<i class="bi bi-grid-1x2-fill"></i> Dashboard
+					</a>
+					<a href="{{ url_for('lecturer.my_courses') }}" class="student-shell-link {% if request.endpoint == 'lecturer.my_courses' %}active{% endif %}">
+						<i class="bi bi-journal-bookmark-fill"></i> My Courses
+					</a>
+					<a href="{{ url_for('lecturer.resource_management') }}" class="student-shell-link {% if request.endpoint == 'lecturer.resource_management' %}active{% endif %}">
+						<i class="bi bi-folder-fill"></i> Resource Management
+					</a>
+					<a href="{{ url_for('lecturer.grade_workspace') }}" class="student-shell-link {% if request.endpoint == 'lecturer.grade_workspace' %}active{% endif %}">
+						<i class="bi bi-pencil-square"></i> Grade Workspace
+					</a>
+					<a href="{{ url_for('lecturer.submission_queue') }}" class="student-shell-link {% if request.endpoint == 'lecturer.submission_queue' %}active{% endif %}">
+						<i class="bi bi-inbox-fill"></i> Submission Queue
+					</a>
+					<a href="{{ url_for('lecturer.academic_helpdesk') }}" class="student-shell-link {% if request.endpoint == 'lecturer.academic_helpdesk' %}active{% endif %}">
+						<i class="bi bi-headset"></i> Academic Helpdesk
+					</a>
+				</nav>
+				<div class="p-3" style="border-top: 1px solid rgba(255,255,255,0.12);">
+					<a href="{{ url_for('lecturer.logout') }}" class="student-shell-link"><i class="bi bi-box-arrow-right"></i> Log Out</a>
+				</div>
+			</aside>
+
+			<main class="student-shell-content">
+				{% with messages = get_flashed_messages(with_categories=true) %}
+					{% if messages %}
+						<div class="mb-3">
+							{% for category, message in messages %}
+								<div class="alert alert-{{ 'danger' if category == 'error' else category }} mb-2" role="alert">
+									{{ message }}
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				{% endwith %}
+				{{ page_content | safe }}
+			</main>
+		</div>
+	</section>
+	{% else %}
+	<main class="container-fluid content-wrap px-3 px-lg-4">
+		<section>
+			{% with messages = get_flashed_messages(with_categories=true) %}
+				{% if messages %}
+					<div class="mb-3">
+						{% for category, message in messages %}
+							<div class="alert alert-{{ 'danger' if category == 'error' else category }} mb-2" role="alert">
+								{{ message }}
+							</div>
+						{% endfor %}
+					</div>
+				{% endif %}
+			{% endwith %}
+			{{ page_content | safe }}
+		</section>
+	</main>
+	{% endif %}
+
+	{% if not is_student_route and not is_lecturer_route and not is_admin_route and uses_public_footer %}
+	<footer class="site-footer py-4 px-3 px-lg-4" style="background: #8f2337; color: #fdf6f8; border-top: 1px solid rgba(255,255,255,0.15);">
+		<div class="container-xxl">
+			<div class="row g-4">
+				<div class="col-12 col-md-4">
+					<h3 class="h6 fw-bold mb-2">University of Skills Training and Entrepreneural Development</h3>
+					<p class="small mb-0" style="color: rgba(255,255,255,0.85);">Digital services for transparent, student-centered academic administration.</p>
+				</div>
+				<div class="col-12 col-md-4">
+					<h3 class="h6 fw-bold mb-2">Contact</h3>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Admissions and Registry: +233 000 000 000</p>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Student Affairs: support@usted.edu.gh</p>
+					<p class="small mb-0" style="color: rgba(255,255,255,0.9);">Campus: USTED Main Campus, Ghana</p>
+				</div>
+				<div class="col-12 col-md-4">
+					<h3 class="h6 fw-bold mb-2">Portal Scope</h3>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Results and Transcript</p>
+					<p class="small mb-1" style="color: rgba(255,255,255,0.9);">Course Registration and GPA Simulation</p>
+					<p class="small mb-0" style="color: rgba(255,255,255,0.9);">Financials and Helpdesk Support</p>
+				</div>
+			</div>
+			<hr class="my-3" style="border-color: rgba(255,255,255,0.25);">
+			<p class="small mb-0" style="color: rgba(255,255,255,0.82);">&copy; {{ 2026 }} USTED. All rights reserved.</p>
+		</div>
+	</footer>
+	{% endif %}
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+		crossorigin="anonymous"
+	></script>
+	<script src="{{ url_for('static', filename='js/base.js') }}"></script>
+	{% block page_js %}{% endblock %}
+</body>
+</html>

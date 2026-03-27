@@ -1,0 +1,85 @@
+.account-coming-soon {
+    border: 1px solid #e8ebf1;
+    border-radius: 1rem;
+    background: linear-gradient(160deg, #fff, #fff9ef);
+    padding: 1rem;
+}
+
+.coming-soon-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.coming-item {
+    border: 1px solid #eceff3;
+    border-radius: 0.8rem;
+    background: #fff;
+    padding: 0.7rem 0.75rem;
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+}
+
+.coming-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--usted-maroon);
+    background: rgba(122, 0, 22, 0.1);
+    font-size: 0.82rem;
+    flex-shrink: 0;
+}
+
+.coming-title {
+    margin: 0 0 0.15rem;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #1f2937;
+}
+
+.coming-note {
+    color: #4b5563;
+    font-size: 0.79rem;
+    line-height: 1.35;
+}
+
+.coming-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.16rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.69rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.32rem;
+    line-height: 1.15;
+}
+
+.chip-security {
+    background: #fff4f2;
+    border-color: #f3c4bc;
+    color: #8a2f24;
+}
+
+.chip-personalization {
+    background: #f5f8ff;
+    border-color: #c8d8f7;
+    color: #23457a;
+}
+
+.chip-control {
+    background: #f3faf6;
+    border-color: #bfe5cc;
+    color: #1f6a43;
+}
+
+@media (max-width: 767.98px) {
+    .coming-soon-grid {
+        grid-template-columns: 1fr;
+    }
+}

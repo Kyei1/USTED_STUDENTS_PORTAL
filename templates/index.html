@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Enhanced USTED Students Portal{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="landing-page-shell">
+<section class="landing-hero p-4 p-lg-5 mb-4 mb-lg-5">
+    <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+        <div class="col-12 col-lg-9">
+            <span class="badge rounded-pill mb-3" style="background: rgba(219, 161, 17, 0.2); color: #f7d983;">Enhanced SADSS Experience</span>
+            <h1 class="landing-heading fw-bold mb-3">Student-Centered Portal Built for Clarity, Speed, and Support</h1>
+            <p class="lead mb-4 landing-subtext">
+                Access results, project your GPA, track financial clearance, and resolve issues from one streamlined platform.
+            </p>
+            <div class="landing-actions">
+                <a href="{{ url_for('public.login') }}" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 800;">Portal Login</a>
+                <a href="#modules" class="btn btn-outline-light">Explore Modules</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-4 mb-lg-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+        <div>
+            <p class="text-uppercase fw-bold mb-1" style="font-size: 0.78rem; letter-spacing: 0.15em; color: var(--usted-gold-dark);">Quick Highlights</p>
+            <h2 class="h4 fw-bold mb-0" style="color: var(--usted-maroon);">What Students Can Do Instantly</h2>
+        </div>
+    </div>
+    <div class="surface-panel">
+    <div id="highlightsCarousel" class="carousel slide" data-bs-touch="true" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#highlightsCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+        </div>
+
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-maroon"><i class="bi bi-journal-check"></i></span>
+                    <h3>Results Visibility</h3>
+                    <p>View CA and exam score status clearly from one results workspace.</p>
+                </article>
+            </div>
+            <div class="carousel-item">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-gold"><i class="bi bi-graph-up-arrow"></i></span>
+                    <h3>GPA Simulation</h3>
+                    <p>Project SGPA performance and see score targets before final exams.</p>
+                </article>
+            </div>
+            <div class="carousel-item">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-maroon"><i class="bi bi-wallet2"></i></span>
+                    <h3>Financial Tracking</h3>
+                    <p>Monitor billed, paid, and arrears balances with registration clarity.</p>
+                </article>
+            </div>
+            <div class="carousel-item">
+                <article class="landing-info-card highlight-slide-card w-100">
+                    <span class="mini-icon mini-icon-gold"><i class="bi bi-life-preserver"></i></span>
+                    <h3>Helpdesk Support</h3>
+                    <p>Submit technical or academic tickets and track response status.</p>
+                </article>
+            </div>
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#highlightsCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#highlightsCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+    </div>
+</section>
+
+<section id="modules" class="mb-4 mb-lg-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+        <div>
+            <p class="text-uppercase fw-bold mb-1" style="font-size: 0.78rem; letter-spacing: 0.15em; color: var(--usted-gold-dark);">Core Modules</p>
+            <h2 class="h3 fw-bold mb-0" style="color: var(--usted-maroon);">Everything You Need in One Place</h2>
+        </div>
+    </div>
+
+    <div class="surface-panel">
+    <div class="row g-3 g-lg-4">
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-maroon mb-3"><i class="bi bi-journal-check"></i></span>
+                <h3 class="h5 fw-bold">Results Hub</h3>
+                <p class="text-muted mb-0">View course-by-course CA and exam marks with publication status.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-gold mb-3"><i class="bi bi-calculator-fill"></i></span>
+                <h3 class="h5 fw-bold">GPA Simulator</h3>
+                <p class="text-muted mb-0">Estimate semester GPA and understand performance impact instantly.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-maroon mb-3"><i class="bi bi-wallet2"></i></span>
+                <h3 class="h5 fw-bold">Financials</h3>
+                <p class="text-muted mb-0">Track billed amounts, payments, arrears, and registration clearance.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <article class="feature-card bg-white p-4 w-100">
+                <span class="icon-badge icon-gold mb-3"><i class="bi bi-life-preserver"></i></span>
+                <h3 class="h5 fw-bold">Helpdesk</h3>
+                <p class="text-muted mb-0">Submit and monitor support tickets for academic and technical issues.</p>
+            </article>
+        </div>
+    </div>
+    </div>
+</section>
+
+<section id="how-it-works" class="steps-strip p-4 p-lg-5 mb-3">
+    <div class="row g-4 text-center text-lg-start align-items-center">
+        <div class="col-12 col-lg-3">
+            <h2 class="h4 fw-bold mb-0" style="color: var(--usted-maroon);">Get Started in 3 Steps</h2>
+        </div>
+        <div class="col-12 col-lg-9">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <article class="landing-info-card h-100">
+                        <span class="mini-icon mini-icon-maroon"><i class="bi bi-box-arrow-in-right"></i></span>
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">Log In</div>
+                        <div class="small text-muted">Use your portal credentials securely.</div>
+                    </article>
+                </div>
+                <div class="col-12 col-md-4">
+                    <article class="landing-info-card h-100">
+                        <span class="mini-icon mini-icon-gold"><i class="bi bi-grid-3x3-gap-fill"></i></span>
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">Explore</div>
+                        <div class="small text-muted">Open Results, GPA Simulator, and Financials.</div>
+                    </article>
+                </div>
+                <div class="col-12 col-md-4">
+                    <article class="landing-info-card h-100">
+                        <span class="mini-icon mini-icon-maroon"><i class="bi bi-check2-circle"></i></span>
+                        <div class="fw-bold mb-1" style="color: var(--usted-gold-dark);">Resolve</div>
+                        <div class="small text-muted">Submit helpdesk tickets and track updates.</div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="ready-to-start" class="landing-hero p-4 p-lg-5 mt-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 1;">
+        <div class="col-12 col-lg-8">
+            <h2 class="h2 fw-bold mb-2">Ready to access your student workspace?</h2>
+            <p class="mb-0" style="max-width: 680px; opacity: 0.92;">
+                Log in to view your courses, monitor financial clearance, project your GPA, and submit support tickets from a single portal.
+            </p>
+        </div>
+        <div class="col-12 col-lg-4 cta-actions">
+            <a href="{{ url_for('public.login') }}" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 800;">Go to Portal Login</a>
+        </div>
+    </div>
+</section>
+</div>
+{% endblock %}

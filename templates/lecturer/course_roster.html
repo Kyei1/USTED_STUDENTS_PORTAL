@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Roster - Lecturer Workspace{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1" style="color: var(--usted-maroon);">{{ allocation.course.course_code }} Grade Workspace</h1>
+            <p class="text-muted mb-0">{{ allocation.course.course_name }} • {{ selected_year }} • {{ selected_semester }} Semester</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm dashboard-ghost-btn">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Draft</p>
+                <span class="badge rounded-pill theme-badge theme-badge-soft">{{ status_counts.get('Draft', 0) }}</span>
+            </article>
+        </div>
+        <div class="col-12 col-md-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Pending HOD</p>
+                <span class="badge rounded-pill theme-badge theme-badge-gold">{{ status_counts.get('Pending_HOD', 0) }}</span>
+            </article>
+        </div>
+        <div class="col-12 col-md-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Pending Board</p>
+                <span class="badge rounded-pill theme-badge theme-badge-neutral">{{ status_counts.get('Pending_Board', 0) }}</span>
+            </article>
+        </div>
+        <div class="col-12 col-md-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Published</p>
+                <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ status_counts.get('Published', 0) }}</span>
+            </article>
+        </div>
+    </div>
+
+    <form method="get" class="row g-2 align-items-end mb-4">
+        <div class="col-12 col-md-4">
+            <label for="academic_year" class="form-label fw-semibold">Academic Year</label>
+            <select id="academic_year" name="academic_year" class="form-select">
+                {% for year, sem in period_options %}
+                    {% if sem == selected_semester %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                    {% endif %}
+                {% endfor %}
+                {% if not period_options %}
+                    <option value="{{ selected_year }}">{{ selected_year }}</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label for="semester" class="form-label fw-semibold">Semester</label>
+            <select id="semester" name="semester" class="form-select">
+                <option value="First" {% if selected_semester == 'First' %}selected{% endif %}>First</option>
+                <option value="Second" {% if selected_semester == 'Second' %}selected{% endif %}>Second</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4 d-grid">
+            <button type="submit" class="btn dashboard-ghost-btn">Load Period</button>
+        </div>
+    </form>
+
+    {% if roster_rows %}
+    <form id="gradeForm" method="post" class="mb-4">
+        <div class="d-grid gap-3 d-md-none mb-4">
+            {% for row in roster_rows %}
+                {% set enrollment = row.enrollment %}
+                <article class="mobile-data-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <div class="fw-bold text-dark">{{ enrollment.student.student_id }}</div>
+                            <div class="small text-muted">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</div>
+                        </div>
+                        <span class="badge bg-light text-dark border">{{ enrollment.grade.approval_status if enrollment.grade else 'New' }}</span>
+                    </div>
+                    <input type="hidden" name="academic_year" value="{{ selected_year }}">
+                    <input type="hidden" name="semester" value="{{ selected_semester }}">
+                    <input type="hidden" name="enrollment_id" value="{{ enrollment.enrollment_id }}">
+                    <div class="mobile-data-grid mb-3">
+                        <div class="mobile-data-item">
+                            <label class="mobile-data-label" for="ca_mobile_{{ enrollment.enrollment_id }}">CA (0-40)</label>
+                            <input id="ca_mobile_{{ enrollment.enrollment_id }}" name="ca_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="40" step="0.01" class="form-control form-control-sm score-input ca-input" data-enrollment-id="{{ enrollment.enrollment_id }}" value="{{ row.ca_prefill }}" required>
+                        </div>
+                        <div class="mobile-data-item">
+                            <label class="mobile-data-label" for="exam_mobile_{{ enrollment.enrollment_id }}">Raw Exam (0-100)</label>
+                            <input id="exam_mobile_{{ enrollment.enrollment_id }}" name="raw_exam_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="100" step="0.01" class="form-control form-control-sm score-input exam-input" data-enrollment-id="{{ enrollment.enrollment_id }}" value="{{ row.raw_exam_prefill }}" required>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button type="submit" name="submit_action" value="save_draft" class="btn btn-sm dashboard-ghost-btn flex-fill">Save Draft</button>
+                        <button type="submit" name="submit_action" value="submit_hod" class="btn btn-sm dashboard-accent-btn flex-fill">Submit to HOD</button>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <div class="table-responsive d-none d-md-block">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th class="text-center">CA (0-40)</th>
+                        <th class="text-center">Raw Exam (0-100)</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end">Save Draft</th>
+                        <th class="text-end">Submit to HOD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in roster_rows %}
+                        {% set enrollment = row.enrollment %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ enrollment.student.student_id }}</div>
+                                <small class="text-muted">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</small>
+                            </td>
+                            <td colspan="5">
+                                <div class="row g-2 align-items-end">
+                                    <input type="hidden" name="academic_year" value="{{ selected_year }}">
+                                    <input type="hidden" name="semester" value="{{ selected_semester }}">
+                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.enrollment_id }}">
+
+                                    <div class="col-12 col-md-2">
+                                        <input name="ca_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="40" step="0.01" 
+                                            class="form-control form-control-sm score-input ca-input" 
+                                            data-enrollment-id="{{ enrollment.enrollment_id }}"
+                                            value="{{ row.ca_prefill }}" required>
+                                        <small class="text-danger invalid-feedback d-block">Must be 0-40</small>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <input name="raw_exam_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="100" step="0.01" 
+                                            class="form-control form-control-sm score-input exam-input" 
+                                            data-enrollment-id="{{ enrollment.enrollment_id }}"
+                                            value="{{ row.raw_exam_prefill }}" required>
+                                        <small class="text-danger invalid-feedback d-block">Must be 0-100</small>
+                                    </div>
+                                    <div class="col-12 col-md-2 text-md-center">
+                                        {% if enrollment.grade %}
+                                            <span class="badge rounded-pill theme-badge theme-badge-soft">{{ enrollment.grade.approval_status }}</span>
+                                        {% else %}
+                                            <span class="badge rounded-pill theme-badge theme-badge-neutral">New</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-12 col-md-3 d-grid d-md-flex justify-content-md-end">
+                                        <button type="submit" name="submit_action" value="save_draft" class="btn btn-sm dashboard-ghost-btn">Save Draft</button>
+                                    </div>
+                                    <div class="col-12 col-md-3 d-grid d-md-flex justify-content-md-end">
+                                        <button type="submit" name="submit_action" value="submit_hod" class="btn btn-sm dashboard-accent-btn">Submit to HOD</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row g-2 mt-4 pt-4 border-top">
+            <div class="col-12">
+                <p class="small text-muted fw-semibold mb-3">Bulk Actions</p>
+            </div>
+            <div class="col-12 col-md-6">
+                <button type="submit" name="bulk_action" value="save_all_drafts" class="btn btn-sm dashboard-ghost-btn w-100">
+                    Save All as Drafts
+                </button>
+                <small class="text-muted d-block mt-1">Saves all entered grades without submission</small>
+            </div>
+            <div class="col-12 col-md-6">
+                <button type="submit" name="bulk_action" value="submit_all_hod" class="btn btn-sm dashboard-accent-btn w-100">
+                    Submit All to HOD
+                </button>
+                <small class="text-muted d-block mt-1">Submits all entered grades for HOD approval</small>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-info mb-4">
+        <strong>No enrollments found</strong> for this course and period.
+    </div>
+    {% endif %}
+</section>
+
+<style>
+.score-input.is-invalid {
+    border-color: #dc3545 !important;
+    background-color: #fff5f5 !important;
+}
+
+.score-input.is-valid {
+    border-color: #198754 !important;
+}
+
+.invalid-feedback {
+    font-size: 0.75rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const caInputs = document.querySelectorAll('.ca-input');
+    const examInputs = document.querySelectorAll('.exam-input');
+    const gradeForm = document.getElementById('gradeForm');
+
+    function validateScoreInput(input) {
+        const inputType = input.classList.contains('ca-input') ? 'ca' : 'exam';
+        const maxValue = inputType === 'ca' ? 40 : 100;
+        const value = parseFloat(input.value);
+
+        if (input.value === '') {
+            input.classList.remove('is-invalid', 'is-valid');
+            return;
+        }
+
+        if (isNaN(value) || value < 0 || value > maxValue) {
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+        } else {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+    }
+
+    function validateAllInputs() {
+        let allValid = true;
+        const inputs = document.querySelectorAll('.score-input');
+        
+        inputs.forEach(input => {
+            if (input.value !== '') {
+                const inputType = input.classList.contains('ca-input') ? 'ca' : 'exam';
+                const maxValue = inputType === 'ca' ? 40 : 100;
+                const value = parseFloat(input.value);
+                
+                if (isNaN(value) || value < 0 || value > maxValue) {
+                    allValid = false;
+                }
+            }
+        });
+        
+        return allValid;
+    }
+
+    // Add validation listeners to all score inputs
+    [].concat(Array.from(caInputs), Array.from(examInputs)).forEach(input => {
+        input.addEventListener('input', function() {
+            validateScoreInput(this);
+        });
+
+        input.addEventListener('blur', function() {
+            validateScoreInput(this);
+        });
+
+        // Validate on load
+        validateScoreInput(input);
+    });
+
+    // Validate form before submission
+    if (gradeForm) {
+        gradeForm.addEventListener('submit', function(e) {
+            const inputs = document.querySelectorAll('.score-input');
+            let hasFilledInputs = false;
+            let hasInvalidInputs = false;
+
+            inputs.forEach(input => {
+                if (input.value !== '') {
+                    hasFilledInputs = true;
+                    validateScoreInput(input);
+                    if (input.classList.contains('is-invalid')) {
+                        hasInvalidInputs = true;
+                    }
+                }
+            });
+
+            // Only warn if there are filled inputs that are invalid
+            if (hasFilledInputs && hasInvalidInputs) {
+                e.preventDefault();
+                alert('Please correct the highlighted fields (red borders) before submitting.');
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

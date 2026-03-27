@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - USTED Portal{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 px-1">
+                <div>
+                    <h1 class="h2 fw-bold mb-1" style="color: var(--usted-maroon);">{{ greeting_phrase }}, {{ student.first_name }} <span class="greeting-emoji" aria-hidden="true">{{ greeting_emoji }}</span></h1>
+                    <p class="text-muted mb-0">Here is your academic overview for Semester 2.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge rounded-pill text-bg-light">ID: {{ student.student_id }}</span>
+                    <span class="badge rounded-pill" style="background: rgba(122,0,22,0.12); color: var(--usted-maroon);">Level {{ student.level }}</span>
+                </div>
+            </div>
+
+            {% if dashboard_registration.is_complete %}
+                <section class="quick-card p-4 mb-4" style="border-left: 4px solid #28a745;">
+                    <h2 class="h5 fw-bold mb-3" style="color: #28a745;">Current Enrolled Courses</h2>
+            {% else %}
+                <section class="quick-card p-4 mb-4" style="border-left: 4px solid var(--usted-gold);">
+                    <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">Current Enrolled Courses</h2>
+            {% endif %}
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th class="text-center">Credits</th>
+                                <th class="text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                                <tr>
+                                    <td class="fw-semibold">{{ enrollment.course.course_code }}</td>
+                                    <td>{{ enrollment.course.course_name }}</td>
+                                    <td class="text-center">{{ enrollment.course.credit_hours }}</td>
+                                    <td class="text-end"><span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Active</span></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No enrolled courses found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <a href="{{ url_for('student.my_courses') }}" class="btn btn-sm btn-outline-secondary">View All Courses & Registration</a>
+                </div>
+            </section>
+
+            <section class="records-panel p-4 text-center">
+                <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 66px; height: 66px; border: 2px dashed #d1d5db; background: #fff; color: var(--usted-text-muted);" id="recordsIconWrap">
+                    <i class="bi bi-lock-fill fs-4" id="recordsLockIcon"></i>
+                </div>
+                <h2 class="h4 fw-bold mb-2" style="color: var(--usted-maroon);">Results and CGPA</h2>
+                <p class="text-muted mb-3" id="recordsHint">For your privacy, this section is hidden by default.</p>
+
+                <button class="btn btn-outline-secondary" type="button" id="recordsToggleBtn">
+                    <i class="bi bi-eye-fill me-1"></i> Reveal Current Academic Standing
+                </button>
+
+                <div class="mt-4 d-none" id="recordsPanelBody">
+                    <div class="row g-3 justify-content-center">
+                        <div class="col-12 col-sm-5">
+                            <div class="border rounded-3 p-3">
+                                <div class="small text-muted text-uppercase fw-bold">Current CGPA</div>
+                                <div class="display-6 fw-bold" style="color: var(--usted-maroon);">{{ '%.2f'|format(dashboard_academic.cgpa) }}</div>
+                                <span class="badge mt-2 {{ dashboard_academic.classification.badge_class }}" {% if dashboard_academic.classification.badge_style %}style="{{ dashboard_academic.classification.badge_style }}"{% endif %}>
+                                    {{ dashboard_academic.classification.label }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-5">
+                            <div class="border rounded-3 p-3">
+                                <div class="small text-muted text-uppercase fw-bold">Total Credits</div>
+                                <div class="display-6 fw-bold" style="color: var(--usted-ink);">{{ dashboard_academic.ccr }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <a href="{{ url_for('student.results') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">
+                        View Full Results
+                    </a>
+                </div>
+            </section>
+
+            <section class="mb-2">
+                <h2 class="h5 fw-bold mb-3" style="color: var(--usted-maroon);">What You Can Do Next</h2>
+            </section>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <article class="quick-card p-4 h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-gold-soft); color: var(--usted-ink);">
+                            <i class="bi bi-journal-check"></i>
+                        </div>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Course Registration</h3>
+                        <p class="small text-muted mb-2">
+                            Semester: {{ dashboard_registration.current_period[0] }} {{ dashboard_registration.current_period[1] }}
+                        </p>
+                        <p class="small fw-semibold mb-1" style="color: var(--usted-ink);">{{ dashboard_registration.status }}</p>
+                        <p class="text-muted mb-3">{{ dashboard_registration.note }}</p>
+                        {% if dashboard_registration.is_complete %}
+                            <a href="{{ url_for('student.my_courses') }}" class="btn btn-sm btn-outline-success">
+                                View Registration
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('student.my_courses') }}" class="btn btn-sm text-white" style="background: var(--usted-maroon);">
+                                Go to Registration
+                            </a>
+                        {% endif %}
+                    </article>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <article class="quick-card p-4 h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
+                            <i class="bi bi-folder-fill"></i>
+                        </div>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Resource Hub</h3>
+                        <p class="text-muted mb-3">Access course materials and downloadable resources.</p>
+                        <a href="{{ url_for('student.resource_hub') }}" class="btn btn-sm" style="border: 1px solid var(--usted-maroon); color: var(--usted-maroon);">Browse Resources</a>
+                    </article>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <article class="quick-card p-4 h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-maroon-soft); color: var(--usted-maroon);">
+                            <i class="bi bi-calculator-fill"></i>
+                        </div>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Target Your GPA</h3>
+                        <p class="text-muted mb-3">Simulate upcoming grades to preview your CGPA impact.</p>
+                        <a href="{{ url_for('student.gpa_simulator') }}" class="btn btn-sm text-white" style="background: var(--usted-maroon);">Launch Simulator</a>
+                    </article>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <article class="quick-card p-4 h-100">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3" style="width: 48px; height: 48px; background: var(--usted-gold-soft); color: var(--usted-ink);">
+                            <i class="bi bi-ticket-detailed-fill"></i>
+                        </div>
+                        <h3 class="h5 fw-bold" style="color: var(--usted-maroon);">Academic Helpdesk</h3>
+                        <p class="text-muted mb-3">Need support with registration or advising issues?</p>
+                        <a href="{{ url_for('student.helpdesk') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink);">Create Ticket</a>
+                    </article>
+                </div>
+            </div>
+
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

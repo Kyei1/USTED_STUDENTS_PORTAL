@@ -1,0 +1,283 @@
+.landing-page-shell {
+    background: linear-gradient(180deg, #f5f1f2 0%, #f8f6f7 60%, #f3eff1 100%);
+    border-radius: 1.25rem;
+    padding: 1rem;
+}
+
+:root {
+    --card-maroon-shadow: 0 16px 32px rgba(122, 0, 22, 0.14);
+}
+
+.landing-hero {
+    background: linear-gradient(135deg, var(--usted-maroon) 0%, #5e0011 100%);
+    border-radius: 1.25rem;
+    color: #fff;
+    overflow: hidden;
+    position: relative;
+}
+
+.landing-hero::before {
+    content: "";
+    position: absolute;
+    right: -100px;
+    top: -100px;
+    width: 320px;
+    height: 320px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.landing-hero::after {
+    content: "";
+    position: absolute;
+    left: -120px;
+    bottom: -140px;
+    width: 360px;
+    height: 360px;
+    border: 36px solid rgba(219, 161, 17, 0.38);
+    border-radius: 999px;
+}
+
+.feature-card {
+    border: 1px solid #eceff3;
+    border-radius: 1rem;
+    box-shadow: var(--card-maroon-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 28px rgba(122, 0, 22, 0.12);
+}
+
+.icon-badge {
+    width: 52px;
+    height: 52px;
+    border-radius: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+}
+
+.icon-maroon {
+    background: var(--usted-maroon-soft);
+    color: var(--usted-maroon);
+}
+
+.icon-gold {
+    background: rgba(219, 161, 17, 0.18);
+    color: var(--usted-gold-dark);
+}
+
+.steps-strip {
+    background: #f7f2f4;
+    border: 1px solid #e9dde1;
+    border-radius: 1rem;
+}
+
+#highlightsCarousel {
+    padding: 0 2.25rem 2.2rem;
+}
+
+#highlightsCarousel .carousel-item {
+    padding: 0.25rem 0.15rem;
+}
+
+#highlightsCarousel .carousel-control-prev,
+#highlightsCarousel .carousel-control-next {
+    width: 2rem;
+    opacity: 0.95;
+}
+
+#highlightsCarousel .carousel-control-prev-icon,
+#highlightsCarousel .carousel-control-next-icon {
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 50%;
+    background-color: rgba(122, 0, 22, 0.88);
+    background-size: 58% 58%;
+}
+
+#highlightsCarousel .carousel-indicators {
+    margin-bottom: 0;
+}
+
+#highlightsCarousel .carousel-indicators button {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    border: 0;
+    background-color: rgba(122, 0, 22, 0.35);
+}
+
+#highlightsCarousel .carousel-indicators .active {
+    background-color: var(--usted-maroon);
+}
+
+.landing-info-card {
+    border: 1px solid #e3d3d9;
+    border-radius: 1rem;
+    background: #fbf8f9;
+    padding: 1.35rem;
+    height: 100%;
+    min-height: 180px;
+    box-shadow: var(--card-maroon-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.highlight-slide-card {
+    min-height: 235px;
+}
+
+.landing-info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 28px rgba(122, 0, 22, 0.12);
+}
+
+.landing-info-card h3 {
+    font-size: 1.08rem;
+    margin-bottom: 0.6rem;
+    color: var(--usted-maroon);
+}
+
+.landing-info-card p {
+    margin: 0;
+    color: #5f6670;
+    font-size: 0.98rem;
+}
+
+.mini-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+}
+
+.mini-icon-maroon {
+    background: var(--usted-maroon-soft);
+    color: var(--usted-maroon);
+}
+
+.mini-icon-gold {
+    background: rgba(219, 161, 17, 0.2);
+    color: var(--usted-gold-dark);
+}
+
+.surface-panel {
+    background: #f6f1f3;
+    border: 1px solid #e7dbe0;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: var(--card-maroon-shadow);
+}
+
+.landing-heading {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.landing-subtext {
+    max-width: 680px;
+}
+
+.landing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.cta-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+@media (max-width: 1199.98px) {
+    .landing-info-card {
+        min-height: 170px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .landing-page-shell {
+        padding: 0.75rem;
+    }
+
+    .landing-hero::before,
+    .landing-hero::after {
+        display: none;
+    }
+
+    .steps-strip {
+        text-align: left;
+    }
+
+    .cta-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .landing-page-shell {
+        border-radius: 1rem;
+        padding: 0.6rem;
+    }
+
+    .surface-panel {
+        padding: 0.75rem;
+    }
+
+    .landing-info-card {
+        min-height: auto;
+        padding: 1rem;
+    }
+
+    .highlight-slide-card {
+        min-height: 200px;
+    }
+
+    .icon-badge {
+        width: 46px;
+        height: 46px;
+        font-size: 1.2rem;
+    }
+
+    .mini-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    #highlightsCarousel {
+        padding: 0 1.9rem 2.1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .landing-actions,
+    .cta-actions {
+        width: 100%;
+    }
+
+    .landing-actions .btn,
+    .cta-actions .btn {
+        width: 100%;
+    }
+
+    .landing-subtext {
+        font-size: 1rem;
+    }
+
+    #highlightsCarousel {
+        padding: 0 1.45rem 2rem;
+    }
+
+    #highlightsCarousel .carousel-control-prev,
+    #highlightsCarousel .carousel-control-next {
+        width: 1.55rem;
+    }
+}

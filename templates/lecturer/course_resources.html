@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Provide Resources - USTED Portal{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-header-card rounded-4 p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Provide Resources</h1>
+            <p class="text-muted mb-0">{{ allocation.course.course_code }} - {{ allocation.course.course_name }}</p>
+        </div>
+        <a href="{{ url_for('lecturer.my_courses') }}" class="btn btn-sm dashboard-ghost-btn">Back to My Courses</a>
+    </div>
+</section>
+
+<section class="panel-card mb-4">
+    <h2 class="panel-title mb-3">Upload New Resource</h2>
+    <form method="post" action="{{ url_for('lecturer.upload_course_resource', course_code=allocation.course.course_code) }}" enctype="multipart/form-data" class="row g-3 align-items-end">
+        <div class="col-12 col-lg-5">
+            <label for="resource_label" class="form-label fw-semibold">Display Name</label>
+            <input id="resource_label" name="resource_label" type="text" class="form-control" placeholder="e.g. Week 3 Operating Systems Slides">
+            <small class="text-muted">Optional. Defaults to uploaded file name.</small>
+        </div>
+        <div class="col-12 col-lg-5">
+            <label for="resource_file" class="form-label fw-semibold">File</label>
+            <input id="resource_file" name="resource_file" type="file" class="form-control" required>
+            <small class="text-muted">Allowed: PDF, DOCX, PPTX, XLSX, TXT, CSV, ZIP.</small>
+        </div>
+        <div class="col-12 col-lg-2 d-grid">
+            <button type="submit" class="btn dashboard-outline-btn">Upload</button>
+        </div>
+    </form>
+</section>
+
+<section class="card dashboard-panel rounded-4 mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <h2 class="h6 fw-bold mb-1" style="color: var(--usted-maroon);">Current Course Resources</h2>
+                <p class="text-muted mb-0 small">Existing uploads linked to this course.</p>
+            </div>
+            <span class="badge rounded-pill theme-badge theme-badge-gold">{{ resources|length }} Items</span>
+        </div>
+
+        {% if resources %}
+            <div class="d-grid gap-3 d-md-none">
+                {% for resource in resources %}
+                    <article class="mobile-data-card">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div>
+                                <div class="fw-bold text-dark">{{ resource.file_name }}</div>
+                                <div class="small text-muted">{{ resource.resource_type }}</div>
+                            </div>
+                            <span class="badge rounded-pill theme-badge theme-badge-soft">{{ resource.upload_date.strftime('%b %d, %Y') if resource.upload_date else '' }}</span>
+                        </div>
+                        <div class="small text-muted mb-2 text-truncate">{{ resource.file_path }}</div>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <a href="{{ resource.file_path }}" target="_blank" rel="noopener" class="btn btn-sm dashboard-ghost-btn">Open</a>
+                        </div>
+                        <form method="post" action="{{ url_for('lecturer.update_course_resource', course_code=allocation.course.course_code, resource_id=resource.resource_id) }}" enctype="multipart/form-data" class="d-grid gap-2 mb-2">
+                            <input type="text" name="resource_label" class="form-control form-control-sm" value="{{ resource.file_name }}" placeholder="Resource name">
+                            <input type="file" name="resource_file" class="form-control form-control-sm">
+                            <button type="submit" class="btn btn-sm dashboard-outline-btn">Save Changes</button>
+                        </form>
+                        <form method="post" action="{{ url_for('lecturer.delete_course_resource', course_code=allocation.course.course_code, resource_id=resource.resource_id) }}" onsubmit="return confirm('Delete this resource? This cannot be undone.');">
+                            <button type="submit" class="btn btn-sm dashboard-danger-btn w-100">Delete</button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase" style="letter-spacing: 0.05em;">
+                        <tr>
+                            <th class="py-3">File</th>
+                            <th class="py-3">Type</th>
+                            <th class="py-3">Open</th>
+                            <th class="py-3 text-end">Uploaded</th>
+                            <th class="py-3">Manage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for resource in resources %}
+                            <tr>
+                                <td class="fw-semibold">{{ resource.file_name }}</td>
+                                <td>{{ resource.resource_type }}</td>
+                                <td>
+                                    <a href="{{ resource.file_path }}" target="_blank" rel="noopener" class="btn btn-sm dashboard-ghost-btn">Open</a>
+                                </td>
+                                <td class="text-end text-muted small">{{ resource.upload_date.strftime('%b %d, %Y') if resource.upload_date else '' }}</td>
+                                <td>
+                                    <form method="post" action="{{ url_for('lecturer.update_course_resource', course_code=allocation.course.course_code, resource_id=resource.resource_id) }}" enctype="multipart/form-data" class="d-grid gap-2 mb-2">
+                                        <input type="text" name="resource_label" class="form-control form-control-sm" value="{{ resource.file_name }}" placeholder="Resource name">
+                                        <input type="file" name="resource_file" class="form-control form-control-sm">
+                                        <button type="submit" class="btn btn-sm dashboard-outline-btn">Save</button>
+                                    </form>
+                                    <form method="post" action="{{ url_for('lecturer.delete_course_resource', course_code=allocation.course.course_code, resource_id=resource.resource_id) }}" onsubmit="return confirm('Delete this resource? This cannot be undone.');">
+                                        <button type="submit" class="btn btn-sm dashboard-danger-btn">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 border rounded-4 bg-light-subtle">
+                <i class="bi bi-folder-plus fs-2" style="color: var(--usted-maroon);"></i>
+                <p class="fw-semibold mb-1 mt-2">No resources have been added yet.</p>
+                <p class="text-muted mb-0 small">This page will evolve into the resource management workspace.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="panel-card">
+    <h2 class="panel-title">Resource Tips</h2>
+    <p class="text-muted mb-0">Use clear file names for students (for example, "Week 5 Lab Guide"). You can replace a file by uploading a new version in the same row, or delete obsolete resources entirely.</p>
+</section>
+{% endblock %}

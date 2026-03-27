@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Helpdesk - USTED Portal{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/helpdesk.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-lg-5">
+        <section class="bg-white border rounded-4 p-4 shadow-sm h-100">
+            <h1 class="h4 fw-bold mb-3" style="color: var(--usted-maroon);">Create Support Ticket</h1>
+            <form method="post" class="d-flex flex-column gap-3">
+                <div>
+                    <label for="ticket_type" class="form-label fw-semibold">Ticket Type</label>
+                    <select id="ticket_type" name="ticket_type" class="form-select" required>
+                        <option value="">Select type</option>
+                        <option value="Academic">Academic</option>
+                        <option value="Technical">Technical</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="priority" class="form-label fw-semibold">Priority</label>
+                    <select id="priority" name="priority" class="form-select" required>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="course_code" class="form-label fw-semibold">Course (Optional)</label>
+                    <select id="course_code" name="course_code" class="form-select">
+                        <option value="">No specific course</option>
+                        {% for course in courses %}
+                            <option value="{{ course.course_code }}">{{ course.course_code }} - {{ course.course_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="description" class="form-label fw-semibold">Description</label>
+                    <textarea id="description" name="description" class="form-control" rows="5" placeholder="Describe the issue in detail..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Submit Ticket</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="col-12 col-lg-7">
+        <section class="bg-white border rounded-4 p-4 shadow-sm h-100">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h2 class="h5 fw-bold mb-0" style="color: var(--usted-maroon);">My Tickets</h2>
+                <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ tickets|length }} total</span>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+                <div class="status-filters" role="tablist" aria-label="Ticket status filter">
+                    {% for item in ['All', 'Open', 'Pending', 'Resolved'] %}
+                        <a
+                            href="{{ url_for('student.helpdesk', status=item, sort=sort_filter) }}"
+                            class="status-chip {% if status_filter == item %}active{% endif %}"
+                        >
+                            {{ item }}
+                            <span class="chip-count">{{ status_counts[item] }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+
+                <div class="sort-filters" role="group" aria-label="Ticket sort options">
+                    <span class="sort-label">Sort by</span>
+                    {% for value, label in [('newest', 'Newest'), ('oldest', 'Oldest'), ('ticket_id', 'Ticket ID')] %}
+                        <a
+                            href="{{ url_for('student.helpdesk', status=status_filter, sort=value) }}"
+                            class="sort-chip {% if sort_filter == value %}active{% endif %}"
+                        >
+                            {{ label }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Priority</th>
+                            <th>Course</th>
+                            <th>Submitted</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                            <tr>
+                                <td>#{{ ticket.ticket_id }}</td>
+                                <td>{{ ticket.ticket_type }}</td>
+                                <td>
+                                    {% if ticket.priority == 'High' %}
+                                        <span class="priority-badge priority-high">High</span>
+                                    {% elif ticket.priority == 'Low' %}
+                                        <span class="priority-badge priority-low">Low</span>
+                                    {% else %}
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    {% endif %}
+                                </td>
+                                <td class="ticket-course">{{ ticket.course_code or 'General' }}</td>
+                                <td>{{ ticket.date_submitted.strftime('%Y-%m-%d') if ticket.date_submitted else 'N/A' }}</td>
+                                <td class="ticket-description">{{ ticket.description }}</td>
+                                <td>
+                                    {% if ticket.status == 'Resolved' %}
+                                        <span class="badge" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Resolved</span>
+                                    {% elif ticket.status == 'Pending' %}
+                                        <span class="badge text-bg-secondary">Pending</span>
+                                    {% else %}
+                                        <span class="badge" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">Open</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No tickets found for this filter.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

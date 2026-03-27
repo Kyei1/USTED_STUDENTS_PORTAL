@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}My Courses - USTED Portal{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-header-card rounded-4 p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">My Courses</h1>
+            <p class="text-muted mb-0">Course workload index for {{ lecturer.first_name }} {{ lecturer.last_name }}.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <span class="badge rounded-pill text-bg-light">{{ course_rows|length }} Assigned Rows</span>
+            <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ totals.enrolled_count }} Enrollments</span>
+            <a href="{{ url_for('lecturer.grade_workspace') }}" class="btn btn-sm dashboard-outline-btn">Open Grade Workspace</a>
+        </div>
+    </div>
+</section>
+
+<section class="card dashboard-panel rounded-4">
+    <div class="card-body p-4">
+        <form method="get" class="row g-3 align-items-end mb-4">
+            <div class="col-12 col-md-4 col-lg-3">
+                <label for="academic_year" class="form-label fw-semibold">Academic Year</label>
+                <select id="academic_year" name="academic_year" class="form-select">
+                    <option value="All" {% if selected_year == 'All' %}selected{% endif %}>All Years</option>
+                    {% for year in year_options %}
+                        <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <label for="class_group" class="form-label fw-semibold">Class Group</label>
+                <select id="class_group" name="class_group" class="form-select">
+                    <option value="All" {% if selected_class_group == 'All' %}selected{% endif %}>All Groups</option>
+                    {% for group in class_group_options %}
+                        <option value="{{ group }}" {% if selected_class_group == group %}selected{% endif %}>{{ group }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <label for="semester" class="form-label fw-semibold">Enrollment Semester</label>
+                <select id="semester" name="semester" class="form-select">
+                    <option value="All" {% if selected_semester == 'All' %}selected{% endif %}>All Semesters</option>
+                    <option value="First" {% if selected_semester == 'First' %}selected{% endif %}>First</option>
+                    <option value="Second" {% if selected_semester == 'Second' %}selected{% endif %}>Second</option>
+                </select>
+            </div>
+            <div class="col-12 col-lg-3 d-flex gap-2">
+                <button type="submit" class="btn dashboard-outline-btn w-100">Apply Filters</button>
+                <a href="{{ url_for('lecturer.my_courses') }}" class="btn dashboard-ghost-btn w-100">Reset</a>
+            </div>
+        </form>
+
+        {% if course_rows %}
+            <div class="course-workload-grid">
+                {% for row in course_rows %}
+                    <article class="course-workload-card h-100">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                            <div>
+                                <div class="fw-bold text-dark fs-5">{{ row.course.course_code }}</div>
+                                <div class="small text-muted">{{ row.course.course_name }}</div>
+                            </div>
+                            <span class="badge rounded-pill theme-badge theme-badge-soft">{{ row.allocation.class_group }}</span>
+                        </div>
+
+                        <div class="course-workload-summary mb-3">
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Enrolled</span>
+                                <span class="course-workload-stat-value">{{ row.enrolled_count }}</span>
+                            </div>
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Draft</span>
+                                <span class="course-workload-stat-value">{{ row.draft_count }}</span>
+                            </div>
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Pending HOD</span>
+                                <span class="course-workload-stat-value">{{ row.pending_hod_count }}</span>
+                            </div>
+                            <div class="course-workload-stat">
+                                <span class="course-workload-stat-label">Published</span>
+                                <span class="course-workload-stat-value">{{ row.published_count }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="badge rounded-pill theme-badge theme-badge-gold">{{ row.allocation.academic_year }}</span>
+                            <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ row.pending_board_count }} Board</span>
+                        </div>
+
+                        <div class="course-workload-actions">
+                            <a href="{{ url_for('lecturer.course_roster', course_code=row.course.course_code, academic_year=row.roster_year, semester=row.roster_semester) }}" class="btn btn-sm dashboard-outline-btn">Grade Workspace</a>
+                            <a href="{{ url_for('lecturer.course_resources', course_code=row.course.course_code) }}" class="btn btn-sm dashboard-ghost-btn">Provide Resources</a>
+                            <a href="{{ url_for('lecturer.grades_export', course_code=row.course.course_code) }}" class="btn btn-sm btn-light border">Export</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5 border rounded-4 bg-light-subtle">
+                <i class="bi bi-journal-x fs-2" style="color: var(--usted-maroon);"></i>
+                <p class="fw-semibold mb-1 mt-2">No assigned course rows matched this filter.</p>
+                <p class="text-muted mb-0 small">Adjust filters or verify course allocations for this lecturer.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

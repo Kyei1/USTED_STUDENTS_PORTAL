@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Admin Dashboard</h1>
+            <p class="text-muted mb-0">Central administration workspace for governance and workflow oversight.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Admin #{{ admin.admin_id }}</span>
+            <a href="{{ url_for('admin.logout') }}" class="btn btn-sm btn-outline-secondary">Log Out</a>
+        </div>
+    </div>
+
+    <article class="border rounded-4 p-4">
+        <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Coming Soon for Admin</h2>
+        <ul class="mb-0 ps-3 small text-muted">
+            <li>Grade approval governance dashboard.</li>
+            <li>User and role lifecycle management.</li>
+            <li>Support ticket escalation queue.</li>
+            <li>Financial clearance workflow controls.</li>
+        </ul>
+    </article>
+</section>
+{% endblock %}
