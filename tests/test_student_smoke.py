@@ -5,6 +5,7 @@ Run with:
 """
 
 import unittest
+import re
 
 from app import create_app
 from models import db
@@ -100,6 +101,32 @@ class StudentPortalSmokeTest(unittest.TestCase):
         response = self.client.get("/results/transcript.pdf")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.mimetype, "application/pdf")
+
+    def test_dashboard_and_results_cgpa_match(self):
+        self._login()
+
+        dashboard_body = self.client.get("/dashboard").get_data(as_text=True)
+        results_body = self.client.get("/results").get_data(as_text=True)
+
+        dashboard_match = re.search(r"Current CGPA.*?>(\d+\.\d{2})<", dashboard_body, re.S)
+        results_match = re.search(r"Cumulative GPA</p>\s*<p class=\"metric-value\">(\d+\.\d{2})<", results_body, re.S)
+
+        self.assertIsNotNone(dashboard_match)
+        self.assertIsNotNone(results_match)
+        self.assertEqual(dashboard_match.group(1), results_match.group(1))
+
+    def test_registration_pdf_downloads(self):
+        self._login()
+
+        current_response = self.client.get("/my-courses/registration-download")
+        self.assertEqual(current_response.status_code, 200)
+        self.assertEqual(current_response.mimetype, "application/pdf")
+        self.assertIn("attachment", current_response.headers.get("Content-Disposition", ""))
+
+        period_response = self.client.get("/my-courses/registration-download/2025/2026/First")
+        self.assertEqual(period_response.status_code, 200)
+        self.assertEqual(period_response.mimetype, "application/pdf")
+        self.assertIn("attachment", period_response.headers.get("Content-Disposition", ""))
 
     def test_account_settings_profile_update(self):
         self._login()

@@ -11,6 +11,16 @@ def _valid_value(raw_value, valid_options, fallback='All'):
     return value if value in valid_options else fallback
 
 
+def _period_sort_key(academic_year, semester):
+    """Sort periods chronologically using the academic year and semester."""
+    try:
+        start_year = int(str(academic_year).split('/')[0])
+    except (TypeError, ValueError, IndexError):
+        start_year = 0
+    semester_rank = 2 if str(semester).strip().lower().startswith('second') else 1
+    return (start_year, semester_rank)
+
+
 def build_lecturer_course_worklist(staff_id, academic_year='All', class_group='All', semester='All'):
     """Build lecturer-scoped course rows with grading workload metrics."""
     base_allocations = (
@@ -273,6 +283,13 @@ def build_lecturer_draft_workspace(staff_id, academic_year='All', semester='All'
     selected_semester = _valid_value(semester, {'All', 'First', 'Second'})
     selected_course_code = _valid_value(course_code, {'All', *assigned_course_codes})
 
+    filtered_allocations = [
+        allocation
+        for allocation in allocations
+        if (selected_year == 'All' or allocation.academic_year == selected_year)
+        and (selected_course_code == 'All' or allocation.course_code == selected_course_code)
+    ]
+
     if not assigned_course_codes:
         return {
             'draft_rows': [],
@@ -329,6 +346,7 @@ def build_lecturer_draft_workspace(staff_id, academic_year='All', semester='All'
         )
 
     draft_counts_by_course = {}
+    latest_period_by_course = {}
     for row in draft_rows:
         course_code_key = row['course'].course_code
         if course_code_key not in draft_counts_by_course:
@@ -337,9 +355,17 @@ def build_lecturer_draft_workspace(staff_id, academic_year='All', semester='All'
         if row['is_valid']:
             draft_counts_by_course[course_code_key]['valid_count'] += 1
 
+        row_period = (row['enrollment'].academic_year, row['enrollment'].semester)
+        current_latest = latest_period_by_course.get(course_code_key)
+        if not current_latest or _period_sort_key(*row_period) > _period_sort_key(*current_latest):
+            latest_period_by_course[course_code_key] = row_period
+
     course_cards = []
-    for allocation in allocations:
+    for allocation in filtered_allocations:
         counts = draft_counts_by_course.get(allocation.course_code, {'draft_count': 0, 'valid_count': 0})
+        latest_period = latest_period_by_course.get(allocation.course_code)
+        if not latest_period:
+            latest_period = (allocation.academic_year, 'First')
         course_cards.append(
             {
                 'course_code': allocation.course_code,
@@ -348,6 +374,8 @@ def build_lecturer_draft_workspace(staff_id, academic_year='All', semester='All'
                 'academic_year': allocation.academic_year,
                 'draft_count': counts['draft_count'],
                 'valid_count': counts['valid_count'],
+                'roster_year': latest_period[0],
+                'roster_semester': latest_period[1],
             }
         )
 

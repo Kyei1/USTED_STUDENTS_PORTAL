@@ -178,6 +178,25 @@ def seed_initial_data(reset_schema=True, target_app=None):
 		else:
 			print("  ✓ Exists: Lecturer account (LIT0001)")
 
+		justice = Lecturer.query.filter_by(staff_id="LIT0002").first()
+		if not justice:
+			justice = Lecturer(
+				staff_id="LIT0002",
+				department_id=it_dept.department_id,
+				title="Mr",
+				first_name="Justice",
+				middle_name=None,
+				last_name="Agyapong",
+				email_address="justice.agyapong@usted.edu.gh",
+				password_hash=generate_password_hash("justice1234"),
+				role="Lecturer",
+			)
+			db.session.add(justice)
+			db.session.flush()
+			print("  ✓ Created: Lecturer account (LIT0002)")
+		else:
+			print("  ✓ Exists: Lecturer account (LIT0002)")
+
 		for code in ["ITC356", "ITC357", "ITC352"]:
 			existing_alloc = CourseLecturer.query.filter_by(
 				course_code=code,
@@ -196,6 +215,25 @@ def seed_initial_data(reset_schema=True, target_app=None):
 				print(f"  ✓ Created allocation: {code} -> {lecturer.staff_id}")
 			else:
 				print(f"  ✓ Exists:  allocation {code} -> {lecturer.staff_id}")
+
+		for code in ["ITC234", "ITC358", "ITC354", "EDC362"]:
+			existing_alloc = CourseLecturer.query.filter_by(
+				course_code=code,
+				staff_id=justice.staff_id,
+				academic_year="2025/2026",
+			).first()
+			if not existing_alloc:
+				db.session.add(
+					CourseLecturer(
+						course_code=code,
+						staff_id=justice.staff_id,
+						class_group="L300-A",
+						academic_year="2025/2026",
+					)
+				)
+				print(f"  ✓ Created allocation: {code} -> {justice.staff_id}")
+			else:
+				print(f"  ✓ Exists:  allocation {code} -> {justice.staff_id}")
 
 		admin = Admin.query.filter_by(email_address="registrar@usted.edu.gh").first()
 		if not admin:
