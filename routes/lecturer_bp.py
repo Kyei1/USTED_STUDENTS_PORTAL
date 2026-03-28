@@ -136,7 +136,6 @@ def dashboard():
 
     total_students = sum(roster_counts.values()) if roster_counts else 0
 
-    # Get pending academic tickets for lecturer's courses
     lecturer_course_codes = [row.course_code for row in assigned_rows] if assigned_rows else []
     pending_academic_tickets = (
         SupportTicket.query
@@ -148,7 +147,6 @@ def dashboard():
         .count()
     ) if lecturer_course_codes else 0
 
-    # Get recent announcements for lecturers
     top_announcements = (
         Announcement.query
         .filter(Announcement.target_audience.in_(['All', 'Lecturers']))
@@ -266,8 +264,12 @@ def course_roster(course_code):
     if request.method == 'POST':
         # Handle bulk operations
         bulk_action = (request.form.get('bulk_action') or '').strip()
+        has_bulk_scores = any(key.startswith('ca_score_') for key in request.form.keys())
+
+        if not bulk_action and has_bulk_scores:
+            bulk_action = 'save_all_drafts'
         
-        if bulk_action in ('save_all_drafts', 'submit_all_hod'):
+        if bulk_action in ('save_all_drafts', 'submit_all_hod') or has_bulk_scores:
             # Bulk operation: save all or submit all grades in the form
             saved_count = 0
             submitted_count = 0
@@ -286,8 +288,11 @@ def course_roster(course_code):
                     ca_raw = request.form.get(f'ca_score_{enrollment_id_str}', '').strip()
                     exam_raw = request.form.get(f'raw_exam_score_{enrollment_id_str}', '').strip()
                     
-                    # Skip if either field is empty
+                    # Ignore rows that are still completely empty, but reject partial entries.
+                    if not ca_raw and not exam_raw:
+                        continue
                     if not ca_raw or not exam_raw:
+                        error_count += 1
                         continue
                     
                     try:
@@ -428,30 +433,100 @@ def course_roster(course_code):
 
     roster_rows = []
     for enrollment in roster:
-        ca_prefill = ''
-        raw_exam_prefill = ''
-        if enrollment.grade and enrollment.grade.ca_score is not None:
-            ca_prefill = f"{float(enrollment.grade.ca_score):.2f}"
-        if enrollment.grade and enrollment.grade.exam_score is not None:
-            raw_exam_prefill = f"{(float(enrollment.grade.exam_score) / 60.0) * 100:.2f}"
+        if not enrollment.grade or (enrollment.grade.ca_score is None and enrollment.grade.exam_score is None):
+            row_status = {
+                'label': 'No grade entered',
+                'badge_class': 'theme-badge-neutral',
+            }
+        elif enrollment.grade.approval_status == 'Pending_HOD':
+            row_status = {
+                'label': 'Submitted to HOD',
+                'badge_class': 'theme-badge-gold',
+            }
+        elif enrollment.grade.approval_status == 'Pending_Board':
+            row_status = {
+                'label': 'Pending Board approval',
+                'badge_class': 'theme-badge-neutral',
+            }
+        elif enrollment.grade.approval_status == 'Published':
+            row_status = {
+                'label': 'Published',
+                'badge_class': 'theme-badge-maroon',
+            }
+        else:
+            row_status = {
+                'label': 'Grade entered',
+                'badge_class': 'theme-badge-soft',
+            }
 
         roster_rows.append(
             {
                 'enrollment': enrollment,
-                'ca_prefill': ca_prefill,
-                'raw_exam_prefill': raw_exam_prefill,
+                'ca_prefill': '',
+                'raw_exam_prefill': '',
+                'row_status': row_status,
             }
         )
 
-    status_counts = {
-        'Draft': 0,
-        'Pending_HOD': 0,
-        'Pending_Board': 0,
+    summary_counts = {
+        'No grade entered': 0,
+        'Grade entered': 0,
+        'Submitted to HOD': 0,
         'Published': 0,
     }
     for enrollment in roster:
-        if enrollment.grade:
-            status_counts[enrollment.grade.approval_status] = status_counts.get(enrollment.grade.approval_status, 0) + 1
+        if not enrollment.grade or (enrollment.grade.ca_score is None and enrollment.grade.exam_score is None):
+            summary_counts['No grade entered'] += 1
+        elif enrollment.grade.approval_status == 'Pending_HOD':
+            summary_counts['Submitted to HOD'] += 1
+        elif enrollment.grade.approval_status == 'Published':
+            summary_counts['Published'] += 1
+        else:
+            summary_counts['Grade entered'] += 1
+
+    if summary_counts.get('Submitted to HOD', 0):
+        workspace_status = {
+            'label': 'Submitted to HOD',
+            'badge_class': 'theme-badge-gold',
+        }
+    elif summary_counts.get('Grade entered', 0):
+        workspace_status = {
+            'label': 'Grade entered',
+            'badge_class': 'theme-badge-soft',
+        }
+    elif summary_counts.get('Published', 0):
+        workspace_status = {
+            'label': 'Published',
+            'badge_class': 'theme-badge-maroon',
+        }
+    else:
+        workspace_status = {
+            'label': 'No grades entered',
+            'badge_class': 'theme-badge-neutral',
+        }
+
+    summary_cards = [
+        {
+            'label': 'No grade entered',
+            'count': summary_counts['No grade entered'],
+            'tone_class': 'summary-tone-neutral',
+        },
+        {
+            'label': 'Grade entered',
+            'count': summary_counts['Grade entered'],
+            'tone_class': 'summary-tone-soft',
+        },
+        {
+            'label': 'Submitted to HOD',
+            'count': summary_counts['Submitted to HOD'],
+            'tone_class': 'summary-tone-gold',
+        },
+        {
+            'label': 'Published',
+            'count': summary_counts['Published'],
+            'tone_class': 'summary-tone-maroon',
+        },
+    ]
 
     period_options = sorted(
         {
@@ -463,16 +538,19 @@ def course_roster(course_code):
         key=lambda item: (item[0], 0 if item[1] == 'First' else 1),
         reverse=True,
     )
+    period_years = sorted({year for year, _semester in period_options}, reverse=True)
 
     return render_template(
         'lecturer/course_roster.html',
         lecturer=lecturer,
         allocation=allocation,
         roster_rows=roster_rows,
-        status_counts=status_counts,
+        summary_cards=summary_cards,
         selected_year=selected_year,
         selected_semester=selected_semester,
         period_options=period_options,
+        period_years=period_years,
+        workspace_status=workspace_status,
     )
 
 

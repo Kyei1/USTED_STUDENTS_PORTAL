@@ -507,10 +507,7 @@ def my_courses():
     total_current_credits = sum(enrollment.course.credit_hours for enrollment in current_enrollments)
 
     registration_receipt = session.get('registration_receipt') or {}
-    has_registration_download = (
-        registration_receipt.get('student_id') == student.student_id
-        and bool(registration_receipt.get('course_codes'))
-    )
+    has_registration_download = bool(current_enrollments)
 
     return render_template(
         'student/my_courses.html',
@@ -652,28 +649,44 @@ def my_courses_registration_download():
         return redirect(url_for('public.login'))
 
     receipt = session.get('registration_receipt') or {}
-    if receipt.get('student_id') != student.student_id or not receipt.get('course_codes'):
-        flash('No completed registration record is available for download yet.', 'warning')
-        return redirect(url_for('student.my_courses'))
+    if receipt.get('student_id') == student.student_id and receipt.get('course_codes'):
+        course_codes = receipt.get('course_codes', [])
+        academic_year = receipt.get('academic_year', '')
+        semester = receipt.get('semester', '')
+        courses = (
+            Course.query.filter(Course.course_code.in_(course_codes))
+            .order_by(Course.course_code.asc())
+            .all()
+        )
+    else:
+        enrollments = (
+            Enrollment.query.filter_by(student_id=student.student_id)
+            .join(Course, Enrollment.course_code == Course.course_code)
+            .order_by(Enrollment.academic_year.desc(), Enrollment.semester.desc(), Course.course_code.asc())
+            .all()
+        )
+        if not enrollments:
+            flash('No registration record is available for download yet.', 'warning')
+            return redirect(url_for('student.my_courses'))
 
-    course_codes = receipt.get('course_codes', [])
-    courses = (
-        Course.query.filter(Course.course_code.in_(course_codes))
-        .order_by(Course.course_code.asc())
-        .all()
-    )
+        academic_year, semester = _resolve_current_period(enrollments)
+        courses = [
+            enrollment.course
+            for enrollment in enrollments
+            if (enrollment.academic_year, enrollment.semester) == (academic_year, semester) and enrollment.course
+        ]
 
     buffer = _build_registration_pdf(
         student,
-        receipt.get('academic_year', ''),
-        receipt.get('semester', ''),
+        academic_year,
+        semester,
         courses,
     )
     if not buffer:
         flash('PDF export requires reportlab. Install dependencies and try again.', 'danger')
         return redirect(url_for('student.my_courses'))
 
-    filename = f"registration_{student.student_id}_{receipt.get('academic_year', '').replace('/', '-')}_{receipt.get('semester', '')}.pdf"
+    filename = f"registration_{student.student_id}_{academic_year.replace('/', '-')}_{semester}.pdf"
     return send_file(
         buffer,
         mimetype='application/pdf',
@@ -682,7 +695,7 @@ def my_courses_registration_download():
     )
 
 
-@student_bp.route('/my-courses/registration-download/<academic_year>/<semester>')
+@student_bp.route('/my-courses/registration-download/<path:academic_year>/<semester>')
 @login_required
 def my_courses_registration_download_by_period(academic_year, semester):
     """Download a historical registration slip for a specific period as PDF."""

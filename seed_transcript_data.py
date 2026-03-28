@@ -2,6 +2,9 @@
 
 This script populates courses, enrollments, and grades with assumed CA/Exam scores
 that are consistent with letter grades on the platform's 100-point scale.
+
+When the active registration semester already exists for a student, the loader
+skips that overlapping period so the transcript seed remains idempotent.
 """
 
 import argparse
@@ -132,6 +135,29 @@ def assumed_scores_for_grade(grade_letter):
     return ca, raw_exam, total
 
 
+def _latest_active_period(enrollments):
+    """Return the latest non-published academic period already present for the student."""
+    if not enrollments:
+        return None
+
+    def period_key(enrollment):
+        try:
+            start_year = int(str(enrollment.academic_year).split('/')[0])
+        except (TypeError, ValueError, IndexError):
+            start_year = 0
+        semester_rank = 2 if str(enrollment.semester).lower().startswith('second') else 1
+        return (start_year, semester_rank)
+
+    active_enrollments = [
+        enrollment
+        for enrollment in enrollments
+        if not enrollment.grade or enrollment.grade.approval_status != 'Published'
+    ]
+    source = active_enrollments or enrollments
+    latest = max(source, key=period_key)
+    return (latest.academic_year, latest.semester)
+
+
 def load_transcript(student_id, department_id=None, upsert_existing_grades=False):
     """Load transcript data into the database."""
     with app.app_context():
@@ -144,6 +170,8 @@ def load_transcript(student_id, department_id=None, upsert_existing_grades=False
         if department_id is None:
             department_id = student.department_id
 
+        active_period = _latest_active_period(student.enrollments)
+
         loaded_count = 0
         error_count = 0
 
@@ -152,6 +180,10 @@ def load_transcript(student_id, department_id=None, upsert_existing_grades=False
             academic_year, semester_enum = SEMESTER_MAPPING.get(semester_label, (None, None))
             if not academic_year:
                 print(f"WARNING: Skipping semester {semester_label} - no mapping found")
+                continue
+
+            if active_period and (academic_year, semester_enum) == active_period:
+                print(f"\nSkipping {semester_label} ({academic_year} {semester_enum}) to avoid overlapping active registration period.")
                 continue
 
             print(f"\nLoading {semester_label} ({academic_year} {semester_enum})...")
