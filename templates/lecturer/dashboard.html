@@ -52,7 +52,7 @@
                 <i class="bi bi-pencil-square fs-5"></i>
             </div>
             <h3 class="kpi-label mb-1">Grade Workspace</h3>
-            <div class="kpi-value">0</div> <!-- Hardcoded for now -->
+            <div class="kpi-value">{{ grade_workspace_count }}</div>
         </article>
     </div>
 
@@ -83,7 +83,50 @@
                 <a href="{{ url_for('lecturer.my_courses') }}" class="btn btn-sm dashboard-ghost-btn">View All</a>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="d-md-none p-3 pt-2">
+                    {% if assigned_rows %}
+                        <div class="d-grid gap-3">
+                            {% for item in assigned_rows[:5] %}
+                                <article class="mobile-data-card assigned-course-mobile-card">
+                                    <div class="d-flex align-items-start gap-3 mb-2">
+                                        <div class="course-glyph">
+                                            <i class="bi bi-book"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="fw-bold text-dark mb-1">{{ item.course.course_code }}</div>
+                                            <div class="small text-muted">{{ item.course.course_name }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-data-grid mb-3">
+                                        <div class="mobile-data-item">
+                                            <span class="mobile-data-label">Credit Hours</span>
+                                            <span class="mobile-data-value">{{ item.course.credit_hours }} CH</span>
+                                        </div>
+                                        <div class="mobile-data-item">
+                                            <span class="mobile-data-label">Class Group</span>
+                                            <span class="mobile-data-value">{{ item.class_group }}</span>
+                                        </div>
+                                        <div class="mobile-data-item">
+                                            <span class="mobile-data-label">Academic Year</span>
+                                            <span class="mobile-data-value">{{ item.academic_year }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="assigned-course-mobile-actions">
+                                        <a href="{{ url_for('lecturer.course_roster', course_code=item.course.course_code) }}" class="btn btn-sm dashboard-outline-btn">Grade Workspace</a>
+                                        <a href="{{ url_for('lecturer.course_resources', course_code=item.course.course_code) }}" class="btn btn-sm dashboard-ghost-btn">Course Resources</a>
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-muted py-4 text-center">
+                            <i class="bi bi-clipboard-x fs-1 opacity-50 mb-2"></i>
+                            <p class="mb-0 fw-medium">No courses have been assigned to you yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
                         <thead class="table-light text-muted small text-uppercase" style="letter-spacing: 0.05em; border-top: 1px solid #dee2e6;">
                             <tr>

@@ -123,6 +123,10 @@ class Grade(db.Model):
 	grade_id = db.Column(db.Integer, primary_key=True)
 	enrollment_id = db.Column(db.Integer, db.ForeignKey("enrollment.Enrollment_ID"), nullable=False, unique=True)
 	ca_score = db.Column("CA_score", db.Numeric(5, 2), nullable=True)
+	
+	# NEW: The toggle that lets students see their CA before exams!
+	is_ca_published = db.Column("is_ca_published", db.Boolean, nullable=False, default=False) 
+	
 	exam_score = db.Column("Exam_Score", db.Numeric(5, 2), nullable=True)
 	total_score = db.Column("Total_Score", db.Numeric(5, 2), nullable=True)
 	grade_letter = db.Column("Grade_Letter", db.String(2), nullable=True)

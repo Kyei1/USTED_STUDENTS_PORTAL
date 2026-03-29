@@ -56,6 +56,17 @@
                 <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">{{ tickets|length }} total</span>
             </div>
 
+            {% if newly_resolved_count > 0 %}
+                <div class="alert alert-success d-flex flex-wrap justify-content-between align-items-center gap-2 py-2 px-3 newly-resolved-banner" role="alert">
+                    <span class="small fw-semibold mb-0">
+                        {{ newly_resolved_count }} ticket{% if newly_resolved_count != 1 %}s{% endif %} moved to Resolved since your last check.
+                    </span>
+                    <a class="btn btn-sm btn-outline-success" href="{{ url_for('student.helpdesk', status='Resolved', sort=sort_filter) }}">
+                        View resolved tickets
+                    </a>
+                </div>
+            {% endif %}
+
             <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
                 <div class="status-filters" role="tablist" aria-label="Ticket status filter">
                     {% for item in ['All', 'Open', 'Pending', 'Resolved'] %}
@@ -97,7 +108,7 @@
                     </thead>
                     <tbody>
                         {% for ticket in tickets %}
-                            <tr>
+                            <tr {% if ticket.ticket_id in newly_resolved_ids %}class="ticket-row-newly-resolved"{% endif %}>
                                 <td>#{{ ticket.ticket_id }}</td>
                                 <td>{{ ticket.ticket_type }}</td>
                                 <td>
@@ -119,6 +130,10 @@
                                         <span class="badge text-bg-secondary">Pending</span>
                                     {% else %}
                                         <span class="badge" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">Open</span>
+                                    {% endif %}
+
+                                    {% if ticket.ticket_id in newly_resolved_ids %}
+                                        <span class="badge newly-resolved-pill">Newly Resolved</span>
                                     {% endif %}
                                 </td>
                             </tr>

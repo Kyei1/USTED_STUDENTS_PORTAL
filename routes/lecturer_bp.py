@@ -5,8 +5,8 @@ from decimal import Decimal
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
-from flask import Blueprint, render_template, session, redirect, url_for, flash, request, Response, current_app
-from sqlalchemy import func
+from flask import Blueprint, render_template, session, redirect, url_for, flash, request, Response, current_app, make_response
+from sqlalchemy import and_, func, or_
 import csv
 import os
 from io import StringIO
@@ -123,18 +123,44 @@ def dashboard():
         .all()
     )
 
-    roster_counts = {
-        course_code: count
-        for course_code, count in (
-            Enrollment.query
-            .with_entities(Enrollment.course_code, func.count(Enrollment.enrollment_id))
-            .filter(Enrollment.course_code.in_([row.course_code for row in assigned_rows]))
-            .group_by(Enrollment.course_code)
-            .all()
+    assignment_scope = {(row.course_code, row.academic_year) for row in assigned_rows}
+    scope_filter = None
+    if assignment_scope:
+        scope_filter = or_(
+            *[
+                and_(Enrollment.course_code == course_code, Enrollment.academic_year == academic_year)
+                for course_code, academic_year in assignment_scope
+            ]
         )
-    } if assigned_rows else {}
 
-    total_students = sum(roster_counts.values()) if roster_counts else 0
+    if scope_filter is not None:
+        roster_counts = {
+            course_code: count
+            for course_code, count in (
+                Enrollment.query
+                .with_entities(Enrollment.course_code, func.count(func.distinct(Enrollment.student_id)))
+                .filter(scope_filter)
+                .group_by(Enrollment.course_code)
+                .all()
+            )
+        }
+        total_students = (
+            Enrollment.query
+            .with_entities(func.count(func.distinct(Enrollment.student_id)))
+            .filter(scope_filter)
+            .scalar()
+            or 0
+        )
+        grade_workspace_count = (
+            Grade.query
+            .join(Enrollment, Enrollment.enrollment_id == Grade.enrollment_id)
+            .filter(scope_filter, Grade.approval_status == 'Draft')
+            .count()
+        )
+    else:
+        roster_counts = {}
+        total_students = 0
+        grade_workspace_count = 0
 
     lecturer_course_codes = [row.course_code for row in assigned_rows] if assigned_rows else []
     pending_academic_tickets = (
@@ -160,8 +186,9 @@ def dashboard():
         lecturer=lecturer,
         assigned_rows=assigned_rows,
         roster_counts=roster_counts,
-        total_courses=len(assigned_rows),
+        total_courses=len({row.course_code for row in assigned_rows}),
         total_students=total_students,
+        grade_workspace_count=grade_workspace_count,
         pending_academic_tickets=pending_academic_tickets,
         top_announcements=top_announcements,
     )
@@ -262,102 +289,148 @@ def course_roster(course_code):
         selected_semester = 'First'
 
     if request.method == 'POST':
-        # Handle bulk operations
         bulk_action = (request.form.get('bulk_action') or '').strip()
         has_bulk_scores = any(key.startswith('ca_score_') for key in request.form.keys())
+        has_single_enrollment = bool((request.form.get('enrollment_id') or '').strip())
 
-        if not bulk_action and has_bulk_scores:
-            bulk_action = 'save_all_drafts'
-        
-        if bulk_action in ('save_all_drafts', 'submit_all_hod') or has_bulk_scores:
-            # Bulk operation: save all or submit all grades in the form
+        if bulk_action in ('save_all_drafts', 'submit_all_hod', 'publish_all_ca') or (has_bulk_scores and not has_single_enrollment):
+            if not bulk_action and has_bulk_scores:
+                bulk_action = 'save_all_drafts'
+
             saved_count = 0
             submitted_count = 0
+            published_ca_count = 0
             error_count = 0
-            
-            # Get all form entries (multiple enrollments in single POST)
+
             for key in request.form.keys():
-                if key.startswith('ca_score_'):
-                    enrollment_id_str = key.replace('ca_score_', '')
-                    try:
-                        enrollment_id_int = int(enrollment_id_str)
-                    except (TypeError, ValueError):
-                        error_count += 1
-                        continue
-                    
-                    ca_raw = request.form.get(f'ca_score_{enrollment_id_str}', '').strip()
-                    exam_raw = request.form.get(f'raw_exam_score_{enrollment_id_str}', '').strip()
-                    
-                    # Ignore rows that are still completely empty, but reject partial entries.
-                    if not ca_raw and not exam_raw:
-                        continue
-                    if not ca_raw or not exam_raw:
-                        error_count += 1
-                        continue
-                    
-                    try:
-                        ca_score = float(ca_raw)
-                        raw_exam_score = float(exam_raw)
-                    except (TypeError, ValueError):
-                        error_count += 1
-                        continue
-                    
-                    # Validate ranges
-                    if ca_score < 0 or ca_score > 40 or raw_exam_score < 0 or raw_exam_score > 100:
-                        error_count += 1
-                        continue
-                    
-                    enrollment = (
-                        Enrollment.query
-                        .filter_by(
-                            enrollment_id=enrollment_id_int,
-                            course_code=course_code,
-                            academic_year=selected_year,
-                            semester=selected_semester,
-                        )
-                        .first()
-                    )
-                    if not enrollment:
-                        error_count += 1
-                        continue
-                    
-                    exam_component = scaled_exam_score(raw_exam_score)
-                    total_score = round(ca_score + exam_component, 2)
-                    grade_letter = score_to_letter(total_score)
-                    approval_status = 'Pending_HOD' if bulk_action == 'submit_all_hod' else 'Draft'
-                    
-                    grade = Grade.query.filter_by(enrollment_id=enrollment.enrollment_id).first()
-                    if not grade:
-                        grade = Grade(enrollment_id=enrollment.enrollment_id)
-                        db.session.add(grade)
-                    
-                    grade.ca_score = Decimal(f"{ca_score:.2f}")
-                    grade.exam_score = Decimal(f"{exam_component:.2f}")
-                    grade.total_score = Decimal(f"{total_score:.2f}")
-                    grade.grade_letter = grade_letter
-                    grade.approval_status = approval_status
+                if not key.startswith('ca_score_'):
+                    continue
+
+                enrollment_id_str = key.replace('ca_score_', '')
+                try:
+                    enrollment_id_int = int(enrollment_id_str)
+                except (TypeError, ValueError):
+                    error_count += 1
+                    continue
+
+                ca_raw = request.form.get(f'ca_score_{enrollment_id_str}', '').strip()
+                exam_raw = request.form.get(f'raw_exam_score_{enrollment_id_str}', '').strip()
+                is_ic = bool(request.form.get(f'ic_{enrollment_id_str}'))
+
+                enrollment = Enrollment.query.filter_by(
+                    enrollment_id=enrollment_id_int,
+                    course_code=course_code,
+                    academic_year=selected_year,
+                    semester=selected_semester,
+                ).first()
+
+                if not enrollment:
+                    error_count += 1
+                    continue
+
+                grade = Grade.query.filter_by(enrollment_id=enrollment.enrollment_id).first()
+                if not grade:
+                    grade = Grade(enrollment_id=enrollment.enrollment_id)
                     db.session.add(grade)
-                    
-                    if approval_status == 'Pending_HOD':
+
+                if is_ic:
+                    grade.grade_letter = 'IC'
+                    grade.ca_score = Decimal("0.00")
+                    grade.exam_score = Decimal("0.00")
+                    grade.total_score = Decimal("0.00")
+                    grade.is_ca_published = False
+                    grade.approval_status = 'Pending_HOD' if bulk_action == 'submit_all_hod' else 'Draft'
+                    if bulk_action == 'submit_all_hod':
                         submitted_count += 1
                     else:
                         saved_count += 1
-            
+                    continue
+
+                if bulk_action == 'publish_all_ca':
+                    if ca_raw:
+                        try:
+                            ca_score = float(ca_raw)
+                        except (TypeError, ValueError):
+                            error_count += 1
+                            continue
+                        if ca_score < 0 or ca_score > 40:
+                            error_count += 1
+                            continue
+                        if not grade.is_ca_published:
+                            grade.ca_score = Decimal(f"{ca_score:.2f}")
+                    elif grade.ca_score is None:
+                        continue
+
+                    if not grade.is_ca_published:
+                        grade.is_ca_published = True
+                        published_ca_count += 1
+                    continue
+
+                if not ca_raw and not exam_raw:
+                    continue
+
+                if grade.is_ca_published:
+                    if grade.ca_score is None:
+                        error_count += 1
+                        continue
+                    ca_score = float(grade.ca_score)
+                else:
+                    if not ca_raw:
+                        error_count += 1
+                        continue
+                    try:
+                        ca_score = float(ca_raw)
+                    except (TypeError, ValueError):
+                        error_count += 1
+                        continue
+                    if ca_score < 0 or ca_score > 40:
+                        error_count += 1
+                        continue
+                    grade.ca_score = Decimal(f"{ca_score:.2f}")
+
+                if not exam_raw:
+                    error_count += 1
+                    continue
+
+                try:
+                    raw_exam_score = float(exam_raw)
+                except (TypeError, ValueError):
+                    error_count += 1
+                    continue
+
+                if raw_exam_score < 0 or raw_exam_score > 100:
+                    error_count += 1
+                    continue
+
+                exam_component = scaled_exam_score(raw_exam_score)
+                total_score = round(ca_score + exam_component, 2)
+
+                grade.exam_score = Decimal(f"{exam_component:.2f}")
+                grade.total_score = Decimal(f"{total_score:.2f}")
+                grade.grade_letter = score_to_letter(total_score)
+                grade.approval_status = 'Pending_HOD' if bulk_action == 'submit_all_hod' else 'Draft'
+
+                if bulk_action == 'submit_all_hod':
+                    submitted_count += 1
+                else:
+                    saved_count += 1
+
             db.session.commit()
-            
+
             if error_count > 0:
-                flash(f'Warning: {error_count} entry/entries could not be saved due to invalid data.', 'warning')
+                flash(f'Warning: {error_count} entry/entries skipped due to invalid data.', 'warning')
+            if published_ca_count > 0:
+                flash(f'{published_ca_count} student(s) had their CA scores published.', 'success')
             if saved_count > 0:
                 flash(f'{saved_count} grade(s) saved as draft.', 'success')
             if submitted_count > 0:
                 flash(f'{submitted_count} grade(s) submitted to HOD queue.', 'success')
-            
+
             return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
-        
-        # Handle single entry submission (existing logic)
-        enrollment_id = request.form.get('enrollment_id', '').strip()
-        ca_raw = request.form.get('ca_score', '').strip()
-        exam_raw = request.form.get('raw_exam_score', '').strip()
+
+        enrollment_id = (request.form.get('enrollment_id') or '').strip()
+        ca_raw = (request.form.get('ca_score') or '').strip()
+        exam_raw = (request.form.get('raw_exam_score') or '').strip()
         submit_action = (request.form.get('submit_action') or 'save_draft').strip()
 
         try:
@@ -366,58 +439,110 @@ def course_roster(course_code):
             flash('Invalid enrollment record selected.', 'danger')
             return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
 
-        enrollment = (
-            Enrollment.query
-            .filter_by(
-                enrollment_id=enrollment_id_int,
-                course_code=course_code,
-                academic_year=selected_year,
-                semester=selected_semester,
-            )
-            .first()
-        )
+        enrollment = Enrollment.query.filter_by(
+            enrollment_id=enrollment_id_int,
+            course_code=course_code,
+            academic_year=selected_year,
+            semester=selected_semester,
+        ).first()
+
         if not enrollment:
             flash('Enrollment record not found for selected period.', 'danger')
             return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
-
-        try:
-            ca_score = float(ca_raw)
-            raw_exam_score = float(exam_raw)
-        except (TypeError, ValueError):
-            flash('CA and raw exam scores must be numeric.', 'danger')
-            return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
-
-        if ca_score < 0 or ca_score > 40:
-            flash('CA score must be between 0 and 40.', 'danger')
-            return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
-        if raw_exam_score < 0 or raw_exam_score > 100:
-            flash('Raw exam score must be between 0 and 100.', 'danger')
-            return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
-
-        exam_component = scaled_exam_score(raw_exam_score)
-        total_score = round(ca_score + exam_component, 2)
-        grade_letter = score_to_letter(total_score)
-        approval_status = 'Pending_HOD' if submit_action == 'submit_hod' else 'Draft'
 
         grade = Grade.query.filter_by(enrollment_id=enrollment.enrollment_id).first()
         if not grade:
             grade = Grade(enrollment_id=enrollment.enrollment_id)
             db.session.add(grade)
 
-        grade.ca_score = Decimal(f"{ca_score:.2f}")
-        grade.exam_score = Decimal(f"{exam_component:.2f}")
-        grade.total_score = Decimal(f"{total_score:.2f}")
-        grade.grade_letter = grade_letter
-        grade.approval_status = approval_status
+        single_ic_flag = (request.form.get('single_ic') or '').strip().lower() in {'1', 'true', 'on', 'yes'}
+        row_ic_flag = bool(request.form.get(f'ic_{enrollment_id_int}'))
+        is_ic = single_ic_flag or row_ic_flag
+
+        if is_ic:
+            grade.grade_letter = 'IC'
+            grade.ca_score = Decimal("0.00")
+            grade.exam_score = Decimal("0.00")
+            grade.total_score = Decimal("0.00")
+            grade.is_ca_published = False
+            grade.approval_status = 'Pending_HOD' if submit_action == 'submit_hod' else 'Draft'
+        elif submit_action == 'publish_ca':
+            if grade.is_ca_published:
+                flash(f'CA score is already published for {enrollment.student.student_id}.', 'info')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            if not ca_raw:
+                flash('Enter a CA score before publishing CA.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            try:
+                ca_score = float(ca_raw)
+            except (TypeError, ValueError):
+                flash('CA score must be numeric.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            if ca_score < 0 or ca_score > 40:
+                flash('CA score must be between 0 and 40.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            grade.ca_score = Decimal(f"{ca_score:.2f}")
+            grade.is_ca_published = True
+            grade.approval_status = grade.approval_status or 'Draft'
+        else:
+            if grade.is_ca_published:
+                if grade.ca_score is None:
+                    flash('Published CA score is missing and cannot be overridden.', 'danger')
+                    return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+                ca_score = float(grade.ca_score)
+            else:
+                if not ca_raw:
+                    flash('CA score is required.', 'danger')
+                    return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+                try:
+                    ca_score = float(ca_raw)
+                except (TypeError, ValueError):
+                    flash('CA score must be numeric.', 'danger')
+                    return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+                if ca_score < 0 or ca_score > 40:
+                    flash('CA score must be between 0 and 40.', 'danger')
+                    return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+                grade.ca_score = Decimal(f"{ca_score:.2f}")
+
+            if not exam_raw:
+                flash('Raw exam score is required.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            try:
+                raw_exam_score = float(exam_raw)
+            except (TypeError, ValueError):
+                flash('Raw exam score must be numeric.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            if raw_exam_score < 0 or raw_exam_score > 100:
+                flash('Raw exam score must be between 0 and 100.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            exam_component = scaled_exam_score(raw_exam_score)
+            total_score = round(ca_score + exam_component, 2)
+
+            grade.exam_score = Decimal(f"{exam_component:.2f}")
+            grade.total_score = Decimal(f"{total_score:.2f}")
+            grade.grade_letter = score_to_letter(total_score)
+            grade.approval_status = 'Pending_HOD' if submit_action == 'submit_hod' else 'Draft'
+
         db.session.commit()
 
-        if approval_status == 'Pending_HOD':
+        if submit_action == 'publish_ca':
+            flash(f'CA score published for {enrollment.student.student_id}.', 'success')
+        elif submit_action == 'submit_hod':
             flash(f'Grade submitted to HOD queue for {enrollment.student.student_id}.', 'success')
         else:
             flash(f'Grade draft saved for {enrollment.student.student_id}.', 'success')
 
         return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
-
+    
     roster = (
         Enrollment.query
         .join(Student, Student.student_id == Enrollment.student_id)
@@ -431,34 +556,82 @@ def course_roster(course_code):
         .all()
     )
 
-    roster_rows = []
-    for enrollment in roster:
-        if not enrollment.grade or (enrollment.grade.ca_score is None and enrollment.grade.exam_score is None):
-            row_status = {
+    def classify_enrollment_status(enrollment):
+        grade = enrollment.grade
+        if not grade or (
+            grade.ca_score is None
+            and grade.exam_score is None
+            and not grade.grade_letter
+            and not getattr(grade, 'is_ca_published', False)
+        ):
+            return {
+                'key': 'No grade entered',
                 'label': 'No grade entered',
                 'badge_class': 'theme-badge-neutral',
-            }
-        elif enrollment.grade.approval_status == 'Pending_HOD':
-            row_status = {
-                'label': 'Submitted to HOD',
-                'badge_class': 'theme-badge-gold',
-            }
-        elif enrollment.grade.approval_status == 'Pending_Board':
-            row_status = {
-                'label': 'Pending Board approval',
-                'badge_class': 'theme-badge-neutral',
-            }
-        elif enrollment.grade.approval_status == 'Published':
-            row_status = {
-                'label': 'Published',
-                'badge_class': 'theme-badge-maroon',
-            }
-        else:
-            row_status = {
-                'label': 'Grade entered',
-                'badge_class': 'theme-badge-soft',
+                'tone_class': 'summary-tone-neutral',
             }
 
+        if grade.grade_letter == 'IC':
+            return {
+                'key': 'IC marked',
+                'label': 'IC marked',
+                'badge_class': 'theme-badge-neutral',
+                'tone_class': 'summary-tone-neutral',
+            }
+
+        if grade.approval_status == 'Published':
+            return {
+                'key': 'Published',
+                'label': 'Published',
+                'badge_class': 'theme-badge-maroon',
+                'tone_class': 'summary-tone-maroon',
+            }
+
+        if grade.approval_status == 'Pending_Board':
+            return {
+                'key': 'Pending Board approval',
+                'label': 'Pending Board approval',
+                'badge_class': 'theme-badge-neutral',
+                'tone_class': 'summary-tone-neutral',
+            }
+
+        if grade.approval_status == 'Pending_HOD':
+            return {
+                'key': 'Submitted to HOD',
+                'label': 'Submitted to HOD',
+                'badge_class': 'theme-badge-gold',
+                'tone_class': 'summary-tone-gold',
+            }
+
+        if getattr(grade, 'is_ca_published', False):
+            return {
+                'key': 'CA Published',
+                'label': 'CA Published',
+                'badge_class': 'theme-badge-gold',
+                'tone_class': 'summary-tone-gold',
+            }
+
+        return {
+            'key': 'Grade entered',
+            'label': 'Grade entered',
+            'badge_class': 'theme-badge-soft',
+            'tone_class': 'summary-tone-soft',
+        }
+
+    roster_rows = []
+    summary_counts = {
+        'No grade entered': 0,
+        'Grade entered': 0,
+        'CA Published': 0,
+        'Submitted to HOD': 0,
+        'Pending Board approval': 0,
+        'Published': 0,
+        'IC marked': 0,
+    }
+
+    for enrollment in roster:
+        row_status = classify_enrollment_status(enrollment)
+        summary_counts[row_status['key']] += 1
         roster_rows.append(
             {
                 'enrollment': enrollment,
@@ -468,31 +641,30 @@ def course_roster(course_code):
             }
         )
 
-    summary_counts = {
-        'No grade entered': 0,
-        'Grade entered': 0,
-        'Submitted to HOD': 0,
-        'Published': 0,
-    }
-    for enrollment in roster:
-        if not enrollment.grade or (enrollment.grade.ca_score is None and enrollment.grade.exam_score is None):
-            summary_counts['No grade entered'] += 1
-        elif enrollment.grade.approval_status == 'Pending_HOD':
-            summary_counts['Submitted to HOD'] += 1
-        elif enrollment.grade.approval_status == 'Published':
-            summary_counts['Published'] += 1
-        else:
-            summary_counts['Grade entered'] += 1
-
-    if summary_counts.get('Submitted to HOD', 0):
+    if summary_counts.get('Pending Board approval', 0):
+        workspace_status = {
+            'label': 'Pending Board approval',
+            'badge_class': 'theme-badge-neutral',
+        }
+    elif summary_counts.get('Submitted to HOD', 0):
         workspace_status = {
             'label': 'Submitted to HOD',
+            'badge_class': 'theme-badge-gold',
+        }
+    elif summary_counts.get('CA Published', 0):
+        workspace_status = {
+            'label': 'CA Published',
             'badge_class': 'theme-badge-gold',
         }
     elif summary_counts.get('Grade entered', 0):
         workspace_status = {
             'label': 'Grade entered',
             'badge_class': 'theme-badge-soft',
+        }
+    elif summary_counts.get('IC marked', 0):
+        workspace_status = {
+            'label': 'IC marked',
+            'badge_class': 'theme-badge-neutral',
         }
     elif summary_counts.get('Published', 0):
         workspace_status = {
@@ -517,14 +689,29 @@ def course_roster(course_code):
             'tone_class': 'summary-tone-soft',
         },
         {
+            'label': 'CA Published',
+            'count': summary_counts['CA Published'],
+            'tone_class': 'summary-tone-gold',
+        },
+        {
             'label': 'Submitted to HOD',
             'count': summary_counts['Submitted to HOD'],
             'tone_class': 'summary-tone-gold',
         },
         {
+            'label': 'Pending Board approval',
+            'count': summary_counts['Pending Board approval'],
+            'tone_class': 'summary-tone-neutral',
+        },
+        {
             'label': 'Published',
             'count': summary_counts['Published'],
             'tone_class': 'summary-tone-maroon',
+        },
+        {
+            'label': 'IC marked',
+            'count': summary_counts['IC marked'],
+            'tone_class': 'summary-tone-neutral',
         },
     ]
 
@@ -557,50 +744,180 @@ def course_roster(course_code):
 @lecturer_bp.route('/submission-queue')
 @lecturer_login_required
 def submission_queue():
-    """View all grades submitted by lecturer pending HOD or Board approval."""
+    """Read-only course progress tracker for lecturer grade submissions."""
     lecturer = get_current_lecturer()
     if not lecturer:
         session.clear()
         flash('Lecturer record not found. Please log in again.', 'danger')
         return redirect(url_for('public.login'))
 
-    submissions = (
-        Grade.query
-        .join(Enrollment, Enrollment.enrollment_id == Grade.enrollment_id)
-        .join(Course, Course.course_code == Enrollment.course_code)
-        .join(Student, Student.student_id == Enrollment.student_id)
-        .filter(
-            Enrollment.course_code.in_(
-                [row.course_code for row in CourseLecturer.query.filter_by(staff_id=lecturer.staff_id).all()]
-            ),
-            Grade.approval_status.in_(['Pending_HOD', 'Pending_Board'])
-        )
-        .order_by(Grade.approval_status.desc(), Enrollment.academic_year.desc(), Course.course_code.asc())
+    assigned_rows = (
+        CourseLecturer.query
+        .join(Course, Course.course_code == CourseLecturer.course_code)
+        .filter(CourseLecturer.staff_id == lecturer.staff_id)
+        .order_by(CourseLecturer.academic_year.desc(), Course.course_code.asc())
         .all()
     )
 
-    submission_groups = {
-        'Pending_HOD': [],
-        'Pending_Board': [],
-    }
-    for grade in submissions:
-        enrollment = grade.enrollment
-        submission_groups[grade.approval_status].append({
-            'grade': grade,
-            'enrollment': enrollment,
-            'course': enrollment.course,
-            'student': enrollment.student,
-            'total_score': float(grade.total_score) if grade.total_score else 0,
-            'letter': grade.grade_letter or 'N/A',
-        })
+    assignment_scope = {(row.course_code, row.academic_year) for row in assigned_rows}
+    scope_filter = None
+    if assignment_scope:
+        scope_filter = or_(
+            *[
+                and_(Enrollment.course_code == course_code, Enrollment.academic_year == academic_year)
+                for course_code, academic_year in assignment_scope
+            ]
+        )
 
-    return render_template(
-        'lecturer/submission_queue.html',
-        lecturer=lecturer,
-        submission_groups=submission_groups,
-        total_pending_hod=len(submission_groups['Pending_HOD']),
-        total_pending_board=len(submission_groups['Pending_Board']),
+    trackers_map = {}
+    for row in assigned_rows:
+        if row.course_code not in trackers_map:
+            trackers_map[row.course_code] = {
+                'course_code': row.course_code,
+                'course_name': row.course.course_name,
+                'class_groups': set(),
+                'academic_years': set(),
+                'total_students': 0,
+                'no_grade_count': 0,
+                'draft_count': 0,
+                'ca_published_count': 0,
+                'pending_hod_count': 0,
+                'pending_board_count': 0,
+                'published_count': 0,
+                'ic_count': 0,
+            }
+        trackers_map[row.course_code]['class_groups'].add(row.class_group)
+        trackers_map[row.course_code]['academic_years'].add(row.academic_year)
+
+    if scope_filter is not None:
+        scoped_enrollments = (
+            Enrollment.query
+            .join(Course, Course.course_code == Enrollment.course_code)
+            .join(Student, Student.student_id == Enrollment.student_id)
+            .outerjoin(Grade, Grade.enrollment_id == Enrollment.enrollment_id)
+            .filter(scope_filter)
+            .order_by(Enrollment.course_code.asc(), Student.last_name.asc(), Student.first_name.asc())
+            .all()
+        )
+    else:
+        scoped_enrollments = []
+
+    for enrollment in scoped_enrollments:
+        tracker = trackers_map.get(enrollment.course_code)
+        if not tracker:
+            continue
+
+        tracker['total_students'] += 1
+        grade = enrollment.grade
+
+        if not grade or (
+            grade.ca_score is None
+            and grade.exam_score is None
+            and not grade.grade_letter
+            and not bool(getattr(grade, 'is_ca_published', False))
+        ):
+            tracker['no_grade_count'] += 1
+            continue
+
+        if grade.grade_letter == 'IC':
+            tracker['ic_count'] += 1
+            continue
+
+        if grade.approval_status == 'Published':
+            tracker['published_count'] += 1
+        elif grade.approval_status == 'Pending_Board':
+            tracker['pending_board_count'] += 1
+        elif grade.approval_status == 'Pending_HOD':
+            tracker['pending_hod_count'] += 1
+        elif bool(getattr(grade, 'is_ca_published', False)):
+            tracker['ca_published_count'] += 1
+        else:
+            tracker['draft_count'] += 1
+
+    course_trackers = []
+    for tracker in trackers_map.values():
+        total_students = tracker['total_students']
+        processed_count = max(total_students - tracker['no_grade_count'], 0)
+        progress_percent = int(round((processed_count / total_students) * 100)) if total_students else 0
+
+        def segment_width(value):
+            if not total_students:
+                return 0
+            return round((value / total_students) * 100, 1)
+
+        tracker['class_groups'] = sorted(tracker['class_groups'])
+        tracker['academic_years'] = sorted(tracker['academic_years'], reverse=True)
+        tracker['processed_count'] = processed_count
+        tracker['progress_percent'] = progress_percent
+        tracker['segment_no_grade'] = segment_width(tracker['no_grade_count'])
+        tracker['segment_draft'] = segment_width(tracker['draft_count'])
+        tracker['segment_ca_published'] = segment_width(tracker['ca_published_count'])
+        tracker['segment_pending_hod'] = segment_width(tracker['pending_hod_count'])
+        tracker['segment_pending_board'] = segment_width(tracker['pending_board_count'])
+        tracker['segment_published'] = segment_width(tracker['published_count'])
+        tracker['segment_ic'] = segment_width(tracker['ic_count'])
+
+        stage_counts = [
+            ('Grade Entered', tracker['draft_count']),
+            ('CA Published', tracker['ca_published_count']),
+            ('Submitted to HOD', tracker['pending_hod_count']),
+            ('Pending Board', tracker['pending_board_count']),
+            ('Published', tracker['published_count']),
+        ]
+
+        highest_stage_index = -1
+        for index, (_label, count) in enumerate(stage_counts):
+            if count > 0:
+                highest_stage_index = index
+
+        if highest_stage_index == -1 and total_students > 0:
+            highest_stage_index = 0
+
+        checklist_steps = []
+        for index, (label, count) in enumerate(stage_counts):
+            reached_count = sum(stage_count for _stage_label, stage_count in stage_counts[index:])
+            if highest_stage_index == -1:
+                state = 'pending'
+            elif index == highest_stage_index and count > 0:
+                state = 'active'
+            elif index < highest_stage_index and reached_count > 0:
+                state = 'done'
+            elif count > 0:
+                state = 'done'
+            else:
+                state = 'pending'
+
+            checklist_steps.append(
+                {
+                    'label': label,
+                    'count': count,
+                    'state': state,
+                }
+            )
+
+        tracker['checklist_steps'] = checklist_steps
+        course_trackers.append(tracker)
+
+    course_trackers.sort(key=lambda item: item['course_code'])
+
+    total_pending_hod = sum(item['pending_hod_count'] for item in course_trackers)
+    total_pending_board = sum(item['pending_board_count'] for item in course_trackers)
+    total_tracked_students = sum(item['total_students'] for item in course_trackers)
+
+    response = make_response(
+        render_template(
+            'lecturer/submission_queue.html',
+            lecturer=lecturer,
+            course_trackers=course_trackers,
+            total_pending_hod=total_pending_hod,
+            total_pending_board=total_pending_board,
+            total_tracked_students=total_tracked_students,
+        )
     )
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @lecturer_bp.route('/course/<course_code>/grades-export')

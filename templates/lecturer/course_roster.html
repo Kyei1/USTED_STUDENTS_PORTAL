@@ -55,6 +55,12 @@
         <input type="hidden" name="academic_year" value="{{ selected_year }}">
         <input type="hidden" name="semester" value="{{ selected_semester }}">
 
+        <input type="hidden" id="singleEnrollmentId" name="enrollment_id" value="">
+        <input type="hidden" id="singleCaScore" name="ca_score" value="">
+        <input type="hidden" id="singleRawExamScore" name="raw_exam_score" value="">
+        <input type="hidden" id="singleSubmitAction" name="submit_action" value="">
+        <input type="hidden" id="singleIcFlag" name="single_ic" value="0">
+
         <div class="d-grid gap-3 d-md-none mb-4 grade-mobile-card-group">
             {% for row in roster_rows %}
                 {% set enrollment = row.enrollment %}
@@ -64,20 +70,60 @@
                             <div class="fw-bold text-dark">{{ enrollment.student.student_id }}</div>
                             <div class="small text-muted">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</div>
                         </div>
-                        <span class="badge bg-light text-dark border">{{ enrollment.grade.approval_status if enrollment.grade else 'New' }}</span>
+                        <span class="badge rounded-pill theme-badge {{ row.row_status.badge_class }}">{{ row.row_status.label }}</span>
                     </div>
-                    <input type="hidden" name="enrollment_id" value="{{ enrollment.enrollment_id }}">
+
                     <div class="mobile-data-grid mb-3">
                         <div class="mobile-data-item">
                             <label class="mobile-data-label" for="ca_mobile_{{ enrollment.enrollment_id }}">CA (0-40)</label>
-                            <input id="ca_mobile_{{ enrollment.enrollment_id }}" name="ca_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="40" step="0.01" class="form-control form-control-sm score-input ca-input" data-enrollment-id="{{ enrollment.enrollment_id }}" value="" placeholder="Enter CA score">
+                            <input
+                                id="ca_mobile_{{ enrollment.enrollment_id }}"
+                                name="ca_score_{{ enrollment.enrollment_id }}"
+                                type="number"
+                                min="0"
+                                max="40"
+                                step="0.01"
+                                class="form-control form-control-sm score-input ca-input"
+                                data-enrollment-id="{{ enrollment.enrollment_id }}"
+                                value=""
+                                placeholder="Enter CA score"
+                                {% if enrollment.grade and enrollment.grade.is_ca_published %}readonly{% endif %}
+                            >
                         </div>
                         <div class="mobile-data-item">
                             <label class="mobile-data-label" for="exam_mobile_{{ enrollment.enrollment_id }}">Raw Exam (0-100)</label>
-                            <input id="exam_mobile_{{ enrollment.enrollment_id }}" name="raw_exam_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="100" step="0.01" class="form-control form-control-sm score-input exam-input" data-enrollment-id="{{ enrollment.enrollment_id }}" value="" placeholder="Enter exam score">
+                            <input
+                                id="exam_mobile_{{ enrollment.enrollment_id }}"
+                                name="raw_exam_score_{{ enrollment.enrollment_id }}"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                class="form-control form-control-sm score-input exam-input"
+                                data-enrollment-id="{{ enrollment.enrollment_id }}"
+                                value=""
+                                placeholder="Enter exam score"
+                            >
                         </div>
                     </div>
-                    <p class="small text-muted mb-0">Use the buttons below to save or submit this period.</p>
+
+                    <div class="form-check mb-3">
+                        <input
+                            id="ic_mobile_{{ enrollment.enrollment_id }}"
+                            class="form-check-input ic-input"
+                            type="checkbox"
+                            name="ic_{{ enrollment.enrollment_id }}"
+                            data-enrollment-id="{{ enrollment.enrollment_id }}"
+                            {% if enrollment.grade and enrollment.grade.grade_letter == 'IC' %}checked{% endif %}
+                        >
+                        <label class="form-check-label" for="ic_mobile_{{ enrollment.enrollment_id }}">IC (Incomplete)</label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm dashboard-ghost-btn" name="submit_action" value="save_draft" onclick="submitSingleRow('{{ enrollment.enrollment_id }}', 'save_draft', 'mobile')">Save Draft</button>
+                        <button type="button" class="btn btn-sm dashboard-accent-btn" name="submit_action" value="publish_ca" onclick="submitSingleRow('{{ enrollment.enrollment_id }}', 'publish_ca', 'mobile')">Publish CA</button>
+                        <button type="button" class="btn btn-sm dashboard-maroon-btn" name="submit_action" value="submit_hod" onclick="submitSingleRow('{{ enrollment.enrollment_id }}', 'submit_hod', 'mobile')">Submit to HOD</button>
+                    </div>
                 </article>
             {% endfor %}
         </div>
@@ -89,7 +135,9 @@
                         <th>Student</th>
                         <th class="text-center">CA (0-40)</th>
                         <th class="text-center">Raw Exam (0-100)</th>
+                        <th class="text-center">IC</th>
                         <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,22 +149,55 @@
                                 <small class="text-muted">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</small>
                             </td>
                             <td>
-                                <input type="hidden" name="enrollment_id" value="{{ enrollment.enrollment_id }}">
-                                <input name="ca_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="40" step="0.01"
+                                <input
+                                    id="ca_desktop_{{ enrollment.enrollment_id }}"
+                                    name="ca_score_{{ enrollment.enrollment_id }}"
+                                    type="number"
+                                    min="0"
+                                    max="40"
+                                    step="0.01"
                                     class="form-control form-control-sm score-input ca-input"
                                     data-enrollment-id="{{ enrollment.enrollment_id }}"
-                                    value="" placeholder="Enter CA score">
+                                    value=""
+                                    placeholder="Enter CA score"
+                                    {% if enrollment.grade and enrollment.grade.is_ca_published %}readonly{% endif %}
+                                >
                                 <small class="text-danger invalid-feedback d-block">Must be 0-40</small>
                             </td>
                             <td>
-                                <input name="raw_exam_score_{{ enrollment.enrollment_id }}" type="number" min="0" max="100" step="0.01"
+                                <input
+                                    id="exam_desktop_{{ enrollment.enrollment_id }}"
+                                    name="raw_exam_score_{{ enrollment.enrollment_id }}"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
                                     class="form-control form-control-sm score-input exam-input"
                                     data-enrollment-id="{{ enrollment.enrollment_id }}"
-                                    value="" placeholder="Enter exam score">
+                                    value=""
+                                    placeholder="Enter exam score"
+                                >
                                 <small class="text-danger invalid-feedback d-block">Must be 0-100</small>
                             </td>
                             <td class="text-center">
+                                <input
+                                    id="ic_desktop_{{ enrollment.enrollment_id }}"
+                                    class="form-check-input ic-input"
+                                    type="checkbox"
+                                    name="ic_{{ enrollment.enrollment_id }}"
+                                    data-enrollment-id="{{ enrollment.enrollment_id }}"
+                                    {% if enrollment.grade and enrollment.grade.grade_letter == 'IC' %}checked{% endif %}
+                                >
+                            </td>
+                            <td class="text-center">
                                 <span class="badge rounded-pill theme-badge {{ row.row_status.badge_class }}">{{ row.row_status.label }}</span>
+                            </td>
+                            <td>
+                                <div class="d-grid gap-1 row-action-stack">
+                                    <button type="button" class="btn btn-sm dashboard-ghost-btn" name="submit_action" value="save_draft" onclick="submitSingleRow('{{ enrollment.enrollment_id }}', 'save_draft', 'desktop')">Save Draft</button>
+                                    <button type="button" class="btn btn-sm dashboard-accent-btn" name="submit_action" value="publish_ca" onclick="submitSingleRow('{{ enrollment.enrollment_id }}', 'publish_ca', 'desktop')">Publish CA</button>
+                                    <button type="button" class="btn btn-sm dashboard-maroon-btn" name="submit_action" value="submit_hod" onclick="submitSingleRow('{{ enrollment.enrollment_id }}', 'submit_hod', 'desktop')">Submit to HOD</button>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}
@@ -125,7 +206,8 @@
         </div>
 
         <div class="d-flex flex-column flex-md-row justify-content-end gap-2 mt-4 pt-4 border-top">
-            <button type="submit" name="bulk_action" value="save_all_drafts" class="btn btn-sm dashboard-accent-btn w-100 w-md-auto">Save All as Drafts</button>
+            <button type="submit" name="bulk_action" value="save_all_drafts" class="btn btn-sm dashboard-ghost-btn w-100 w-md-auto">Save All as Drafts</button>
+            <button type="submit" name="bulk_action" value="publish_all_ca" class="btn btn-sm dashboard-accent-btn w-100 w-md-auto">Publish All CA Scores</button>
             <button type="submit" name="bulk_action" value="submit_all_hod" class="btn btn-sm dashboard-maroon-btn w-100 w-md-auto">Submit All to HOD</button>
         </div>
     </form>
@@ -199,12 +281,17 @@
     font-weight: 800;
     line-height: 1;
 }
+
+.row-action-stack {
+    min-width: 10.5rem;
+}
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const caInputs = document.querySelectorAll('.ca-input');
     const examInputs = document.querySelectorAll('.exam-input');
+    const icInputs = document.querySelectorAll('.ic-input');
     const gradeForm = document.getElementById('gradeForm');
     const mobileCards = document.querySelectorAll('.grade-mobile-card');
     const desktopTable = document.querySelector('.grade-desktop-table');
@@ -225,6 +312,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function inputFor(enrollmentId, fieldType, source) {
+        if (fieldType === 'ca') {
+            return document.getElementById('ca_' + source + '_' + enrollmentId);
+        }
+        if (fieldType === 'exam') {
+            return document.getElementById('exam_' + source + '_' + enrollmentId);
+        }
+        return document.getElementById('ic_' + source + '_' + enrollmentId);
+    }
+
     function validateScoreInput(input) {
         const inputType = input.classList.contains('ca-input') ? 'ca' : 'exam';
         const maxValue = inputType === 'ca' ? 40 : 100;
@@ -241,6 +338,80 @@ document.addEventListener('DOMContentLoaded', function() {
             input.classList.remove('is-invalid');
         }
     }
+
+    function validateSingleRow(caInput, examInput, icInput, submitAction) {
+        const caValue = (caInput ? caInput.value.trim() : '');
+        const examValue = (examInput ? examInput.value.trim() : '');
+        const isIncomplete = Boolean(icInput && icInput.checked);
+        const isPublishCa = submitAction === 'publish_ca';
+
+        if (isIncomplete) {
+            return true;
+        }
+
+        if (isPublishCa) {
+            if (!caValue) {
+                alert('Enter a CA score before publishing CA.');
+                return false;
+            }
+            validateScoreInput(caInput);
+            if (caInput.classList.contains('is-invalid')) {
+                alert('Please provide a valid CA score before publishing CA.');
+                return false;
+            }
+            if (examValue) {
+                validateScoreInput(examInput);
+                if (examInput.classList.contains('is-invalid')) {
+                    alert('Raw exam score must be between 0 and 100.');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (!caValue || !examValue) {
+            alert('Enter both CA and Raw Exam scores for this student or mark IC.');
+            return false;
+        }
+
+        validateScoreInput(caInput);
+        validateScoreInput(examInput);
+        if (caInput.classList.contains('is-invalid') || examInput.classList.contains('is-invalid')) {
+            alert('Please correct invalid score values before submitting.');
+            return false;
+        }
+
+        return true;
+    }
+
+    window.submitSingleRow = function(enrollmentId, submitAction, source) {
+        if (!gradeForm) {
+            return;
+        }
+
+        syncVisibleInputs();
+
+        const caInput = inputFor(enrollmentId, 'ca', source);
+        const examInput = inputFor(enrollmentId, 'exam', source);
+        const icInput = inputFor(enrollmentId, 'ic', source);
+
+        if (!validateSingleRow(caInput, examInput, icInput, submitAction)) {
+            return;
+        }
+
+        const caValue = caInput ? caInput.value.trim() : '';
+        const examValue = examInput ? examInput.value.trim() : '';
+        const isIncomplete = Boolean(icInput && icInput.checked);
+        const isPublishCa = submitAction === 'publish_ca';
+
+        document.getElementById('singleEnrollmentId').value = enrollmentId;
+        document.getElementById('singleCaScore').value = caValue || '0';
+        document.getElementById('singleRawExamScore').value = examValue || (isPublishCa ? '0' : '0');
+        document.getElementById('singleSubmitAction').value = submitAction;
+        document.getElementById('singleIcFlag').value = isIncomplete ? '1' : '0';
+
+        gradeForm.submit();
+    };
 
     [].concat(Array.from(caInputs), Array.from(examInputs)).forEach(input => {
         input.addEventListener('input', function() {
@@ -261,7 +432,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (gradeForm) {
         gradeForm.addEventListener('submit', function(e) {
             syncVisibleInputs();
+            const submitAction = e.submitter ? (e.submitter.value || '') : '';
+            const allowCaOnly = submitAction === 'publish_all_ca';
+
             const inputs = document.querySelectorAll('.score-input:not([disabled])');
+            const visibleIcInputs = document.querySelectorAll('.ic-input:not([disabled])');
             let hasFilledInputs = false;
             let hasInvalidInputs = false;
             const rows = new Map();
@@ -287,9 +462,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
+            visibleIcInputs.forEach(input => {
+                const enrollmentId = input.dataset.enrollmentId;
+                if (!rows.has(enrollmentId)) {
+                    rows.set(enrollmentId, { ca: '', exam: '', ic: false });
+                }
+                rows.get(enrollmentId).ic = input.checked;
+            });
+
             rows.forEach(function(values) {
                 const hasCa = values.ca !== '';
                 const hasExam = values.exam !== '';
+
+                if (values.ic) {
+                    return;
+                }
+
+                if (allowCaOnly && hasCa && !hasExam) {
+                    return;
+                }
+
                 if ((hasCa && !hasExam) || (!hasCa && hasExam)) {
                     hasInvalidInputs = true;
                 }
