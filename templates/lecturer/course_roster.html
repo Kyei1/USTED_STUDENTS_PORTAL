@@ -51,6 +51,28 @@
     </form>
 
     {% if roster_rows %}
+    <section class="border rounded-4 bg-white p-3 p-lg-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h2 class="h6 fw-bold mb-1" style="color: var(--usted-maroon);">Upload CA Scores (CSV)</h2>
+                <p class="text-muted small mb-0">Use headers: <strong>student_id</strong>, <strong>ca_score</strong>. Optional: <strong>ic</strong>.</p>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end">
+                <input type="hidden" name="academic_year" value="{{ selected_year }}">
+                <input type="hidden" name="semester" value="{{ selected_semester }}">
+                <input type="hidden" name="upload_action" value="import_ca_csv">
+                <div class="col-12 col-md-auto">
+                    <input type="file" name="ca_csv_file" class="form-control form-control-sm" accept=".csv,text/csv" required>
+                </div>
+                <div class="col-12 col-md-auto d-grid">
+                    <button type="submit" class="btn btn-sm dashboard-outline-btn">Upload and Save Draft</button>
+                </div>
+            </form>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if roster_rows %}
     <form id="gradeForm" method="post" class="mb-4">
         <input type="hidden" name="academic_year" value="{{ selected_year }}">
         <input type="hidden" name="semester" value="{{ selected_semester }}">
@@ -85,7 +107,7 @@
                                 step="0.01"
                                 class="form-control form-control-sm score-input ca-input"
                                 data-enrollment-id="{{ enrollment.enrollment_id }}"
-                                value=""
+                                value="{{ row.ca_prefill }}"
                                 placeholder="Enter CA score"
                                 {% if enrollment.grade and enrollment.grade.is_ca_published %}readonly{% endif %}
                             >
@@ -101,7 +123,7 @@
                                 step="0.01"
                                 class="form-control form-control-sm score-input exam-input"
                                 data-enrollment-id="{{ enrollment.enrollment_id }}"
-                                value=""
+                                value="{{ row.raw_exam_prefill }}"
                                 placeholder="Enter exam score"
                             >
                         </div>
@@ -158,7 +180,7 @@
                                     step="0.01"
                                     class="form-control form-control-sm score-input ca-input"
                                     data-enrollment-id="{{ enrollment.enrollment_id }}"
-                                    value=""
+                                    value="{{ row.ca_prefill }}"
                                     placeholder="Enter CA score"
                                     {% if enrollment.grade and enrollment.grade.is_ca_published %}readonly{% endif %}
                                 >
@@ -174,7 +196,7 @@
                                     step="0.01"
                                     class="form-control form-control-sm score-input exam-input"
                                     data-enrollment-id="{{ enrollment.enrollment_id }}"
-                                    value=""
+                                    value="{{ row.raw_exam_prefill }}"
                                     placeholder="Enter exam score"
                                 >
                                 <small class="text-danger invalid-feedback d-block">Must be 0-100</small>

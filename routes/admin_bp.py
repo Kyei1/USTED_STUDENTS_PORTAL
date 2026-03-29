@@ -4,6 +4,7 @@ from functools import wraps
 
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request
 from sqlalchemy import case
+from werkzeug.security import generate_password_hash
 
 from models import Admin, Announcement, Course, Enrollment, Grade, Lecturer, Student, SupportTicket, db
 
@@ -71,10 +72,11 @@ def dashboard():
         'Published': Grade.query.filter_by(approval_status='Published').count(),
     }
 
+    technical_ticket_query = SupportTicket.query.filter(SupportTicket.ticket_type == 'Technical')
     ticket_status_counts = {
-        'Open': SupportTicket.query.filter_by(status='Open').count(),
-        'Pending': SupportTicket.query.filter_by(status='Pending').count(),
-        'Resolved': SupportTicket.query.filter_by(status='Resolved').count(),
+        'Open': technical_ticket_query.filter(SupportTicket.status == 'Open').count(),
+        'Pending': technical_ticket_query.filter(SupportTicket.status == 'Pending').count(),
+        'Resolved': technical_ticket_query.filter(SupportTicket.status == 'Resolved').count(),
     }
 
     recent_pending_grades = (
@@ -92,6 +94,7 @@ def dashboard():
         SupportTicket.query
         .join(Student, Student.student_id == SupportTicket.student_id)
         .outerjoin(Course, Course.course_code == SupportTicket.course_code)
+        .filter(SupportTicket.ticket_type == 'Technical')
         .order_by(SupportTicket.date_submitted.desc(), SupportTicket.ticket_id.desc())
         .limit(8)
         .all()
@@ -290,11 +293,7 @@ def helpdesk():
         {'All', 'Open', 'Pending', 'Resolved'},
         'All',
     )
-    ticket_type_filter = _normalize_filter(
-        request.args.get('ticket_type'),
-        {'All', 'Academic', 'Technical'},
-        'All',
-    )
+    ticket_type_filter = 'Technical'
     priority_filter = _normalize_filter(
         request.args.get('priority'),
         {'All', 'High', 'Medium', 'Low'},
@@ -312,11 +311,7 @@ def helpdesk():
             {'All', 'Open', 'Pending', 'Resolved'},
             'All',
         )
-        ticket_type_filter = _normalize_filter(
-            request.form.get('ticket_type_filter'),
-            {'All', 'Academic', 'Technical'},
-            'All',
-        )
+        ticket_type_filter = 'Technical'
         priority_filter = _normalize_filter(
             request.form.get('priority_filter'),
             {'All', 'High', 'Medium', 'Low'},
@@ -341,7 +336,6 @@ def helpdesk():
                 url_for(
                     'admin.helpdesk',
                     status=status_filter,
-                    ticket_type=ticket_type_filter,
                     priority=priority_filter,
                     sort=sort_filter,
                 )
@@ -355,7 +349,6 @@ def helpdesk():
                 url_for(
                     'admin.helpdesk',
                     status=status_filter,
-                    ticket_type=ticket_type_filter,
                     priority=priority_filter,
                     sort=sort_filter,
                 )
@@ -368,7 +361,6 @@ def helpdesk():
                 url_for(
                     'admin.helpdesk',
                     status=status_filter,
-                    ticket_type=ticket_type_filter,
                     priority=priority_filter,
                     sort=sort_filter,
                 )
@@ -387,7 +379,6 @@ def helpdesk():
             url_for(
                 'admin.helpdesk',
                 status=status_filter,
-                ticket_type=ticket_type_filter,
                 priority=priority_filter,
                 sort=sort_filter,
             )
@@ -398,12 +389,11 @@ def helpdesk():
         .join(Student, Student.student_id == SupportTicket.student_id)
         .outerjoin(Course, Course.course_code == SupportTicket.course_code)
         .outerjoin(Admin, Admin.admin_id == SupportTicket.resolved_by_admin_id)
+        .filter(SupportTicket.ticket_type == 'Technical')
     )
 
     if status_filter != 'All':
         ticket_query = ticket_query.filter(SupportTicket.status == status_filter)
-    if ticket_type_filter != 'All':
-        ticket_query = ticket_query.filter(SupportTicket.ticket_type == ticket_type_filter)
     if priority_filter != 'All':
         ticket_query = ticket_query.filter(SupportTicket.priority == priority_filter)
 
@@ -421,7 +411,7 @@ def helpdesk():
 
     tickets = ticket_query.all()
 
-    counts_q = SupportTicket.query
+    counts_q = SupportTicket.query.filter(SupportTicket.ticket_type == 'Technical')
     status_counts = {
         'All': counts_q.count(),
         'Open': counts_q.filter(SupportTicket.status == 'Open').count(),
@@ -439,6 +429,80 @@ def helpdesk():
         sort_filter=sort_filter,
         status_counts=status_counts,
     )
+
+
+@admin_bp.route('/profile')
+@admin_login_required
+def profile():
+    """Display admin profile details and support workload summary."""
+    admin = get_current_admin()
+    if not admin:
+        session.clear()
+        flash('Admin record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    managed_announcements = Announcement.query.filter_by(admin_id=admin.admin_id).count()
+    resolved_technical_tickets = (
+        SupportTicket.query
+        .filter(
+            SupportTicket.ticket_type == 'Technical',
+            SupportTicket.resolved_by_admin_id == admin.admin_id,
+            SupportTicket.status == 'Resolved',
+        )
+        .count()
+    )
+
+    return render_template(
+        'admin/profile.html',
+        admin=admin,
+        managed_announcements=managed_announcements,
+        resolved_technical_tickets=resolved_technical_tickets,
+    )
+
+
+@admin_bp.route('/account-settings', methods=['GET', 'POST'])
+@admin_login_required
+def account_settings():
+    """Allow admin users to update email and password."""
+    admin = get_current_admin()
+    if not admin:
+        session.clear()
+        flash('Admin record not found. Please log in again.', 'danger')
+        return redirect(url_for('public.login'))
+
+    if request.method == 'POST':
+        email = (request.form.get('email_address') or '').strip().lower()
+        new_password = (request.form.get('new_password') or '').strip()
+        confirm_password = (request.form.get('confirm_password') or '').strip()
+
+        if not email:
+            flash('Email address is required.', 'danger')
+            return redirect(url_for('admin.account_settings'))
+
+        existing = Admin.query.filter(
+            Admin.email_address == email,
+            Admin.admin_id != admin.admin_id,
+        ).first()
+        if existing:
+            flash('That email address is already used by another admin account.', 'danger')
+            return redirect(url_for('admin.account_settings'))
+
+        admin.email_address = email
+
+        if new_password or confirm_password:
+            if len(new_password) < 6:
+                flash('New password must be at least 6 characters long.', 'danger')
+                return redirect(url_for('admin.account_settings'))
+            if new_password != confirm_password:
+                flash('Password confirmation does not match.', 'danger')
+                return redirect(url_for('admin.account_settings'))
+            admin.password_hash = generate_password_hash(new_password)
+
+        db.session.commit()
+        flash('Account settings updated successfully.', 'success')
+        return redirect(url_for('admin.account_settings'))
+
+    return render_template('admin/account_settings.html', admin=admin)
 
 
 @admin_bp.route('/announcements', methods=['GET', 'POST'])

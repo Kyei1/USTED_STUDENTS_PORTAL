@@ -289,6 +289,109 @@ def course_roster(course_code):
         selected_semester = 'First'
 
     if request.method == 'POST':
+        upload_action = (request.form.get('upload_action') or '').strip()
+        if upload_action == 'import_ca_csv':
+            upload = request.files.get('ca_csv_file')
+            if not upload or not upload.filename:
+                flash('Select a CSV file to upload.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            try:
+                payload = upload.read().decode('utf-8-sig')
+            except UnicodeDecodeError:
+                flash('CSV must be UTF-8 encoded.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            csv_reader = csv.DictReader(StringIO(payload))
+            if not csv_reader.fieldnames:
+                flash('CSV is empty. Include headers: student_id, ca_score.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            normalized_headers = {header.strip().lower(): header for header in csv_reader.fieldnames if header}
+            student_col = normalized_headers.get('student_id') or normalized_headers.get('studentid')
+            ca_col = normalized_headers.get('ca_score') or normalized_headers.get('ca')
+            ic_col = normalized_headers.get('ic')
+
+            if not student_col or not ca_col:
+                flash('CSV headers must include student_id and ca_score.', 'danger')
+                return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
+            enrollment_map = {
+                row.student_id: row
+                for row in Enrollment.query.filter_by(
+                    course_code=course_code,
+                    academic_year=selected_year,
+                    semester=selected_semester,
+                ).all()
+            }
+
+            imported_count = 0
+            ic_count = 0
+            skipped_count = 0
+
+            for raw_row in csv_reader:
+                student_id = (raw_row.get(student_col) or '').strip()
+                ca_raw = (raw_row.get(ca_col) or '').strip()
+                ic_raw = (raw_row.get(ic_col) or '').strip().lower() if ic_col else ''
+                mark_ic = ic_raw in {'1', 'true', 'yes', 'y', 'ic'}
+
+                if not student_id:
+                    skipped_count += 1
+                    continue
+
+                enrollment = enrollment_map.get(student_id)
+                if not enrollment:
+                    skipped_count += 1
+                    continue
+
+                grade = Grade.query.filter_by(enrollment_id=enrollment.enrollment_id).first()
+                if not grade:
+                    grade = Grade(enrollment_id=enrollment.enrollment_id)
+                    db.session.add(grade)
+
+                if grade.approval_status in {'Pending_Board', 'Published'}:
+                    skipped_count += 1
+                    continue
+
+                if mark_ic:
+                    grade.grade_letter = 'IC'
+                    grade.ca_score = Decimal('0.00')
+                    grade.exam_score = Decimal('0.00')
+                    grade.total_score = Decimal('0.00')
+                    grade.is_ca_published = False
+                    grade.approval_status = 'Draft'
+                    ic_count += 1
+                    continue
+
+                try:
+                    ca_score = float(ca_raw)
+                except (TypeError, ValueError):
+                    skipped_count += 1
+                    continue
+
+                if ca_score < 0 or ca_score > 40:
+                    skipped_count += 1
+                    continue
+
+                grade.ca_score = Decimal(f"{ca_score:.2f}")
+                grade.exam_score = None
+                grade.total_score = None
+                grade.grade_letter = None
+                grade.is_ca_published = False
+                grade.approval_status = 'Draft'
+                imported_count += 1
+
+            db.session.commit()
+
+            if imported_count:
+                flash(f'{imported_count} CA score(s) imported and saved as Draft.', 'success')
+            if ic_count:
+                flash(f'{ic_count} row(s) marked as IC.', 'info')
+            if skipped_count:
+                flash(f'{skipped_count} row(s) were skipped (invalid student, locked status, or invalid score).', 'warning')
+
+            return redirect(url_for('lecturer.course_roster', course_code=course_code, academic_year=selected_year, semester=selected_semester))
+
         bulk_action = (request.form.get('bulk_action') or '').strip()
         has_bulk_scores = any(key.startswith('ca_score_') for key in request.form.keys())
         has_single_enrollment = bool((request.form.get('enrollment_id') or '').strip())
@@ -632,11 +735,20 @@ def course_roster(course_code):
     for enrollment in roster:
         row_status = classify_enrollment_status(enrollment)
         summary_counts[row_status['key']] += 1
+
+        grade = enrollment.grade
+        ca_prefill = ''
+        raw_exam_prefill = ''
+        if grade and grade.ca_score is not None:
+            ca_prefill = f"{float(grade.ca_score):.2f}"
+        if grade and grade.exam_score is not None:
+            raw_exam_prefill = f"{round((float(grade.exam_score) / 60.0) * 100.0, 2):.2f}"
+
         roster_rows.append(
             {
                 'enrollment': enrollment,
-                'ca_prefill': '',
-                'raw_exam_prefill': '',
+                'ca_prefill': ca_prefill,
+                'raw_exam_prefill': raw_exam_prefill,
                 'row_status': row_status,
             }
         )

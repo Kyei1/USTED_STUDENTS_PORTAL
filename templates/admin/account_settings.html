@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Lecturer Account Settings - USTED Portal{% endblock %}
+{% block title %}Admin Account Settings - USTED Portal{% endblock %}
 
 {% block content %}
 <section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Account Settings</h1>
-            <p class="text-muted mb-0">Update your contact email and login password.</p>
+            <p class="text-muted mb-0">Manage your admin contact details and login credentials.</p>
         </div>
-        <a href="{{ url_for('lecturer.profile') }}" class="btn btn-sm btn-outline-secondary">Back to Profile</a>
+        <a href="{{ url_for('admin.profile') }}" class="btn btn-sm btn-outline-secondary">Back to Profile</a>
     </div>
 
     <form method="post" class="row g-4">
@@ -18,12 +18,9 @@
                 <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Contact</h2>
                 <div class="mb-3">
                     <label for="email_address" class="form-label fw-semibold">Email Address</label>
-                    <input type="email" class="form-control" id="email_address" name="email_address" value="{{ lecturer.email_address }}" required>
+                    <input type="email" class="form-control" id="email_address" name="email_address" value="{{ admin.email_address }}" required>
                 </div>
-                <p class="small text-muted mb-0">Use an institutional email for official communications.</p>
-                <hr>
-                <p class="small text-muted mb-1">Notification Channel</p>
-                <p class="mb-0 fw-semibold">Email alerts for ticket updates and grade submissions are enabled.</p>
+                <p class="small text-muted mb-0">Use your active institutional mailbox for technical helpdesk updates.</p>
             </article>
         </div>
 
@@ -48,20 +45,20 @@
                 <div class="row g-3">
                     <div class="col-12 col-md-6 col-xl-4">
                         <div class="border rounded-3 p-3 h-100 bg-light-subtle">
-                            <p class="fw-semibold mb-1">Two-Factor Authentication</p>
-                            <p class="small text-muted mb-0">Secure sign-in with OTP verification for sensitive grade workflows.</p>
+                            <p class="fw-semibold mb-1">Hardware Security Keys</p>
+                            <p class="small text-muted mb-0">Support physical key authentication for high-privilege sign-ins.</p>
                         </div>
                     </div>
                     <div class="col-12 col-md-6 col-xl-4">
                         <div class="border rounded-3 p-3 h-100 bg-light-subtle">
-                            <p class="fw-semibold mb-1">Trusted Device List</p>
-                            <p class="small text-muted mb-0">Review and remove old browser sessions in one place.</p>
+                            <p class="fw-semibold mb-1">Session Watchlist</p>
+                            <p class="small text-muted mb-0">See active sessions and force logout from unknown devices.</p>
                         </div>
                     </div>
                     <div class="col-12 col-md-6 col-xl-4">
                         <div class="border rounded-3 p-3 h-100 bg-light-subtle">
-                            <p class="fw-semibold mb-1">Security Activity Timeline</p>
-                            <p class="small text-muted mb-0">See login history and account changes by date and location.</p>
+                            <p class="fw-semibold mb-1">Approval Alerts</p>
+                            <p class="small text-muted mb-0">Receive email summaries for pending grade board approvals.</p>
                         </div>
                     </div>
                 </div>
@@ -70,7 +67,7 @@
 
         <div class="col-12 d-flex gap-2">
             <button type="submit" class="btn btn-sm" style="background: var(--usted-maroon); color: #fff; font-weight: 700;">Save Changes</button>
-            <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">Cancel</a>
         </div>
     </form>
 </section>

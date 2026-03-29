@@ -42,6 +42,8 @@ class AdminPortalSmokeTest(unittest.TestCase):
         self._login()
         routes = [
             '/admin/dashboard',
+            '/admin/profile',
+            '/admin/account-settings',
             '/admin/grade-approvals',
             '/admin/helpdesk',
             '/admin/announcements',
@@ -126,6 +128,14 @@ class AdminPortalSmokeTest(unittest.TestCase):
             self.assertIsNotNone(refreshed)
             self.assertEqual(refreshed.status, 'Resolved')
             self.assertIsNotNone(refreshed.resolved_by_admin_id)
+
+    def test_helpdesk_shows_only_technical_tickets(self):
+        self._login()
+        response = self.client.get('/admin/helpdesk')
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn('Technical Helpdesk Oversight', body)
+        self.assertNotIn('Need urgent review of coursework rubric alignment.', body)
 
     def test_announcement_creation(self):
         self._login()

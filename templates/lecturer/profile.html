@@ -34,6 +34,12 @@
 
                     <dt class="col-sm-4 text-muted">Role</dt>
                     <dd class="col-sm-8"><span class="badge bg-light text-dark border">{{ lecturer.role }}</span></dd>
+
+                    <dt class="col-sm-4 text-muted">Primary Class Group</dt>
+                    <dd class="col-sm-8">L300-A</dd>
+
+                    <dt class="col-sm-4 text-muted">Work Email Alias</dt>
+                    <dd class="col-sm-8">{{ lecturer.first_name|lower }}.{{ lecturer.last_name|lower }}@faculty.usted.edu.gh</dd>
                 </dl>
             </article>
         </div>
@@ -44,6 +50,32 @@
                 <p class="small text-muted text-uppercase fw-bold mb-1">Assigned Courses</p>
                 <p class="display-6 fw-bold mb-3" style="color: var(--usted-maroon);">{{ assigned_count }}</p>
                 <a href="{{ url_for('lecturer.account_settings') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Open Account Settings</a>
+            </article>
+        </div>
+
+        <div class="col-12">
+            <article class="border rounded-4 p-4">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Coming Soon</h2>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="border rounded-3 p-3 h-100 bg-light-subtle">
+                            <p class="fw-semibold mb-1">Office Hours Widget</p>
+                            <p class="small text-muted mb-0">Publish your weekly consultation hours directly to student dashboards.</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="border rounded-3 p-3 h-100 bg-light-subtle">
+                            <p class="fw-semibold mb-1">Advising Notes</p>
+                            <p class="small text-muted mb-0">Attach private advising notes to student records for follow-up sessions.</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="border rounded-3 p-3 h-100 bg-light-subtle">
+                            <p class="fw-semibold mb-1">Semester Planner</p>
+                            <p class="small text-muted mb-0">Track teaching milestones, coursework deadlines, and moderation checkpoints.</p>
+                        </div>
+                    </div>
+                </div>
             </article>
         </div>
     </div>

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Profile - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Admin Profile</h1>
+            <p class="text-muted mb-0">Identity, role permissions, and governance snapshot.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Profile Details</h2>
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-4 text-muted">Admin ID</dt>
+                    <dd class="col-sm-8 fw-semibold">{{ admin.admin_id }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Name</dt>
+                    <dd class="col-sm-8 fw-semibold">{{ admin.first_name }} {{ admin.last_name }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Email Address</dt>
+                    <dd class="col-sm-8">{{ admin.email_address }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Role</dt>
+                    <dd class="col-sm-8"><span class="badge bg-light text-dark border">{{ admin.role }}</span></dd>
+
+                    <dt class="col-sm-4 text-muted">Ticket Domain</dt>
+                    <dd class="col-sm-8">Technical Support</dd>
+
+                    <dt class="col-sm-4 text-muted">Governance Scope</dt>
+                    <dd class="col-sm-8">Grade approvals, technical helpdesk, announcements</dd>
+                </dl>
+            </article>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <article class="border rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Workload Snapshot</h2>
+                <p class="small text-muted text-uppercase fw-bold mb-1">Announcements Published</p>
+                <p class="display-6 fw-bold mb-3" style="color: var(--usted-maroon);">{{ managed_announcements }}</p>
+                <p class="small text-muted text-uppercase fw-bold mb-1">Technical Tickets Resolved</p>
+                <p class="h3 fw-bold mb-3" style="color: var(--usted-ink);">{{ resolved_technical_tickets }}</p>
+                <a href="{{ url_for('admin.account_settings') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Open Account Settings</a>
+            </article>
+        </div>
+
+        <div class="col-12">
+            <article class="border rounded-4 p-4">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Coming Soon</h2>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="border rounded-3 p-3 h-100 bg-light-subtle">
+                            <p class="fw-semibold mb-1">Audit Trail Explorer</p>
+                            <p class="small text-muted mb-0">Trace updates to grade stages and support actions by timestamp.</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="border rounded-3 p-3 h-100 bg-light-subtle">
+                            <p class="fw-semibold mb-1">Role Delegation</p>
+                            <p class="small text-muted mb-0">Temporarily assign selected workflows to approved backup admins.</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="border rounded-3 p-3 h-100 bg-light-subtle">
+                            <p class="fw-semibold mb-1">Operational Insights</p>
+                            <p class="small text-muted mb-0">Daily trend charts for technical tickets and response times.</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+{% endblock %}
