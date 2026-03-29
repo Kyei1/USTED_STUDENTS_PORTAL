@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Announcements - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1" style="color: var(--usted-maroon);">Announcements</h1>
+            <p class="text-muted mb-0">Publish targeted communication to students, lecturers, or everyone.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-5">
+            <article class="border rounded-4 p-3 p-lg-4 h-100">
+                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Post Announcement</h2>
+                <form method="post" class="d-flex flex-column gap-3">
+                    <div>
+                        <label for="title" class="form-label fw-semibold">Title</label>
+                        <input id="title" type="text" name="title" class="form-control" maxlength="150" required>
+                    </div>
+                    <div>
+                        <label for="target_audience" class="form-label fw-semibold">Audience</label>
+                        <select id="target_audience" name="target_audience" class="form-select" required>
+                            <option value="All" selected>All</option>
+                            <option value="Students">Students</option>
+                            <option value="Lecturers">Lecturers</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="message" class="form-label fw-semibold">Message</label>
+                        <textarea id="message" name="message" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Publish Announcement</button>
+                </form>
+            </article>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <article class="border rounded-4 p-3 p-lg-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Announcement Log</h2>
+                    <span class="badge rounded-pill text-bg-light border">{{ announcements_rows|length }} total</span>
+                </div>
+
+                <div class="list-group list-group-flush border rounded-3">
+                    {% for item in announcements_rows %}
+                        <article class="list-group-item py-3">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <h3 class="h6 mb-0 fw-semibold">{{ item.title }}</h3>
+                                <span class="badge rounded-pill text-bg-light border">{{ item.target_audience }}</span>
+                            </div>
+                            <p class="small text-muted mb-2">{{ item.message }}</p>
+                            <p class="small text-muted mb-0">
+                                Posted {{ item.date_posted.strftime('%Y-%m-%d %H:%M') if item.date_posted else '' }}
+                                • Admin #{{ item.admin_id }}
+                            </p>
+                        </article>
+                    {% else %}
+                        <div class="list-group-item py-5 text-center text-muted">No announcements yet.</div>
+                    {% endfor %}
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+{% endblock %}

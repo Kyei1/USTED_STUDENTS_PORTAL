@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Helpdesk - USTED Portal{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1" style="color: var(--usted-maroon);">Helpdesk Oversight</h1>
+            <p class="text-muted mb-0">Track all student support requests and update resolution status.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        {% for item in ['All', 'Open', 'Pending', 'Resolved'] %}
+            <a
+                href="{{ url_for('admin.helpdesk', status=item, ticket_type=ticket_type_filter, priority=priority_filter, sort=sort_filter) }}"
+                class="badge rounded-pill text-decoration-none {% if status_filter == item %}text-bg-dark{% else %}text-bg-light border text-dark{% endif %}"
+            >
+                {{ item }}
+                <span class="ms-1">{{ status_counts[item] }}</span>
+            </a>
+        {% endfor %}
+    </div>
+
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-12 col-md-4">
+            <label for="ticket_type" class="form-label small text-muted fw-semibold">Ticket Type</label>
+            <select id="ticket_type" name="ticket_type" class="form-select form-select-sm">
+                {% for value in ['All', 'Academic', 'Technical'] %}
+                    <option value="{{ value }}" {% if ticket_type_filter == value %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label for="priority" class="form-label small text-muted fw-semibold">Priority</label>
+            <select id="priority" name="priority" class="form-select form-select-sm">
+                {% for value in ['All', 'High', 'Medium', 'Low'] %}
+                    <option value="{{ value }}" {% if priority_filter == value %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label for="sort" class="form-label small text-muted fw-semibold">Sort</label>
+            <select id="sort" name="sort" class="form-select form-select-sm">
+                <option value="newest" {% if sort_filter == 'newest' %}selected{% endif %}>Newest first</option>
+                <option value="oldest" {% if sort_filter == 'oldest' %}selected{% endif %}>Oldest first</option>
+                <option value="priority" {% if sort_filter == 'priority' %}selected{% endif %}>High priority first</option>
+            </select>
+        </div>
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        <div class="col-12 d-flex justify-content-end">
+            <button type="submit" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Apply Filters</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Ticket</th>
+                    <th>Student</th>
+                    <th>Type/Priority</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th class="text-end">Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">#{{ ticket.ticket_id }}</div>
+                            <div class="small text-muted">{{ ticket.date_submitted.strftime('%Y-%m-%d') if ticket.date_submitted else '' }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ ticket.student_id }}</div>
+                            <div class="small text-muted">{{ ticket.course_code or 'General' }}</div>
+                        </td>
+                        <td>
+                            <div>
+                                <span class="badge text-bg-light border">{{ ticket.ticket_type }}</span>
+                            </div>
+                            <div class="mt-1">
+                                {% if ticket.priority == 'High' %}
+                                    <span class="badge" style="background: #fee2e2; color: #991b1b;">High</span>
+                                {% elif ticket.priority == 'Medium' %}
+                                    <span class="badge" style="background: #fef3c7; color: #92400e;">Medium</span>
+                                {% else %}
+                                    <span class="badge" style="background: #dcfce7; color: #166534;">Low</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="min-width: 17rem; max-width: 28rem;">
+                            <p class="small mb-1 text-muted">
+                                {{ ticket.description[:140] }}{% if ticket.description|length > 140 %}...{% endif %}
+                            </p>
+                            <button
+                                type="button"
+                                class="btn btn-link btn-sm p-0"
+                                data-bs-toggle="modal"
+                                data-bs-target="#adminTicketDetail{{ ticket.ticket_id }}"
+                            >
+                                Open full issue
+                            </button>
+                        </td>
+                        <td>
+                            {% if ticket.status == 'Resolved' %}
+                                <span class="badge" style="background: rgba(16,185,129,0.14); color: #065f46;">Resolved</span>
+                                {% if ticket.resolved_by_admin_id %}
+                                    <div class="small text-muted mt-1">By Admin #{{ ticket.resolved_by_admin_id }}</div>
+                                {% endif %}
+                            {% elif ticket.status == 'Pending' %}
+                                <span class="badge text-bg-secondary">Pending</span>
+                            {% else %}
+                                <span class="badge" style="background: rgba(122,0,22,0.08); color: var(--usted-maroon);">Open</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <form method="post" class="d-inline-flex gap-2 align-items-center">
+                                <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
+                                <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                                <input type="hidden" name="ticket_type_filter" value="{{ ticket_type_filter }}">
+                                <input type="hidden" name="priority_filter" value="{{ priority_filter }}">
+                                <input type="hidden" name="sort_filter" value="{{ sort_filter }}">
+
+                                <select name="status" class="form-select form-select-sm" style="width: 9rem;">
+                                    <option value="Open" {% if ticket.status == 'Open' %}selected{% endif %}>Open</option>
+                                    <option value="Pending" {% if ticket.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">No tickets match this filter.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% for ticket in tickets %}
+        <div class="modal fade" id="adminTicketDetail{{ ticket.ticket_id }}" tabindex="-1" aria-labelledby="adminTicketDetailLabel{{ ticket.ticket_id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="adminTicketDetailLabel{{ ticket.ticket_id }}">Ticket #{{ ticket.ticket_id }} Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Student</small>
+                                <span class="fw-semibold">{{ ticket.student_id }}</span>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Course</small>
+                                <span class="fw-semibold">{{ ticket.course_code or 'General' }}</span>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Type</small>
+                                <span class="fw-semibold">{{ ticket.ticket_type }}</span>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Priority</small>
+                                <span class="fw-semibold">{{ ticket.priority }}</span>
+                            </div>
+                        </div>
+                        <div class="border rounded-3 p-3 bg-light-subtle">
+                            <small class="text-muted d-block mb-2">Issue Description</small>
+                            <p class="mb-0" style="white-space: pre-wrap;">{{ ticket.description }}</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}
