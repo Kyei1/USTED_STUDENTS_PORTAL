@@ -3,162 +3,293 @@
 {% block title %}Submission Queue - Lecturer Workspace{% endblock %}
 
 {% block content %}
-<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+<section class="dashboard-greeting-strip mb-4 px-1 py-2">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
         <div>
             <h1 class="h4 fw-bold mb-1" style="color: var(--usted-maroon);">Submission Queue</h1>
-            <p class="text-muted mb-0">Track grades awaiting HOD and Board review.</p>
+            <p class="text-muted mb-0">Read-only tracking of grading progress for each assigned course.</p>
         </div>
-        <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm dashboard-ghost-btn">Back to Dashboard</a>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge rounded-pill theme-badge theme-badge-neutral">Read-only tracker</span>
+            <span class="badge rounded-pill theme-badge theme-badge-gold">Auto-refresh in <span id="trackerRefreshCountdown">30</span>s</span>
+            <a href="{{ url_for('lecturer.dashboard') }}" class="btn btn-sm dashboard-ghost-btn">Back to Dashboard</a>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-12 col-md-6">
-            <article class="border rounded-3 p-3 h-100">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100 tracker-summary-card">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Tracked Courses</p>
+                <p class="tracker-summary-value mb-0">{{ course_trackers|length }}</p>
+            </article>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100 tracker-summary-card">
+                <p class="small text-muted text-uppercase fw-bold mb-1">Tracked Students</p>
+                <p class="tracker-summary-value mb-0">{{ total_tracked_students }}</p>
+            </article>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100 tracker-summary-card">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Pending HOD Review</p>
-                <span class="badge rounded-pill theme-badge theme-badge-gold">{{ total_pending_hod }}</span>
+                <p class="tracker-summary-value mb-0" style="color: #8a5a00;">{{ total_pending_hod }}</p>
             </article>
         </div>
-        <div class="col-12 col-md-6">
-            <article class="border rounded-3 p-3 h-100">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100 tracker-summary-card">
                 <p class="small text-muted text-uppercase fw-bold mb-1">Pending Board Review</p>
-                <span class="badge rounded-pill theme-badge theme-badge-maroon">{{ total_pending_board }}</span>
+                <p class="tracker-summary-value mb-0" style="color: var(--usted-maroon);">{{ total_pending_board }}</p>
             </article>
         </div>
     </div>
 
-    {% if submission_groups['Pending_HOD'] %}
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <article class="border rounded-4 p-4 h-100">
-                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Awaiting HOD Approval</h2>
-                <div class="d-grid gap-3 d-md-none mb-3">
-                    {% for item in submission_groups['Pending_HOD'] %}
-                        <article class="mobile-data-card">
-                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                <div>
-                                    <div class="fw-bold text-dark">{{ item.student.student_id }}</div>
-                                    <div class="small text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</div>
-                                </div>
-                                <span class="badge rounded-pill theme-badge theme-badge-soft">{{ item.letter }}</span>
-                            </div>
-                            <div class="mobile-data-grid">
-                                <div class="mobile-data-item"><span class="mobile-data-label">Course</span><span class="mobile-data-value">{{ item.course.course_code }}</span></div>
-                                <div class="mobile-data-item"><span class="mobile-data-label">Total</span><span class="mobile-data-value">{{ item.total_score|round(1) }}</span></div>
-                                <div class="mobile-data-item"><span class="mobile-data-label">Period</span><span class="mobile-data-value">{{ item.enrollment.academic_year }} {{ item.enrollment.semester }}</span></div>
-                            </div>
-                        </article>
-                    {% endfor %}
+    {% if course_trackers %}
+    <div class="submission-tracker-grid mb-4">
+        {% for tracker in course_trackers %}
+            <article class="tracker-card">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                    <div>
+                        <h2 class="h6 fw-bold mb-1" style="color: var(--usted-maroon);">{{ tracker.course_code }} - {{ tracker.course_name }}</h2>
+                        <p class="small text-muted mb-0">
+                            {{ tracker.academic_years|join(', ') }}
+                            {% if tracker.class_groups %}
+                                • {{ tracker.class_groups|join(', ') }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <span class="badge rounded-pill theme-badge theme-badge-soft">{{ tracker.total_students }} Students</span>
                 </div>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Student</th>
-                                <th>Course</th>
-                                <th class="text-center">Total Score</th>
-                                <th class="text-center">Grade</th>
-                                <th class="text-end">Period</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in submission_groups['Pending_HOD'] %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ item.student.student_id }}</div>
-                                        <small class="text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</small>
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold">{{ item.course.course_code }}</div>
-                                        <small class="text-muted">{{ item.course.course_name }}</small>
-                                    </td>
-                                    <td class="text-center">
-                                        <strong>{{ item.total_score|round(1) }}</strong>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge rounded-pill theme-badge theme-badge-soft">{{ item.letter }}</span>
-                                    </td>
-                                    <td class="text-end text-muted small">
-                                        {{ item.enrollment.academic_year }} {{ item.enrollment.semester }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+
+                <div class="tracker-checklist-wrap mb-3" aria-label="{{ tracker.course_code }} checklist progress">
+                    <ol class="tracker-checklist" role="list">
+                        {% for step in tracker.checklist_steps %}
+                            <li class="tracker-checklist-step {{ step.state }}">
+                                <span class="tracker-step-node" aria-hidden="true">
+                                    {% if step.state == 'done' %}
+                                        <i class="bi bi-check-lg"></i>
+                                    {% elif step.state == 'active' %}
+                                        <i class="bi bi-bullseye"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle"></i>
+                                    {% endif %}
+                                </span>
+                                <span class="tracker-step-title">{{ step.label }}</span>
+                                <span class="tracker-step-count">{{ step.count }}</span>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </div>
+                <p class="small text-muted mb-3">Processed {{ tracker.processed_count }} of {{ tracker.total_students }} student records. IC records are tracked separately.</p>
+
+                <div class="tracker-stage-grid">
+                    <div class="tracker-stage-item"><span class="tracker-stage-label">No Grade</span><span class="tracker-stage-value">{{ tracker.no_grade_count }}</span></div>
+                    <div class="tracker-stage-item"><span class="tracker-stage-label">Grade Entered</span><span class="tracker-stage-value">{{ tracker.draft_count }}</span></div>
+                    <div class="tracker-stage-item"><span class="tracker-stage-label">CA Published</span><span class="tracker-stage-value">{{ tracker.ca_published_count }}</span></div>
+                    <div class="tracker-stage-item"><span class="tracker-stage-label">Pending HOD</span><span class="tracker-stage-value">{{ tracker.pending_hod_count }}</span></div>
+                    <div class="tracker-stage-item"><span class="tracker-stage-label">Pending Board</span><span class="tracker-stage-value">{{ tracker.pending_board_count }}</span></div>
+                    <div class="tracker-stage-item"><span class="tracker-stage-label">Published</span><span class="tracker-stage-value">{{ tracker.published_count }}</span></div>
+                    <div class="tracker-stage-item"><span class="tracker-stage-label">IC Marked</span><span class="tracker-stage-value">{{ tracker.ic_count }}</span></div>
                 </div>
             </article>
-        </div>
+        {% endfor %}
     </div>
-    {% endif %}
-
-    {% if submission_groups['Pending_Board'] %}
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <article class="border rounded-4 p-4 h-100">
-                <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Awaiting Board Approval</h2>
-                <div class="d-grid gap-3 d-md-none mb-3">
-                    {% for item in submission_groups['Pending_Board'] %}
-                        <article class="mobile-data-card">
-                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                <div>
-                                    <div class="fw-bold text-dark">{{ item.student.student_id }}</div>
-                                    <div class="small text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</div>
-                                </div>
-                                <span class="badge rounded-pill theme-badge theme-badge-gold">{{ item.letter }}</span>
-                            </div>
-                            <div class="mobile-data-grid">
-                                <div class="mobile-data-item"><span class="mobile-data-label">Course</span><span class="mobile-data-value">{{ item.course.course_code }}</span></div>
-                                <div class="mobile-data-item"><span class="mobile-data-label">Total</span><span class="mobile-data-value">{{ item.total_score|round(1) }}</span></div>
-                                <div class="mobile-data-item"><span class="mobile-data-label">Period</span><span class="mobile-data-value">{{ item.enrollment.academic_year }} {{ item.enrollment.semester }}</span></div>
-                            </div>
-                        </article>
-                    {% endfor %}
-                </div>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Student</th>
-                                <th>Course</th>
-                                <th class="text-center">Total Score</th>
-                                <th class="text-center">Grade</th>
-                                <th class="text-end">Period</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in submission_groups['Pending_Board'] %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ item.student.student_id }}</div>
-                                        <small class="text-muted">{{ item.student.first_name }} {{ item.student.last_name }}</small>
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold">{{ item.course.course_code }}</div>
-                                        <small class="text-muted">{{ item.course.course_name }}</small>
-                                    </td>
-                                    <td class="text-center">
-                                        <strong>{{ item.total_score|round(1) }}</strong>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge rounded-pill theme-badge theme-badge-gold">{{ item.letter }}</span>
-                                    </td>
-                                    <td class="text-end text-muted small">
-                                        {{ item.enrollment.academic_year }} {{ item.enrollment.semester }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </article>
-        </div>
-    </div>
-    {% endif %}
-
-    {% if not submission_groups['Pending_HOD'] and not submission_groups['Pending_Board'] %}
-    <div class="alert alert-success mb-4">
-        <strong>All clear!</strong> You have no grades awaiting approval. New submissions will appear here.
+    {% else %}
+    <div class="alert alert-info mb-4">
+        <strong>No course tracker records yet.</strong> As grades are entered, each assigned course will show progress here.
     </div>
     {% endif %}
 </section>
+
+<style>
+.tracker-summary-card {
+    background: #fff;
+}
+
+.tracker-summary-value {
+    color: var(--usted-ink);
+    font-size: clamp(1.6rem, 2.5vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1;
+}
+
+.submission-tracker-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.tracker-card {
+    border: 1px solid var(--usted-border);
+    border-radius: 1rem;
+    background: #fff;
+    padding: 1rem;
+    box-shadow: 0 10px 22px rgba(122, 0, 22, 0.06);
+}
+
+.tracker-checklist-wrap {
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+}
+
+.tracker-checklist {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(8.5rem, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 42rem;
+}
+
+.tracker-checklist-step {
+    position: relative;
+    text-align: center;
+    padding: 0 0.45rem;
+}
+
+.tracker-checklist-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    left: calc(50% + 1rem);
+    width: calc(100% - 0.9rem);
+    height: 0.28rem;
+    background: #e5e7eb;
+    border-radius: 999px;
+    z-index: 0;
+}
+
+.tracker-checklist-step.done:not(:last-child)::after,
+.tracker-checklist-step.active:not(:last-child)::after {
+    background: rgba(122, 0, 22, 0.35);
+}
+
+.tracker-step-node {
+    position: relative;
+    z-index: 1;
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 0.35rem;
+    border-radius: 999px;
+    border: 2px solid #cbd5e1;
+    color: #94a3b8;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+
+.tracker-checklist-step.done .tracker-step-node {
+    border-color: rgba(122, 0, 22, 0.55);
+    color: var(--usted-maroon);
+    background: rgba(122, 0, 22, 0.08);
+}
+
+.tracker-checklist-step.active .tracker-step-node {
+    border-color: #dba111;
+    color: #8a5a00;
+    background: rgba(219, 161, 17, 0.2);
+    box-shadow: 0 0 0 3px rgba(219, 161, 17, 0.16);
+}
+
+.tracker-step-title {
+    display: block;
+    color: #475467;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    line-height: 1.2;
+    min-height: 1.7rem;
+}
+
+.tracker-checklist-step.active .tracker-step-title {
+    color: var(--usted-maroon);
+}
+
+.tracker-step-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9rem;
+    height: 1.3rem;
+    margin-top: 0.18rem;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475467;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.tracker-checklist-step.done .tracker-step-count,
+.tracker-checklist-step.active .tracker-step-count {
+    background: rgba(122, 0, 22, 0.1);
+    color: var(--usted-maroon);
+}
+
+.tracker-stage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.tracker-stage-item {
+    border: 1px solid var(--usted-border);
+    border-radius: 0.7rem;
+    background: #fff;
+    padding: 0.5rem 0.55rem;
+    min-width: 0;
+}
+
+.tracker-stage-label {
+    display: block;
+    color: var(--usted-text-muted);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.tracker-stage-value {
+    display: block;
+    color: var(--usted-ink);
+    font-weight: 800;
+    margin-top: 0.2rem;
+}
+
+@media (max-width: 991.98px) {
+    .submission-tracker-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .tracker-stage-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshMs = 30000;
+    const countdownEl = document.getElementById('trackerRefreshCountdown');
+    let secondsRemaining = Math.floor(refreshMs / 1000);
+
+    if (countdownEl) {
+        countdownEl.textContent = String(secondsRemaining);
+        setInterval(function() {
+            secondsRemaining = Math.max(0, secondsRemaining - 1);
+            countdownEl.textContent = String(secondsRemaining);
+        }, 1000);
+    }
+
+    setTimeout(function() {
+        window.location.reload();
+    }, refreshMs);
+});
+</script>
 {% endblock %}

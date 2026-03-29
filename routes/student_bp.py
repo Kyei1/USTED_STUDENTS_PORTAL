@@ -1876,6 +1876,22 @@ def helpdesk():
         'Pending': counts_q.filter(SupportTicket.status == 'Pending').count(),
         'Resolved': counts_q.filter(SupportTicket.status == 'Resolved').count(),
     }
+
+    # Track which resolved tickets the student has already seen to highlight updates.
+    resolved_ticket_ids = [
+        ticket_id
+        for (ticket_id,) in (
+            SupportTicket.query.with_entities(SupportTicket.ticket_id)
+            .filter_by(student_id=student.student_id, status='Resolved')
+            .order_by(SupportTicket.ticket_id.asc())
+            .all()
+        )
+    ]
+    seen_session_key = f'helpdesk_seen_resolved_{student.student_id}'
+    seen_resolved_ids = set(session.get(seen_session_key, []))
+    newly_resolved_ids = [ticket_id for ticket_id in resolved_ticket_ids if ticket_id not in seen_resolved_ids]
+    session[seen_session_key] = resolved_ticket_ids[-200:]
+
     courses = (
         Course.query.join(Enrollment, Enrollment.course_code == Course.course_code)
         .filter(Enrollment.student_id == student.student_id)
@@ -1892,6 +1908,8 @@ def helpdesk():
         status_filter=status_filter,
         sort_filter=sort_filter,
         status_counts=status_counts,
+        newly_resolved_ids=set(newly_resolved_ids),
+        newly_resolved_count=len(newly_resolved_ids),
     )
 
 

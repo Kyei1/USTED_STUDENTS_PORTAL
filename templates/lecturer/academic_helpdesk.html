@@ -32,7 +32,17 @@
                                         <span class="badge rounded-pill theme-badge theme-badge-neutral">Open</span>
                                     {% endif %}
                                 </div>
-                                <p class="small text-muted mb-2">{{ ticket.description }}</p>
+                                <p class="small text-muted mb-2">
+                                    {{ ticket.description[:140] }}{% if ticket.description|length > 140 %}...{% endif %}
+                                </p>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm dashboard-ghost-btn mb-2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#ticketDetailModal{{ ticket.ticket_id }}"
+                                >
+                                    Open Full Problem
+                                </button>
                                 <div class="mobile-data-grid mb-2">
                                     <div class="mobile-data-item"><span class="mobile-data-label">Priority</span><span class="mobile-data-value">{{ ticket.priority }}</span></div>
                                     <div class="mobile-data-item"><span class="mobile-data-label">Submitted</span><span class="mobile-data-value">{{ ticket.date_submitted.strftime('%b %d, %Y') if ticket.date_submitted else '' }}</span></div>
@@ -71,7 +81,17 @@
                             <tr>
                                 <td class="px-4 py-3">
                                     <div class="fw-bold text-dark mb-1">#{{ ticket.ticket_id }} - {{ ticket.course_code }}</div>
-                                    <div class="text-muted small text-truncate" style="max-width: 300px;" title="{{ ticket.description }}">{{ ticket.description }}</div>
+                                    <div class="text-muted small" style="max-width: 320px;">
+                                        {{ ticket.description[:120] }}{% if ticket.description|length > 120 %}...{% endif %}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-link btn-sm p-0 mt-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#ticketDetailModal{{ ticket.ticket_id }}"
+                                    >
+                                        Open full problem
+                                    </button>
                                     <div class="small mt-1 text-secondary"><strong>Student:</strong> {{ ticket.student_id }}</div>
                                 </td>
                                 <td class="py-3">
@@ -96,22 +116,32 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-4 py-3 text-end">
-                                    <!-- Action form for lecturer to update status -->
-                                    <form action="{{ url_for('lecturer.academic_helpdesk') }}" method="POST" class="d-inline-flex gap-2">
-                                        <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
-                                        
-                                        <select name="status" class="form-select form-select-sm d-inline-block w-auto" {% if ticket.status == 'Resolved' %}disabled{% endif %}>
-                                            <option value="Open" {% if ticket.status == 'Open' %}selected{% endif %}>Open</option>
-                                            <option value="Pending" {% if ticket.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                            <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
-                                        </select>
-                                        
-                                        {% if ticket.status != 'Resolved' %}
-                                            <button type="submit" class="btn btn-sm dashboard-outline-btn">Update</button>
-                                        {% else %}
-                                            <button type="button" class="btn btn-sm btn-light disabled">Done</button>
-                                        {% endif %}
-                                    </form>
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm dashboard-ghost-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#ticketDetailModal{{ ticket.ticket_id }}"
+                                        >
+                                            Open
+                                        </button>
+
+                                        <form action="{{ url_for('lecturer.academic_helpdesk') }}" method="POST" class="d-inline-flex gap-2">
+                                            <input type="hidden" name="ticket_id" value="{{ ticket.ticket_id }}">
+
+                                            <select name="status" class="form-select form-select-sm d-inline-block w-auto" {% if ticket.status == 'Resolved' %}disabled{% endif %}>
+                                                <option value="Open" {% if ticket.status == 'Open' %}selected{% endif %}>Open</option>
+                                                <option value="Pending" {% if ticket.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                            </select>
+
+                                            {% if ticket.status != 'Resolved' %}
+                                                <button type="submit" class="btn btn-sm dashboard-outline-btn">Update</button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-light disabled">Done</button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -128,6 +158,48 @@
                     </tbody>
                 </table>
             </div>
+
+            {% if tickets %}
+                {% for ticket in tickets %}
+                    <div class="modal fade" id="ticketDetailModal{{ ticket.ticket_id }}" tabindex="-1" aria-labelledby="ticketDetailLabel{{ ticket.ticket_id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="ticketDetailLabel{{ ticket.ticket_id }}">Ticket #{{ ticket.ticket_id }} Full Problem</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-6 col-md-3">
+                                            <small class="text-muted d-block">Student</small>
+                                            <span class="fw-semibold">{{ ticket.student_id }}</span>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small class="text-muted d-block">Course</small>
+                                            <span class="fw-semibold">{{ ticket.course_code or 'General' }}</span>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small class="text-muted d-block">Priority</small>
+                                            <span class="fw-semibold">{{ ticket.priority }}</span>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small class="text-muted d-block">Status</small>
+                                            <span class="fw-semibold">{{ ticket.status }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="border rounded-3 p-3 bg-light-subtle">
+                                        <small class="text-muted d-block mb-2">Problem Description</small>
+                                        <p class="mb-0" style="white-space: pre-wrap;">{{ ticket.description }}</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-sm dashboard-ghost-btn" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 </div>

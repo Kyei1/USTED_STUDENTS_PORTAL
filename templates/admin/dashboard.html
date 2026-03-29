@@ -3,26 +3,146 @@
 {% block title %}Admin Dashboard - USTED Portal{% endblock %}
 
 {% block content %}
-<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm">
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm mb-4">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: var(--usted-maroon);">Admin Dashboard</h1>
-            <p class="text-muted mb-0">Central administration workspace for governance and workflow oversight.</p>
+            <p class="text-muted mb-0">Govern grade publication, support workflows, and institutional communications.</p>
         </div>
         <div class="d-flex gap-2">
             <span class="badge rounded-pill" style="background: var(--usted-gold-soft); color: var(--usted-ink);">Admin #{{ admin.admin_id }}</span>
+            <span class="badge rounded-pill" style="background: var(--usted-maroon-soft); color: var(--usted-maroon);">{{ admin.role }}</span>
             <a href="{{ url_for('admin.logout') }}" class="btn btn-sm btn-outline-secondary">Log Out</a>
         </div>
     </div>
 
-    <article class="border rounded-4 p-4">
-        <h2 class="h6 fw-bold mb-3" style="color: var(--usted-maroon);">Coming Soon for Admin</h2>
-        <ul class="mb-0 ps-3 small text-muted">
-            <li>Grade approval governance dashboard.</li>
-            <li>User and role lifecycle management.</li>
-            <li>Support ticket escalation queue.</li>
-            <li>Financial clearance workflow controls.</li>
-        </ul>
-    </article>
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-uppercase fw-bold text-muted mb-1">Students</p>
+                <p class="h3 fw-bold mb-0" style="color: var(--usted-ink);">{{ total_students }}</p>
+            </article>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-uppercase fw-bold text-muted mb-1">Lecturers</p>
+                <p class="h3 fw-bold mb-0" style="color: var(--usted-ink);">{{ total_lecturers }}</p>
+            </article>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-uppercase fw-bold text-muted mb-1">Courses</p>
+                <p class="h3 fw-bold mb-0" style="color: var(--usted-ink);">{{ total_courses }}</p>
+            </article>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="border rounded-3 p-3 h-100">
+                <p class="small text-uppercase fw-bold text-muted mb-1">Unresolved Tickets</p>
+                <p class="h3 fw-bold mb-0" style="color: var(--usted-maroon);">{{ unresolved_ticket_count }}</p>
+            </article>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <article class="border rounded-4 p-3 p-lg-4 h-100">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Grade Governance Snapshot</h2>
+                    <a href="{{ url_for('admin.grade_approvals') }}" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Open Grade Approvals</a>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-light border">Draft: {{ grade_status_counts.Draft }}</span>
+                    <span class="badge rounded-pill" style="background: #fff7e3; color: #8a5a00;">Pending HOD: {{ grade_status_counts.Pending_HOD }}</span>
+                    <span class="badge rounded-pill" style="background: rgba(122,0,22,0.08); color: var(--usted-maroon);">Pending Board: {{ grade_status_counts.Pending_Board }}</span>
+                    <span class="badge rounded-pill" style="background: rgba(16,185,129,0.14); color: #065f46;">Published: {{ grade_status_counts.Published }}</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Period</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grade in recent_pending_grades %}
+                                <tr>
+                                    <td>{{ grade.enrollment.student.student_id }}</td>
+                                    <td>{{ grade.enrollment.course_code }}</td>
+                                    <td>{{ grade.enrollment.academic_year }} {{ grade.enrollment.semester }}</td>
+                                    <td>
+                                        {% if grade.approval_status == 'Pending_HOD' %}
+                                            <span class="badge" style="background: #fff7e3; color: #8a5a00;">Pending HOD</span>
+                                        {% elif grade.approval_status == 'Pending_Board' %}
+                                            <span class="badge" style="background: rgba(122,0,22,0.08); color: var(--usted-maroon);">Pending Board</span>
+                                        {% else %}
+                                            <span class="badge text-bg-light">{{ grade.approval_status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No pending grades right now.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </div>
+
+        <div class="col-12 col-lg-5 d-flex flex-column gap-4">
+            <article class="border rounded-4 p-3 p-lg-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Helpdesk Oversight</h2>
+                    <a href="{{ url_for('admin.helpdesk') }}" class="btn btn-sm btn-outline-secondary">Open Queue</a>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge rounded-pill" style="background: rgba(122,0,22,0.08); color: var(--usted-maroon);">Open: {{ ticket_status_counts.Open }}</span>
+                    <span class="badge rounded-pill text-bg-secondary">Pending: {{ ticket_status_counts.Pending }}</span>
+                    <span class="badge rounded-pill" style="background: rgba(16,185,129,0.14); color: #065f46;">Resolved: {{ ticket_status_counts.Resolved }}</span>
+                </div>
+                <ul class="list-group list-group-flush border rounded-3">
+                    {% for ticket in recent_tickets[:4] %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <p class="mb-1 fw-semibold">#{{ ticket.ticket_id }} • {{ ticket.ticket_type }}</p>
+                                    <p class="mb-0 small text-muted">{{ ticket.student_id }}{% if ticket.course_code %} • {{ ticket.course_code }}{% endif %}</p>
+                                </div>
+                                <span class="badge text-bg-light border">{{ ticket.status }}</span>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-muted small">No support tickets found.</li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            <article class="border rounded-4 p-3 p-lg-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <h2 class="h6 fw-bold mb-0" style="color: var(--usted-maroon);">Announcements</h2>
+                    <a href="{{ url_for('admin.announcements') }}" class="btn btn-sm btn-outline-secondary">Manage</a>
+                </div>
+                <ul class="list-group list-group-flush border rounded-3">
+                    {% for item in latest_announcements %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                <strong class="small">{{ item.title }}</strong>
+                                <span class="badge rounded-pill text-bg-light border">{{ item.target_audience }}</span>
+                            </div>
+                            <p class="small text-muted mb-0">{{ item.message }}</p>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-muted small">No announcements posted yet.</li>
+                    {% endfor %}
+                </ul>
+            </article>
+        </div>
+    </div>
 </section>
 {% endblock %}

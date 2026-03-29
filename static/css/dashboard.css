@@ -507,6 +507,16 @@
     word-break: break-word;
 }
 
+.assigned-course-mobile-card {
+    padding-bottom: 0.85rem;
+}
+
+.assigned-course-mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+}
+
 .mobile-split {
     display: grid;
     grid-template-columns: 1fr auto;

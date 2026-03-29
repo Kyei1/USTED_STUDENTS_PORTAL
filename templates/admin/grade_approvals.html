@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Grade Approvals - Admin Workspace{% endblock %}
+
+{% block content %}
+<section class="bg-white border rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1" style="color: var(--usted-maroon);">Grade Approvals</h1>
+            <p class="text-muted mb-0">Move records through the governance workflow: Pending HOD -> Pending Board -> Published.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <span class="badge rounded-pill text-bg-light border">Draft: {{ status_counts.Draft }}</span>
+        <span class="badge rounded-pill" style="background: #fff7e3; color: #8a5a00;">Pending HOD: {{ status_counts.Pending_HOD }}</span>
+        <span class="badge rounded-pill" style="background: rgba(122,0,22,0.08); color: var(--usted-maroon);">Pending Board: {{ status_counts.Pending_Board }}</span>
+        <span class="badge rounded-pill" style="background: rgba(16,185,129,0.14); color: #065f46;">Published: {{ status_counts.Published }}</span>
+    </div>
+
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-12 col-md-4">
+            <label for="status" class="form-label small text-muted fw-semibold">Status</label>
+            <select id="status" name="status" class="form-select form-select-sm">
+                {% for value, label in [('All', 'All Statuses'), ('Pending_HOD', 'Pending HOD'), ('Pending_Board', 'Pending Board'), ('Draft', 'Draft'), ('Published', 'Published')] %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label for="academic_year" class="form-label small text-muted fw-semibold">Academic Year</label>
+            <select id="academic_year" name="academic_year" class="form-select form-select-sm">
+                <option value="All" {% if academic_year_filter == 'All' %}selected{% endif %}>All Years</option>
+                {% for year in academic_year_options %}
+                    <option value="{{ year }}" {% if academic_year_filter == year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label for="course_code" class="form-label small text-muted fw-semibold">Course</label>
+            <select id="course_code" name="course_code" class="form-select form-select-sm">
+                <option value="All" {% if course_code_filter == 'All' %}selected{% endif %}>All Courses</option>
+                {% for code in course_code_options %}
+                    <option value="{{ code }}" {% if course_code_filter == code %}selected{% endif %}>{{ code }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 d-flex justify-content-end">
+            <button type="submit" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink); font-weight: 700;">Apply Filters</button>
+        </div>
+    </form>
+
+    <form id="bulkApprovalForm" method="post" class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <input type="hidden" name="status_filter" value="{{ status_filter }}">
+        <input type="hidden" name="academic_year_filter" value="{{ academic_year_filter }}">
+        <input type="hidden" name="course_code_filter" value="{{ course_code_filter }}">
+
+        <select name="action" class="form-select form-select-sm" style="max-width: 260px;" required>
+            <option value="">Bulk action on selected records</option>
+            <option value="approve_hod">Approve HOD -> Pending Board</option>
+            <option value="publish_board">Publish Pending Board Records</option>
+            <option value="return_hod">Return Pending Board -> Pending HOD</option>
+            <option value="return_draft">Return Pending Records -> Draft</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Apply to Selected</button>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>
+                        <input type="checkbox" id="selectAllRows" class="form-check-input" aria-label="Select all">
+                    </th>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Period</th>
+                    <th class="text-center">CA</th>
+                    <th class="text-center">Exam</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-center">Grade</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grade in queue_rows %}
+                    {% set enrollment = grade.enrollment %}
+                    <tr>
+                        <td>
+                            <input
+                                class="form-check-input approval-row-checkbox"
+                                type="checkbox"
+                                name="selected_grade_ids"
+                                value="{{ grade.grade_id }}"
+                                form="bulkApprovalForm"
+                                aria-label="Select grade {{ grade.grade_id }}"
+                            >
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ enrollment.student.student_id }}</div>
+                            <div class="small text-muted">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ enrollment.course_code }}</div>
+                            <div class="small text-muted">{{ enrollment.course.course_name }}</div>
+                        </td>
+                        <td>
+                            <div>{{ enrollment.academic_year }}</div>
+                            <small class="text-muted">{{ enrollment.semester }}</small>
+                        </td>
+                        <td class="text-center">{{ '%.2f'|format(grade.ca_score|float) if grade.ca_score is not none else '-' }}</td>
+                        <td class="text-center">{{ '%.2f'|format(grade.exam_score|float) if grade.exam_score is not none else '-' }}</td>
+                        <td class="text-center">{{ '%.2f'|format(grade.total_score|float) if grade.total_score is not none else '-' }}</td>
+                        <td class="text-center">{{ grade.grade_letter or '-' }}</td>
+                        <td>
+                            {% if grade.approval_status == 'Pending_HOD' %}
+                                <span class="badge" style="background: #fff7e3; color: #8a5a00;">Pending HOD</span>
+                            {% elif grade.approval_status == 'Pending_Board' %}
+                                <span class="badge" style="background: rgba(122,0,22,0.08); color: var(--usted-maroon);">Pending Board</span>
+                            {% elif grade.approval_status == 'Published' %}
+                                <span class="badge" style="background: rgba(16,185,129,0.14); color: #065f46;">Published</span>
+                            {% else %}
+                                <span class="badge text-bg-light border">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <form method="post" class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                                <input type="hidden" name="grade_id" value="{{ grade.grade_id }}">
+                                <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                                <input type="hidden" name="academic_year_filter" value="{{ academic_year_filter }}">
+                                <input type="hidden" name="course_code_filter" value="{{ course_code_filter }}">
+
+                                <button type="submit" name="action" value="approve_hod" class="btn btn-sm btn-outline-secondary" {% if grade.approval_status != 'Pending_HOD' %}disabled{% endif %}>Approve HOD</button>
+                                <button type="submit" name="action" value="publish_board" class="btn btn-sm" style="background: var(--usted-gold); color: var(--usted-ink);" {% if grade.approval_status != 'Pending_Board' %}disabled{% endif %}>Publish</button>
+                                <button type="submit" name="action" value="return_hod" class="btn btn-sm btn-outline-secondary" {% if grade.approval_status != 'Pending_Board' %}disabled{% endif %}>Return HOD</button>
+                                <button type="submit" name="action" value="return_draft" class="btn btn-sm btn-outline-danger" {% if grade.approval_status not in ['Pending_HOD', 'Pending_Board'] %}disabled{% endif %}>Return Draft</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-5">No grade records match this filter.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var selectAll = document.getElementById('selectAllRows');
+    var rowChecks = Array.from(document.querySelectorAll('.approval-row-checkbox'));
+
+    if (!selectAll || !rowChecks.length) {
+        return;
+    }
+
+    selectAll.addEventListener('change', function () {
+        rowChecks.forEach(function (checkbox) {
+            checkbox.checked = selectAll.checked;
+        });
+    });
+
+    rowChecks.forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            var checkedCount = rowChecks.filter(function (item) { return item.checked; }).length;
+            selectAll.checked = checkedCount === rowChecks.length;
+            selectAll.indeterminate = checkedCount > 0 && checkedCount < rowChecks.length;
+        });
+    });
+});
+</script>
+{% endblock %}
